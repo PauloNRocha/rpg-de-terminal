@@ -5,6 +5,15 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-10-28
+
+### Modificado
+
+-   O sistema de comandos por texto (`ir norte`) foi substituído por um menu de ações numérico, melhorando a usabilidade.
+-   O menu de ações agora é gerado dinamicamente, mostrando apenas os movimentos possíveis para a sala atual.
+-   Adicionada a ação "Voltar por onde veio", permitindo ao jogador retornar à sua posição anterior.
+-   A lógica de fuga do combate agora retorna o jogador para a sala anterior.
+
 ## [0.3.0] - 2025-10-28
 
 ### Adicionado
