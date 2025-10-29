@@ -5,6 +5,20 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-10-28
+
+### Adicionado
+
+-   Criado `requirements.txt` com as dependências do projeto (pytest).
+-   Criado o diretório `tests/` para organizar os testes.
+-   Implementado o primeiro teste unitário em `tests/test_combate.py` para a função de cálculo de dano.
+-   Configurado o pipeline de CI/CD com GitHub Actions (`.github/workflows/python-ci.yml`).
+    -   O workflow executa os testes automaticamente em cada `push` e `pull request` para `main`.
+
+### Modificado
+
+-   Refatorada a lógica de cálculo de dano em `src/combate.py` para uma função pura (`calcular_dano`), melhorando a testabilidade.
+
 ## [0.4.1] - 2025-10-28
 
 ### Corrigido

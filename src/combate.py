@@ -2,6 +2,12 @@ import time
 import random
 from src.utils import limpar_tela
 
+def calcular_dano(atacante_ataque, defensor_defesa):
+    """Calcula o dano causado, considerando ataque, defesa e um fator de aleatoriedade."""
+    dano_base = max(0, atacante_ataque - defensor_defesa)
+    dano_real = random.randint(max(0, dano_base - 1), dano_base + 1)
+    return max(0, dano_real) # Garante que o dano não seja negativo
+
 def iniciar_combate(jogador, inimigo, usar_pocao_callback):
     """
     Inicia e gerencia o loop de um combate por turnos entre o jogador e um inimigo.
@@ -33,9 +39,7 @@ def iniciar_combate(jogador, inimigo, usar_pocao_callback):
 
         if escolha == "1": # Atacar
             # Turno do Jogador
-            dano_jogador = max(0, jogador["ataque"] - inimigo_atual["defesa"])
-            dano_real_jogador = random.randint(max(0, dano_jogador - 1), dano_jogador + 1)
-            dano_real_jogador = max(0, dano_real_jogador) # Garante que o dano não seja negativo
+            dano_real_jogador = calcular_dano(jogador["ataque"], inimigo_atual["defesa"])
             
             inimigo_atual["hp"] -= dano_real_jogador
             print(f"\nVocê ataca o {inimigo_atual['nome']} e causa {dano_real_jogador} de dano!")
@@ -47,9 +51,7 @@ def iniciar_combate(jogador, inimigo, usar_pocao_callback):
                 return True
 
             # Turno do Inimigo (se o inimigo ainda estiver vivo)
-            dano_inimigo = max(0, inimigo_atual["ataque"] - jogador["defesa"])
-            dano_real_inimigo = random.randint(max(0, dano_inimigo - 1), dano_inimigo + 1)
-            dano_real_inimigo = max(0, dano_real_inimigo)
+            dano_real_inimigo = calcular_dano(inimigo_atual["ataque"], jogador["defesa"])
 
             jogador["hp"] -= dano_real_inimigo
             print(f"O {inimigo_atual['nome']} ataca você e causa {dano_real_inimigo} de dano!")
@@ -68,9 +70,7 @@ def iniciar_combate(jogador, inimigo, usar_pocao_callback):
                 print("\nA fuga falhou! Você perdeu sua vez.")
                 time.sleep(2)
                 # Turno do Inimigo após falha na fuga
-                dano_inimigo = max(0, inimigo_atual["ataque"] - jogador["defesa"])
-                dano_real_inimigo = random.randint(max(0, dano_inimigo - 1), dano_inimigo + 1)
-                dano_real_inimigo = max(0, dano_real_inimigo)
+                dano_real_inimigo = calcular_dano(inimigo_atual["ataque"], jogador["defesa"])
 
                 jogador["hp"] -= dano_real_inimigo
                 print(f"O {inimigo_atual['nome']} ataca você e causa {dano_real_inimigo} de dano!")
@@ -85,9 +85,7 @@ def iniciar_combate(jogador, inimigo, usar_pocao_callback):
             pocao_usada = usar_pocao_callback(jogador)
             if pocao_usada:
                 # Se a poção foi usada, o inimigo ainda ataca
-                dano_inimigo = max(0, inimigo_atual["ataque"] - jogador["defesa"])
-                dano_real_inimigo = random.randint(max(0, dano_inimigo - 1), dano_inimigo + 1)
-                dano_real_inimigo = max(0, dano_real_inimigo)
+                dano_real_inimigo = calcular_dano(inimigo_atual["ataque"], jogador["defesa"])
 
                 jogador["hp"] -= dano_real_inimigo
                 print(f"O {inimigo_atual['nome']} ataca você e causa {dano_real_inimigo} de dano!")
