@@ -5,6 +5,14 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-10-28
+
+### Adicionado
+
+-   Criada uma tela de "Game Over" mais elaborada em `src/utils.py`, com arte ASCII e uma mensagem final.
+-   A nova tela aguarda a entrada do jogador (pressionar Enter) antes de retornar ao menu, melhorando o fluxo.
+-   A lógica de fim de jogo foi centralizada em `jogo.py`, que agora chama a função `tela_game_over`.
+
 ## [0.3.1] - 2025-10-28
 
 ### Modificado

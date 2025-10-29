@@ -50,8 +50,6 @@ def iniciar_combate(jogador, inimigo):
             time.sleep(2)
 
             if jogador["hp"] <= 0:
-                print("\nVocê foi derrotado...")
-                time.sleep(3)
                 return False
         
         elif escolha == "2":
@@ -73,8 +71,6 @@ def iniciar_combate(jogador, inimigo):
                 time.sleep(2)
 
                 if jogador["hp"] <= 0:
-                    print("\nVocê foi derrotado...")
-                    time.sleep(3)
                     return False
         else:
             print("\nOpção inválida! Tente novamente.")
