@@ -175,7 +175,7 @@ def iniciar_aventura(jogador, mapa):
             print(f"\nCUIDADO! Um {inimigo['nome']} está na sala!")
             time.sleep(2)
             
-            resultado_combate = iniciar_combate(jogador, inimigo)
+            resultado_combate = iniciar_combate(jogador, inimigo, usar_item)
             
             if resultado_combate: # Vitória
                 print(f"Você derrotou o {inimigo['nome']}!")

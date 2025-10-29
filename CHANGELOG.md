@@ -5,6 +5,12 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-10-28
+
+### Corrigido
+
+-   Corrigido `TypeError` em `iniciar_combate()`: O argumento `usar_pocao_callback` agora é passado corretamente, resolvendo o bug que impedia o início do combate.
+
 ## [0.4.0] - 2025-10-28
 
 ### Adicionado
