@@ -5,6 +5,20 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-10-28
+
+### Adicionado
+
+-   Implementado o sistema de combate por turnos.
+-   Criado o módulo `src/combate.py` para gerenciar a lógica das batalhas.
+-   Adicionados três tipos de inimigos (Goblin, Orc, Chefe) com atributos distintos em `src/mapa.py`.
+-   Salas do mapa agora podem conter inimigos.
+-   O combate é iniciado automaticamente ao entrar em uma sala com um inimigo.
+-   Implementadas as ações de `atacar` e `fugir` no combate.
+-   Adicionado um pequeno fator de aleatoriedade no cálculo de dano.
+-   Inimigos derrotados são removidos permanentemente do mapa.
+-   O jogo agora termina se o HP do jogador chegar a zero.
+
 ## [0.2.1] - 2025-10-28
 
 ### Modificado

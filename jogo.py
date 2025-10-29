@@ -3,6 +3,12 @@ from src.utils import limpar_tela
 from src.personagem import criar_personagem
 from src.mapa import MAPA
 
+import time
+from src.utils import limpar_tela
+from src.personagem import criar_personagem
+from src.mapa import MAPA
+from src.combate import iniciar_combate
+
 def iniciar_aventura(jogador, mapa):
     """Loop principal da exploração do mapa."""
     
@@ -20,6 +26,29 @@ def iniciar_aventura(jogador, mapa):
         print(sala_atual['descricao'])
         print("-" * 30)
         print(f"HP: {jogador['hp']}/{jogador['hp_max']}")
+
+        # Verifica se há um inimigo na sala
+        if sala_atual.get("inimigo"):
+            inimigo = sala_atual["inimigo"]
+            print(f"\nCUIDADO! Um {inimigo['nome']} está na sala!")
+            time.sleep(2)
+            
+            resultado_combate = iniciar_combate(jogador, inimigo)
+            
+            if resultado_combate: # Vitória
+                sala_atual["inimigo"] = None # Remove o inimigo do mapa
+                print(f"\nVocê continua sua jornada...")
+                time.sleep(2)
+            else: # Derrota ou fuga
+                if jogador["hp"] <= 0:
+                    print("\n--- FIM DE JOGO ---")
+                    time.sleep(4)
+                    return # Retorna para o menu principal
+                else: # Fuga
+                    print("\nVocê recua para a sala anterior para repensar sua estratégia.")
+                    # (Futuramente, podemos implementar a lógica de voltar para a sala anterior)
+                    time.sleep(3)
+
         print("\nO que você faz?")
         
         # Mostra as ações possíveis
@@ -33,7 +62,7 @@ def iniciar_aventura(jogador, mapa):
             time.sleep(2)
             break
             
-elif comando.startswith("ir "):
+        elif comando.startswith("ir "):
             direcao = comando.split(" ")[1]
             nova_x, nova_y = jogador["x"], jogador["y"]
 
@@ -59,7 +88,6 @@ elif comando.startswith("ir "):
         else:
             print("\nComando desconhecido.")
             time.sleep(1)
-
 
 def main():
     """Função principal do jogo."""
