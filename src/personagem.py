@@ -1,3 +1,4 @@
+import time
 from src.utils import limpar_tela
 
 def criar_personagem():
@@ -8,6 +9,8 @@ def criar_personagem():
     jogador = {
         "nome": "", "classe": "", "hp": 0, "hp_max": 0,
         "ataque": 0, "defesa": 0, "x": 0, "y": 0,
+        "inventario": [], # Novo: Inventário do jogador
+        "equipamento": {"arma": None, "escudo": None}, # Novo: Equipamentos
     }
 
     # Pede o nome do personagem
@@ -61,6 +64,5 @@ def criar_personagem():
     print(f"Defesa: {jogador['defesa']}")
     print("--------------------")
     print("\nA aventura vai começar...")
-    import time
     time.sleep(4)
     return jogador

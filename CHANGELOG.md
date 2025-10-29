@@ -5,6 +5,20 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-10-28
+
+### Adicionado
+
+-   Implementado o sistema de itens e inventário.
+-   Criado o módulo `src/itens.py` para definir os itens (Poção de Cura, Espada Longa, Escudo de Aço).
+-   O jogador agora possui um `inventario` e um dicionário `equipamento` (arma, escudo).
+-   Itens podem ser encontrados em salas específicas do mapa.
+-   Monstros agora podem dropar itens ao serem derrotados.
+-   Adicionadas opções no menu de aventura para `Ver Inventário`, `Usar Item` e `Equipar Item`.
+-   Implementada a lógica para coletar itens automaticamente ao entrar em uma sala.
+-   A função `aplicar_bonus_equipamento` foi criada para recalcular os atributos do jogador com base nos itens equipados.
+-   Integrada a opção de `Usar Poção` durante o combate, permitindo ao jogador curar-se em batalha.
+
 ## [0.3.2] - 2025-10-28
 
 ### Adicionado
