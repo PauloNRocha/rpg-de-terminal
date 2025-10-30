@@ -5,6 +5,16 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-10-30
+
+### Modificado
+
+-   Atualizado o `README.md` para refletir todas as funcionalidades implementadas até a versão `0.5.0`, incluindo:
+    -   Criação de Personagem e Exploração de Mapa.
+    -   Sistema de Combate e Itens/Inventário (com geração procedural).
+    -   Tela de Game Over e Estrutura Modular.
+    -   Testes Automatizados e CI/CD com GitHub Actions.
+
 ## [0.5.0] - 2025-10-30
 
 ### Adicionado
