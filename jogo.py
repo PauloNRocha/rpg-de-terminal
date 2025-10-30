@@ -1,26 +1,23 @@
 import time
 from src.utils import limpar_tela, tela_game_over
 from src.personagem import criar_personagem
-from src.mapa import MAPA, INIMIGOS # Importa INIMIGOS para drops
+from src.mapa import MAPA
 from src.combate import iniciar_combate
-from src.itens import ITENS # Nova importação
+from src.gerador_itens import gerar_item_aleatorio # Nova importação
 
 # Função auxiliar para aplicar bônus de equipamento
 def aplicar_bonus_equipamento(jogador):
-    jogador["ataque_base"] = jogador["ataque"] # Armazena o ataque base
-    jogador["defesa_base"] = jogador["defesa"] # Armazena a defesa base
+    # Reseta para os valores base antes de aplicar bônus
+    jogador["ataque"] = jogador.get("ataque_base", jogador["ataque"])
+    jogador["defesa"] = jogador.get("defesa_base", jogador["defesa"])
 
     if jogador["equipamento"]["arma"]:
         bonus_ataque = jogador["equipamento"]["arma"]["bonus"].get("ataque", 0)
-        jogador["ataque"] = jogador["ataque_base"] + bonus_ataque
-    else:
-        jogador["ataque"] = jogador["ataque_base"]
+        jogador["ataque"] += bonus_ataque
 
     if jogador["equipamento"]["escudo"]:
         bonus_defesa = jogador["equipamento"]["escudo"]["bonus"].get("defesa", 0)
-        jogador["defesa"] = jogador["defesa_base"] + bonus_defesa
-    else:
-        jogador["defesa"] = jogador["defesa_base"]
+        jogador["defesa"] += bonus_defesa
 
 
 def mostrar_inventario(jogador):
@@ -41,23 +38,19 @@ def mostrar_inventario(jogador):
         print("Seu inventário está vazio.")
     else:
         for i, item in enumerate(jogador["inventario"], 1):
-            print(f"{i}. {item['nome']} ({item['descricao']})")
+            print(f"{i}. {item['nome']} ({item.get('descricao', 'Item consumível.')})")
     
     input("\nPressione Enter para continuar...")
 
 def usar_item(jogador):
     limpar_tela()
     print("=== USAR ITEM ===")
-    if not jogador["inventario"]:
-        print("Seu inventário está vazio.")
-        input("\nPressione Enter para continuar...")
-        return
-
+    
     itens_consumiveis = [item for item in jogador["inventario"] if item["tipo"] == "consumivel"]
     if not itens_consumiveis:
         print("Você não tem itens consumíveis no inventário.")
-        input("\nPressione Enter para continuar...")
-        return
+        time.sleep(2)
+        return False
 
     print("Seus itens consumíveis:")
     for i, item in enumerate(itens_consumiveis, 1):
@@ -68,24 +61,19 @@ def usar_item(jogador):
         try:
             escolha = int(input("\nEscolha um item para usar ou 'Voltar': "))
             if escolha == len(itens_consumiveis) + 1:
-                return
+                return False
             if not (1 <= escolha <= len(itens_consumiveis)):
                 raise ValueError
 
             item_escolhido = itens_consumiveis[escolha - 1]
 
-            if item_escolhido["tipo"] == "consumivel":
-                if "hp" in item_escolhido["efeito"]:
-                    cura = item_escolhido["efeito"]["hp"]
-                    jogador["hp"] = min(jogador["hp_max"], jogador["hp"] + cura)
-                    print(f"Você usou {item_escolhido['nome']} e restaurou {cura} de HP.")
-                    jogador["inventario"].remove(item_escolhido)
-                    time.sleep(2)
-                    return
-            else:
-                print("Este item não pode ser usado desta forma.")
-                time.sleep(1)
-
+            if "hp" in item_escolhido["efeito"]:
+                cura = item_escolhido["efeito"]["hp"]
+                jogador["hp"] = min(jogador["hp_max"], jogador["hp"] + cura)
+                print(f"Você usou {item_escolhido['nome']} e restaurou {cura} de HP.")
+                jogador["inventario"].remove(item_escolhido)
+                time.sleep(2)
+                return True
         except (ValueError, IndexError):
             print("Opção inválida! Tente novamente.")
             time.sleep(1)
@@ -93,15 +81,11 @@ def usar_item(jogador):
 def equipar_item(jogador):
     limpar_tela()
     print("=== EQUIPAR ITEM ===")
-    if not jogador["inventario"]:
-        print("Seu inventário está vazio.")
-        input("\nPressione Enter para continuar...")
-        return
-
+    
     itens_equipaveis = [item for item in jogador["inventario"] if item["tipo"] in ["arma", "escudo"]]
     if not itens_equipaveis:
         print("Você não tem itens equipáveis no inventário.")
-        input("\nPressione Enter para continuar...")
+        time.sleep(2)
         return
 
     print("Seus itens equipáveis:")
@@ -161,14 +145,6 @@ def iniciar_aventura(jogador, mapa):
         print("-" * 30)
         print(f"HP: {jogador['hp']}/{jogador['hp_max']} | Ataque: {jogador['ataque']} | Defesa: {jogador['defesa']}")
         
-        # Verifica se há um item na sala para coletar
-        if sala_atual.get("item"):
-            item_encontrado = sala_atual["item"]
-            jogador["inventario"].append(item_encontrado)
-            print(f"\nVocê encontrou um(a) {item_encontrado['nome']} e o adicionou ao seu inventário!")
-            sala_atual["item"] = None # Remove o item da sala
-            time.sleep(2)
-
         # Verifica se há um inimigo na sala
         if sala_atual.get("inimigo"):
             inimigo = sala_atual["inimigo"]
@@ -178,11 +154,11 @@ def iniciar_aventura(jogador, mapa):
             resultado_combate = iniciar_combate(jogador, inimigo, usar_item)
             
             if resultado_combate: # Vitória
-                print(f"Você derrotou o {inimigo['nome']}!")
-                if inimigo.get("drop"): # Verifica se o inimigo dropa algo
-                    item_dropado = inimigo["drop"]
-                    jogador["inventario"].append(item_dropado)
-                    print(f"O {inimigo['nome']} dropou um(a) {item_dropado['nome']}!")
+                if inimigo.get("drop_raridade"): # Verifica se o inimigo dropa algo
+                    item_dropado = gerar_item_aleatorio(inimigo["drop_raridade"])
+                    if item_dropado:
+                        jogador["inventario"].append(item_dropado)
+                        print(f"O {inimigo['nome']} dropou: {item_dropado['nome']}!")
                 sala_atual["inimigo"] = None # Remove o inimigo do mapa
                 print("\nVocê continua sua jornada...")
                 time.sleep(2)

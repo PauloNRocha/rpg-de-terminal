@@ -5,14 +5,24 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.3] - 2025-10-28
+## [0.5.0] - 2025-10-30
+
+### Adicionado
+
+-   Implementado o sistema de **Geração Processual de Itens** (loot dinâmico).
+-   Criado o módulo `src/gerador_itens.py` com a lógica para criar itens aleatórios.
+-   O sistema de itens foi refatorado em `src/itens.py` para usar `ITEM_TEMPLATES`, `PREFIXOS` e `SUFIXOS`.
+-   Inimigos agora dropam itens gerados aleatoriamente com base em sua `drop_raridade` (comum, incomum, raro).
+-   Itens estáticos foram removidos das salas para focar o loot nos drops de monstros.
+
+## [0.4.3] - 2025-10-30
 
 ### Corrigido
 
 -   Ajustada a lógica da função `calcular_dano` em `src/combate.py` para garantir que o dano seja 0 quando o ataque é menor ou igual à defesa.
 -   Corrigido o erro de importação de módulos nos testes, adicionando o arquivo `pytest.ini` com `pythonpath = .` na raiz do projeto.
 
-## [0.4.2] - 2025-10-28
+## [0.4.2] - 2025-10-29
 
 ### Adicionado
 
