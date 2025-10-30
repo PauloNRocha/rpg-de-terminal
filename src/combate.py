@@ -5,6 +5,9 @@ from src.utils import limpar_tela
 def calcular_dano(atacante_ataque, defensor_defesa):
     """Calcula o dano causado, considerando ataque, defesa e um fator de aleatoriedade."""
     dano_base = max(0, atacante_ataque - defensor_defesa)
+    # Se o dano base é 0, o dano real também deve ser 0.
+    if dano_base == 0:
+        return 0
     dano_real = random.randint(max(0, dano_base - 1), dano_base + 1)
     return max(0, dano_real) # Garante que o dano não seja negativo
 

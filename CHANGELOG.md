@@ -5,6 +5,13 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2025-10-28
+
+### Corrigido
+
+-   Ajustada a lógica da função `calcular_dano` em `src/combate.py` para garantir que o dano seja 0 quando o ataque é menor ou igual à defesa.
+-   Corrigido o erro de importação de módulos nos testes, adicionando o arquivo `pytest.ini` com `pythonpath = .` na raiz do projeto.
+
 ## [0.4.2] - 2025-10-28
 
 ### Adicionado
