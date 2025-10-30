@@ -9,8 +9,11 @@ def criar_personagem():
     jogador = {
         "nome": "", "classe": "", "hp": 0, "hp_max": 0,
         "ataque": 0, "defesa": 0, "x": 0, "y": 0,
-        "inventario": [], # Novo: Inventário do jogador
-        "equipamento": {"arma": None, "escudo": None}, # Novo: Equipamentos
+        "inventario": [],
+        "equipamento": {"arma": None, "escudo": None},
+        "nivel": 1,
+        "xp_atual": 0,
+        "xp_para_proximo_nivel": 100,
     }
 
     # Pede o nome do personagem

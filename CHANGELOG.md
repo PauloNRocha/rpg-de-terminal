@@ -5,6 +5,21 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-10-30
+
+### Adicionado
+
+-   **Sistema de Experiência e Níveis:**
+    -   O jogador agora tem `nível`, `XP atual` e `XP para o próximo nível`.
+    -   Ao derrotar inimigos, o jogador ganha pontos de experiência.
+    -   Implementada a função `verificar_level_up` que aumenta o nível do jogador e melhora seus atributos (`HP Máximo`, `Ataque`, `Defesa`).
+    -   A interface agora exibe as informações de nível e XP do jogador.
+-   **Geração Dinâmica de Inimigos:**
+    -   Criado o módulo `src/inimigos.py` com templates de inimigos (estatísticas de nível 1).
+    -   Criado o módulo `src/gerador_inimigos.py` que gera inimigos com atributos escalados para um nível específico.
+    -   O mapa (`src/mapa.py`) foi atualizado para definir um `nivel_area` para cada sala, determinando o nível dos inimigos que aparecem.
+    -   Inimigos agora são gerados dinamicamente ao entrar em uma sala, garantindo que o desafio cresça com o jogador.
+
 ## [0.5.1] - 2025-10-30
 
 ### Modificado

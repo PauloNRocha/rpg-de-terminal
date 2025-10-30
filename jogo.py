@@ -3,7 +3,37 @@ from src.utils import limpar_tela, tela_game_over
 from src.personagem import criar_personagem
 from src.mapa import MAPA
 from src.combate import iniciar_combate
-from src.gerador_itens import gerar_item_aleatorio # Nova importação
+from src.gerador_itens import gerar_item_aleatorio
+from src.gerador_inimigos import gerar_inimigo # Nova importação
+
+def verificar_level_up(jogador):
+    """Verifica se o jogador tem XP suficiente para subir de nível e aplica as mudanças."""
+    if jogador["xp_atual"] >= jogador["xp_para_proximo_nivel"]:
+        jogador["nivel"] += 1
+        xp_excedente = jogador["xp_atual"] - jogador["xp_para_proximo_nivel"]
+        jogador["xp_atual"] = xp_excedente
+        jogador["xp_para_proximo_nivel"] = int(jogador["xp_para_proximo_nivel"] * 1.5) # Aumenta o requisito de XP
+
+        # Melhorias de atributos
+        hp_ganho = 10
+        ataque_ganho = 2
+        defesa_ganho = 1
+        
+        jogador["hp_max"] += hp_ganho
+        jogador["hp"] = jogador["hp_max"] # Cura total ao subir de nível
+        jogador["ataque_base"] += ataque_ganho
+        jogador["defesa_base"] += defesa_ganho
+        
+        limpar_tela()
+        print("=========================")
+        print("===   VOCÊ SUBIU DE NÍVEL!  ===")
+        print("=========================")
+        print(f"Nível: {jogador['nivel']}")
+        print(f"HP Máximo: +{hp_ganho}")
+        print(f"Ataque Base: +{ataque_ganho}")
+        print(f"Defesa Base: +{defesa_ganho}")
+        input("\nPressione Enter para continuar...")
+        aplicar_bonus_equipamento(jogador) # Reaplica bônus após aumentar stats base
 
 # Função auxiliar para aplicar bônus de equipamento
 def aplicar_bonus_equipamento(jogador):
@@ -23,7 +53,8 @@ def aplicar_bonus_equipamento(jogador):
 def mostrar_inventario(jogador):
     limpar_tela()
     print("=== INVENTÁRIO ===")
-    print(f"Nome: {jogador['nome']} | Classe: {jogador['classe']}")
+    print(f"Nome: {jogador['nome']} | Classe: {jogador['classe']} | Nível: {jogador['nivel']}")
+    print(f"XP: {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}")
     print(f"HP: {jogador['hp']}/{jogador['hp_max']} | Ataque: {jogador['ataque']} | Defesa: {jogador['defesa']}")
     print("-" * 30)
 
@@ -143,51 +174,56 @@ def iniciar_aventura(jogador, mapa):
         print(f"Você está em: {sala_atual['nome']}")
         print(sala_atual['descricao'])
         print("-" * 30)
+        print(f"Nível: {jogador['nivel']} | XP: {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}")
         print(f"HP: {jogador['hp']}/{jogador['hp_max']} | Ataque: {jogador['ataque']} | Defesa: {jogador['defesa']}")
         
-        # Verifica se há um inimigo na sala
-        if sala_atual.get("inimigo"):
-            inimigo = sala_atual["inimigo"]
+        # Gera um inimigo dinamicamente se a sala permitir
+        if sala_atual.get("pode_ter_inimigo") and not sala_atual.get("inimigo_derrotado"):
+            nivel_inimigo = sala_atual.get("nivel_area", 1)
+            inimigo = gerar_inimigo(nivel_inimigo)
             print(f"\nCUIDADO! Um {inimigo['nome']} está na sala!")
             time.sleep(2)
             
             resultado_combate = iniciar_combate(jogador, inimigo, usar_item)
             
             if resultado_combate: # Vitória
-                if inimigo.get("drop_raridade"): # Verifica se o inimigo dropa algo
+                xp_ganho = inimigo["xp_recompensa"]
+                print(f"Você ganhou {xp_ganho} de XP!")
+                jogador["xp_atual"] += xp_ganho
+                
+                if inimigo.get("drop_raridade"):
                     item_dropado = gerar_item_aleatorio(inimigo["drop_raridade"])
                     if item_dropado:
                         jogador["inventario"].append(item_dropado)
-                        print(f"O {inimigo['nome']} dropou: {item_dropado['nome']}!")
-                sala_atual["inimigo"] = None # Remove o inimigo do mapa
-                print("\nVocê continua sua jornada...")
+                        print(f"O inimigo dropou: {item_dropado['nome']}!")
+                
+                sala_atual["inimigo_derrotado"] = True # Marca que o inimigo da sala foi derrotado
                 time.sleep(2)
+                verificar_level_up(jogador)
             else: # Derrota ou fuga
                 if jogador["hp"] <= 0:
                     tela_game_over()
-                    return # Retorna para o menu principal
+                    return
                 else: # Fuga
                     print("\nVocê recua para a sala anterior.")
                     if posicao_anterior:
                         jogador["x"], jogador["y"] = posicao_anterior
                     time.sleep(2)
-                    continue # Reinicia o loop na sala anterior
+                    continue
 
         print("\nO que você faz?")
         
-        # Gera a lista de ações dinamicamente
         opcoes = []
         if y > 0: opcoes.append("Ir para o Norte")
         if y < len(mapa) - 1: opcoes.append("Ir para o Sul")
         if x < len(mapa[0]) - 1: opcoes.append("Ir para o Leste")
         if x > 0: opcoes.append("Ir para o Oeste")
         if posicao_anterior is not None: opcoes.append("Voltar por onde veio")
-        opcoes.append("Ver Inventário") # Nova opção
-        opcoes.append("Usar Item")      # Nova opção
-        opcoes.append("Equipar Item")   # Nova opção
+        opcoes.append("Ver Inventário")
+        opcoes.append("Usar Item")
+        opcoes.append("Equipar Item")
         opcoes.append("Sair da masmorra")
 
-        # Mostra o menu numerado
         for i, opcao in enumerate(opcoes, 1):
             print(f"{i}. {opcao}")
 
@@ -212,13 +248,13 @@ def iniciar_aventura(jogador, mapa):
                 jogador["x"], jogador["y"] = posicao_anterior
             elif acao_escolhida == "Ver Inventário":
                 mostrar_inventario(jogador)
-                continue # Continua o loop para mostrar o menu novamente
+                continue
             elif acao_escolhida == "Usar Item":
                 usar_item(jogador)
-                continue # Continua o loop para mostrar o menu novamente
+                continue
             elif acao_escolhida == "Equipar Item":
                 equipar_item(jogador)
-                continue # Continua o loop para mostrar o menu novamente
+                continue
             elif acao_escolhida == "Sair da masmorra":
                 print("\nVocê saiu da masmorra.")
                 time.sleep(2)
