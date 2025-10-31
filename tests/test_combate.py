@@ -11,14 +11,16 @@ def test_calcular_dano():
     # Testa um cenário básico de dano
     # Como há aleatoriedade, testamos um range esperado
     random.seed(42) # Fixa a semente para resultados reproduzíveis
-    dano = calcular_dano(10, 2) # Dano base esperado: 8
-    assert 7 <= dano <= 9 # Deve estar entre 7 e 9 (8 +/- 1)
+    dano = calcular_dano(10, 2)
+    # Dano base: 8. Variação de 0.8 a 1.2 => (10*0.8 - 2) a (10*1.2 - 2) => 6 a 10
+    assert 6 <= dano <= 10
 
     random.seed(100) # Outra semente
-    dano = calcular_dano(15, 5) # Dano base esperado: 10
-    assert 9 <= dano <= 11 # Deve estar entre 9 e 11 (10 +/- 1)
-
+    dano = calcular_dano(15, 5)
+    # Dano base: 10. Variação de 0.8 a 1.2 => (15*0.8 - 5) a (15*1.2 - 5) => 7 a 13
+    assert 7 <= dano <= 13
     # Testa caso de ataque muito alto vs defesa baixa
     random.seed(1) # Outra semente
     dano = calcular_dano(100, 1) # Dano base esperado: 99
-    assert 98 <= dano <= 100 # Deve estar entre 98 e 100 (99 +/- 1)
+    # Dano base: 99. Variação de 0.8 a 1.2 => (100*0.8 - 1) a (100*1.2 - 1) => 79 a 119
+    assert 79 <= dano <= 119
