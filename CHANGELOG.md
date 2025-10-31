@@ -5,6 +5,28 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-10-30
+
+### Adicionado
+
+-   **Revitalização da UI/UX:**
+    -   Implementado um sistema de design visual consistente para todas as telas do jogo, utilizando caixas, ícones Unicode e cores para uma experiência mais imersiva.
+    -   Criado o módulo `src/ui.py` para centralizar toda a lógica de renderização da interface.
+    -   Adicionada a dependência `colorama` para garantir a compatibilidade de cores em diferentes terminais.
+-   **Novas Telas da UI:**
+    -   `desenhar_hud_exploracao`: Uma nova interface principal com barras de status visuais para HP e XP.
+    -   `desenhar_tela_combate`: Uma nova tela de batalha que mostra jogador e inimigo lado a lado e um log de combate.
+    -   `desenhar_tela_inventario`: Uma nova tela de inventário com layout profissional.
+    -   `desenhar_tela_evento`: Uma tela genérica para mensagens importantes como "Level Up" e "Game Over".
+
+### Modificado
+
+-   Os módulos `jogo.py`, `combate.py` e `utils.py` foram refatorados para usar o novo sistema de UI, separando a lógica do jogo da sua apresentação.
+
+### Corrigido
+
+-   Corrigido um `NameError` em `jogo.py` causado pela falta da importação de `limpar_tela` no menu principal.
+
 ## [0.6.0] - 2025-10-30
 
 ### Adicionado

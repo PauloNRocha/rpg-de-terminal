@@ -1,17 +1,16 @@
 import os
+from src.ui import desenhar_tela_evento
 
 def limpar_tela():
-    """Limpa o terminal para melhorar a legibilidade."""
+    """Limpa a tela do terminal, compatível com Windows e Linux/Mac."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def tela_game_over():
-    """Exibe a tela de fim de jogo."""
-    limpar_tela()
-    print("=================================")
-    print("===                           ===")
-    print("===         GAME OVER         ===")
-    print("===                           ===")
-    print("=================================")
-    print("\nSua jornada termina aqui, herói.")
-    print("Mas a masmorra sempre aguarda uma nova tentativa.")
-    input("\nPressione Enter para voltar ao menu principal...")
+    """Exibe a tela de Game Over usando o novo sistema de UI."""
+    titulo = "GAME OVER"
+    mensagem = (
+        "Você foi derrotado.\n"
+        "A escuridão da caverna consome suas últimas memórias.\n\n"
+        "Tente novamente."
+    )
+    desenhar_tela_evento(titulo, mensagem)

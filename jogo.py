@@ -4,7 +4,8 @@ from src.personagem import criar_personagem
 from src.mapa import MAPA
 from src.combate import iniciar_combate
 from src.gerador_itens import gerar_item_aleatorio
-from src.gerador_inimigos import gerar_inimigo # Nova importação
+from src.gerador_inimigos import gerar_inimigo
+from src.ui import desenhar_hud_exploracao, desenhar_tela_inventario, desenhar_tela_evento # Nova importação de UI
 
 def verificar_level_up(jogador):
     """Verifica se o jogador tem XP suficiente para subir de nível e aplica as mudanças."""
@@ -12,28 +13,27 @@ def verificar_level_up(jogador):
         jogador["nivel"] += 1
         xp_excedente = jogador["xp_atual"] - jogador["xp_para_proximo_nivel"]
         jogador["xp_atual"] = xp_excedente
-        jogador["xp_para_proximo_nivel"] = int(jogador["xp_para_proximo_nivel"] * 1.5) # Aumenta o requisito de XP
+        jogador["xp_para_proximo_nivel"] = int(jogador["xp_para_proximo_nivel"] * 1.5)
 
-        # Melhorias de atributos
         hp_ganho = 10
         ataque_ganho = 2
         defesa_ganho = 1
         
         jogador["hp_max"] += hp_ganho
-        jogador["hp"] = jogador["hp_max"] # Cura total ao subir de nível
+        jogador["hp"] = jogador["hp_max"]
         jogador["ataque_base"] += ataque_ganho
         jogador["defesa_base"] += defesa_ganho
         
-        limpar_tela()
-        print("=========================")
-        print("===   VOCÊ SUBIU DE NÍVEL!  ===")
-        print("=========================")
-        print(f"Nível: {jogador['nivel']}")
-        print(f"HP Máximo: +{hp_ganho}")
-        print(f"Ataque Base: +{ataque_ganho}")
-        print(f"Defesa Base: +{defesa_ganho}")
-        input("\nPressione Enter para continuar...")
-        aplicar_bonus_equipamento(jogador) # Reaplica bônus após aumentar stats base
+        titulo = f"🌟 VOCÊ SUBIU PARA O NÍVEL {jogador['nivel']}! 🌟"
+        mensagem = (
+            f"HP Máximo: +{hp_ganho}\n"
+            f"Ataque Base: +{ataque_ganho}\n"
+            f"Defesa Base: +{defesa_ganho}\n\n"
+            "Seu HP foi totalmente restaurado!"
+        )
+        desenhar_tela_evento(titulo, mensagem)
+        
+        aplicar_bonus_equipamento(jogador)
 
 # Função auxiliar para aplicar bônus de equipamento
 def aplicar_bonus_equipamento(jogador):
@@ -51,27 +51,8 @@ def aplicar_bonus_equipamento(jogador):
 
 
 def mostrar_inventario(jogador):
-    limpar_tela()
-    print("=== INVENTÁRIO ===")
-    print(f"Nome: {jogador['nome']} | Classe: {jogador['classe']} | Nível: {jogador['nivel']}")
-    print(f"XP: {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}")
-    print(f"HP: {jogador['hp']}/{jogador['hp_max']} | Ataque: {jogador['ataque']} | Defesa: {jogador['defesa']}")
-    print("-" * 30)
+    desenhar_tela_inventario(jogador)
 
-    print("\n--- Equipamento ---")
-    arma_equipada = jogador["equipamento"]["arma"]
-    escudo_equipado = jogador["equipamento"]["escudo"]
-    print(f"Arma: {arma_equipada['nome'] if arma_equipada else 'Nenhuma'}")
-    print(f"Escudo: {escudo_equipado['nome'] if escudo_equipado else 'Nenhum'}")
-
-    print("\n--- Itens ---")
-    if not jogador["inventario"]:
-        print("Seu inventário está vazio.")
-    else:
-        for i, item in enumerate(jogador["inventario"], 1):
-            print(f"{i}. {item['nome']} ({item.get('descricao', 'Item consumível.')})")
-    
-    input("\nPressione Enter para continuar...")
 
 def usar_item(jogador):
     limpar_tela()
@@ -166,21 +147,15 @@ def iniciar_aventura(jogador, mapa):
     jogador["defesa_base"] = jogador["defesa"]
 
     while True:
-        limpar_tela()
-        
         x, y = jogador["x"], jogador["y"]
         sala_atual = mapa[y][x]
-        
-        print(f"Você está em: {sala_atual['nome']}")
-        print(sala_atual['descricao'])
-        print("-" * 30)
-        print(f"Nível: {jogador['nivel']} | XP: {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}")
-        print(f"HP: {jogador['hp']}/{jogador['hp_max']} | Ataque: {jogador['ataque']} | Defesa: {jogador['defesa']}")
         
         # Gera um inimigo dinamicamente se a sala permitir
         if sala_atual.get("pode_ter_inimigo") and not sala_atual.get("inimigo_derrotado"):
             nivel_inimigo = sala_atual.get("nivel_area", 1)
             inimigo = gerar_inimigo(nivel_inimigo)
+            
+            # TODO: Melhorar a tela de início de combate
             print(f"\nCUIDADO! Um {inimigo['nome']} está na sala!")
             time.sleep(2)
             
@@ -197,7 +172,7 @@ def iniciar_aventura(jogador, mapa):
                         jogador["inventario"].append(item_dropado)
                         print(f"O inimigo dropou: {item_dropado['nome']}!")
                 
-                sala_atual["inimigo_derrotado"] = True # Marca que o inimigo da sala foi derrotado
+                sala_atual["inimigo_derrotado"] = True
                 time.sleep(2)
                 verificar_level_up(jogador)
             else: # Derrota ou fuga
@@ -211,8 +186,7 @@ def iniciar_aventura(jogador, mapa):
                     time.sleep(2)
                     continue
 
-        print("\nO que você faz?")
-        
+        # Define as opções de ação
         opcoes = []
         if y > 0: opcoes.append("Ir para o Norte")
         if y < len(mapa) - 1: opcoes.append("Ir para o Sul")
@@ -224,11 +198,11 @@ def iniciar_aventura(jogador, mapa):
         opcoes.append("Equipar Item")
         opcoes.append("Sair da masmorra")
 
-        for i, opcao in enumerate(opcoes, 1):
-            print(f"{i}. {opcao}")
+        # Desenha a UI e captura a entrada do jogador
+        escolha_str = desenhar_hud_exploracao(jogador, sala_atual, opcoes)
 
         try:
-            escolha = int(input("> "))
+            escolha = int(escolha_str)
             if not (1 <= escolha <= len(opcoes)):
                 raise ValueError
 
@@ -263,6 +237,7 @@ def iniciar_aventura(jogador, mapa):
             posicao_anterior = posicao_atual
 
         except (ValueError, IndexError):
+            # TODO: Adicionar mensagem de feedback na UI
             print("\nOpção inválida! Tente novamente.")
             time.sleep(1)
 
