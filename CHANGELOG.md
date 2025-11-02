@@ -5,7 +5,7 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.0] - 2025-11-01
+## [0.9.0] - 2025-11-02
 
 ### Adicionado
 
@@ -15,7 +15,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   **Módulo Principal do Jogo (`jogo.py`):** O loop principal da função `main` foi envolvido em um bloco `try...except KeyboardInterrupt` e o módulo `sys` foi importado para permitir um encerramento controlado.
 
-## [0.8.0] - 2025-11-01
+## [0.8.0] - 2025-11-02
 
 ### Adicionado
 
