@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 from src.combate import iniciar_combate
 from src.mapa import MAPA
 from src.gerador_itens import gerar_item_aleatorio
@@ -280,19 +281,23 @@ def processo_criacao_personagem():
 
 def main():
     """Função principal do jogo."""
-    while True:
-        escolha = desenhar_menu_principal()
-        
-        if escolha == "1":
-            jogador = processo_criacao_personagem()
-            iniciar_aventura(jogador, MAPA)
+    try:
+        while True:
+            escolha = desenhar_menu_principal()
+            
+            if escolha == "1":
+                jogador = processo_criacao_personagem()
+                iniciar_aventura(jogador, MAPA)
 
-        elif escolha == "2":
-            desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
-            break
-        else:
-            # TODO: Adicionar mensagem de feedback na UI para erro
-            time.sleep(1)
+            elif escolha == "2":
+                desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
+                break
+            else:
+                # TODO: Adicionar mensagem de feedback na UI para erro
+                time.sleep(1)
+    except KeyboardInterrupt:
+        desenhar_tela_evento("ATÉ LOGO!", "O jogo foi interrompido.\n\nEsperamos você para a próxima aventura!")
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
