@@ -5,6 +5,12 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-11-02
+
+### Corrigido
+
+-   **`ImportError` da Classe `Bar`:** Corrigido o erro de importação da classe `Bar` da biblioteca `rich`, que impedia a execução do jogo e dos testes. A importação foi alterada para o caminho correto (`rich.progress_bar`).
+
 ## [1.1.0] - 2025-11-02
 
 ### Adicionado

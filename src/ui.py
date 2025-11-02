@@ -4,7 +4,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich import box
-from rich.progress import Bar
+from rich.progress_bar import Bar
 
 console = Console()
 
