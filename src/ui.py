@@ -289,6 +289,32 @@ def desenhar_tela_resumo_personagem(jogador):
 
     console.input("[bold yellow]Pressione Enter para iniciar a aventura... [/]")
 
+def desenhar_tela_inventario(jogador):
+    """Desenha a tela de inventário do jogador."""
+    limpar_tela()
+
+    tabela_inventario = Table(
+        title=Text("INVENTÁRIO", style="bold yellow"),
+        box=box.DOUBLE,
+        border_style="blue",
+        header_style="bold cyan"
+    )
+    tabela_inventario.add_column("Opção", style="dim", width=5)
+    tabela_inventario.add_column("Item", style="green", width=25)
+    tabela_inventario.add_column("Tipo", style="magenta", width=10)
+    tabela_inventario.add_column("Efeito", style="white", width=25)
+
+    if not jogador["inventario"]:
+        console.print(Panel(Text("Seu inventário está vazio.", justify="center"), width=75, border_style="blue"))
+    else:
+        for i, item in enumerate(jogador["inventario"]):
+            efeito_str = ", ".join([f"{k}: {v}" for k, v in item.get("efeito", {}).items()])
+            tabela_inventario.add_row(str(i + 1), item["nome"], item["tipo"], efeito_str)
+        console.print(tabela_inventario)
+
+    console.print(Panel(Text("1. Usar Item | 2. Equipar Item | 3. Voltar", justify="center"), width=75, border_style="blue"))
+    return console.input("[bold yellow]Escolha uma opção: [/]")
+
 def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     """Desenha a tela de combate com informações do jogador, inimigo e mensagens."""
     limpar_tela()
