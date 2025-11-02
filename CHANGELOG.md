@@ -5,6 +5,12 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.4] - 2025-11-01
+
+### Corrigido
+
+-   **Bug Crítico (`NameError`):** Corrigido um `NameError` que impedia o jogo de iniciar após a criação do personagem. A variável `MAPA` não estava sendo importada em `jogo.py` após a refatoração da UI.
+
 ## [0.7.3] - 2025-11-01
 
 ### Melhorado

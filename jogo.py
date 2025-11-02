@@ -1,3 +1,9 @@
+import os
+import time
+from src.combate import iniciar_combate
+from src.mapa import MAPA
+from src.gerador_itens import gerar_item_aleatorio
+from src.gerador_inimigos import gerar_inimigo
 from src.personagem import criar_personagem as criar_personagem_logica, CLASSES
 from src.ui import (
     desenhar_hud_exploracao,
