@@ -5,6 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-11-01
+
+### Adicionado
+
+-   **Persistência de Inimigos:** Inimigos agora mantêm seu HP e estado (derrotado ou não) nas salas do mapa, mesmo após o jogador fugir do combate. Isso permite que o jogador retorne para finalizar inimigos enfraquecidos.
+
+### Modificado
+
+-   **Módulo de Mapa (`src/mapa.py`):** Todas as salas agora incluem a chave `"inimigo_atual": None` para armazenar a instância de um inimigo persistente.
+-   **Módulo de Combate (`src/combate.py`):** A função `iniciar_combate` agora retorna uma tupla `(resultado_combate, inimigo_atualizado)`, permitindo que o estado do inimigo seja salvo após o combate.
+-   **Módulo Principal do Jogo (`jogo.py`):** A função `iniciar_aventura` foi atualizada para gerenciar a persistência de inimigos, verificando inimigos existentes, gerando novos quando necessário e atualizando o estado do inimigo na sala após cada combate.
+
 ## [0.7.4] - 2025-11-01
 
 ### Corrigido

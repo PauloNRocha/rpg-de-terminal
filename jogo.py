@@ -158,32 +158,37 @@ def iniciar_aventura(jogador, mapa):
         
         # Gera um inimigo dinamicamente se a sala permitir
         if sala_atual.get("pode_ter_inimigo") and not sala_atual.get("inimigo_derrotado"):
-            nivel_inimigo = sala_atual.get("nivel_area", 1)
-            
-            # Verifica se a sala é de um chefe
-            if sala_atual.get("chefe"):
-                inimigo = gerar_inimigo(nivel_inimigo, tipo_inimigo="chefe_orc")
-            else:
-                inimigo = gerar_inimigo(nivel_inimigo)
+            inimigo = sala_atual.get("inimigo_atual")
+            if inimigo is None:
+                nivel_inimigo = sala_atual.get("nivel_area", 1)
+                
+                # Verifica se a sala é de um chefe
+                if sala_atual.get("chefe"):
+                    inimigo = gerar_inimigo(nivel_inimigo, tipo_inimigo="chefe_orc")
+                else:
+                    inimigo = gerar_inimigo(nivel_inimigo)
+                sala_atual["inimigo_atual"] = inimigo # Armazena o inimigo na sala
             
             # TODO: Melhorar a tela de início de combate
             print(f"\nCUIDADO! Um {inimigo['nome']} está na sala!")
             time.sleep(2)
             
-            resultado_combate = iniciar_combate(jogador, inimigo, usar_item)
+            resultado_combate, inimigo_atualizado = iniciar_combate(jogador, inimigo, usar_item)
+            sala_atual["inimigo_atual"] = inimigo_atualizado # Atualiza o inimigo na sala
             
             if resultado_combate: # Vitória
-                xp_ganho = inimigo["xp_recompensa"]
+                xp_ganho = inimigo_atualizado["xp_recompensa"]
                 print(f"Você ganhou {xp_ganho} de XP!")
                 jogador["xp_atual"] += xp_ganho
                 
-                if inimigo.get("drop_raridade"):
-                    item_dropado = gerar_item_aleatorio(inimigo["drop_raridade"])
+                if inimigo_atualizado.get("drop_raridade"):
+                    item_dropado = gerar_item_aleatorio(inimigo_atualizado["drop_raridade"])
                     if item_dropado:
                         jogador["inventario"].append(item_dropado)
                         print(f"O inimigo dropou: {item_dropado['nome']}!")
                 
                 sala_atual["inimigo_derrotado"] = True
+                sala_atual["inimigo_atual"] = None # Remove o inimigo da sala após a derrota
                 time.sleep(2)
                 verificar_level_up(jogador)
             else: # Derrota ou fuga
