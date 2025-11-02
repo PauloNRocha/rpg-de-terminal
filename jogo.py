@@ -1,15 +1,13 @@
-import time
-from src.utils import limpar_tela, tela_game_over
-from src.personagem import criar_personagem
-from src.mapa import MAPA
-from src.combate import iniciar_combate
-from src.gerador_itens import gerar_item_aleatorio
-from src.gerador_inimigos import gerar_inimigo
+from src.personagem import criar_personagem as criar_personagem_logica, CLASSES
 from src.ui import (
     desenhar_hud_exploracao,
     desenhar_tela_inventario,
     desenhar_tela_evento,
     desenhar_tela_equipar,
+    desenhar_menu_principal,
+    desenhar_tela_input,
+    desenhar_tela_escolha_classe,
+    desenhar_tela_resumo_personagem,
 )
 
 def verificar_level_up(jogador):
@@ -63,6 +61,7 @@ def mostrar_inventario(jogador):
 
 
 def usar_item(jogador):
+    # TODO: Refatorar esta tela para o novo padrão de UI
     limpar_tela()
     print("=== USAR ITEM ===")
     
@@ -226,7 +225,7 @@ def iniciar_aventura(jogador, mapa):
                 jogador["x"] -= 1
             elif acao_escolhida == "Voltar por onde veio":
                 jogador["x"], jogador["y"] = posicao_anterior
-            elif acao_escolhida == "Ver Inventário":
+            elif aco_escolhida == "Ver Inventário":
                 mostrar_inventario(jogador)
                 continue
             elif acao_escolhida == "Usar Item":
@@ -236,8 +235,7 @@ def iniciar_aventura(jogador, mapa):
                 equipar_item(jogador)
                 continue
             elif acao_escolhida == "Sair da masmorra":
-                print("\nVocê saiu da masmorra.")
-                time.sleep(2)
+                desenhar_tela_evento("FIM DE JOGO", "Você saiu da masmorra.\n\nObrigado por jogar!")
                 break
             
             posicao_anterior = posicao_atual
@@ -247,34 +245,42 @@ def iniciar_aventura(jogador, mapa):
             print("\nOpção inválida! Tente novamente.")
             time.sleep(1)
 
+def processo_criacao_personagem():
+    """Orquestra o processo de criação de personagem usando a UI."""
+    nome = ""
+    while not nome:
+        nome = desenhar_tela_input("CRIAÇÃO DE PERSONAGEM", "Qual é o nome do seu herói?")
+    
+    classe_escolhida = ""
+    classes_lista = list(CLASSES.keys())
+    while not classe_escolhida:
+        escolha = desenhar_tela_escolha_classe(CLASSES)
+        try:
+            idx = int(escolha) - 1
+            if 0 <= idx < len(classes_lista):
+                classe_escolhida = classes_lista[idx]
+        except (ValueError, IndexError):
+            # TODO: Adicionar mensagem de feedback na UI para erro
+            pass
+            
+    jogador = criar_personagem_logica(nome, classe_escolhida)
+    desenhar_tela_resumo_personagem(jogador)
+    return jogador
 
 def main():
     """Função principal do jogo."""
-    limpar_tela()
-    print("========================================")
-    print("=== Bem-vindo à Aventura no Terminal ===")
-    print("========================================")
-    print("\nPrepare-se para desbravar masmorras escuras!")
-    time.sleep(3)
-    
     while True:
-        limpar_tela()
-        print("O que você deseja fazer?")
-        print("1. Iniciar Nova Aventura")
-        print("2. Sair")
-        
-        escolha = input("> ")
+        escolha = desenhar_menu_principal()
         
         if escolha == "1":
-            # Reseta o jogador para uma nova aventura
-            jogador = criar_personagem()
+            jogador = processo_criacao_personagem()
             iniciar_aventura(jogador, MAPA)
 
         elif escolha == "2":
-            print("\nObrigado por jogar! Até a próxima.")
+            desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
             break
         else:
-            print("\nOpção inválida! Tente novamente.")
+            # TODO: Adicionar mensagem de feedback na UI para erro
             time.sleep(1)
 
 if __name__ == "__main__":

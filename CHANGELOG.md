@@ -5,6 +5,19 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2025-11-01
+
+### Melhorado
+
+-   **Padronização Estética (UI/UX):**
+    -   O menu principal, a tela de criação de personagem (nome e seleção de classe) e o resumo do personagem agora utilizam o novo sistema de UI com caixas e ícones Unicode, garantindo uma experiência visual coesa desde o início do jogo.
+    -   As mensagens de boas-vindas e despedida também foram integradas ao novo sistema de UI.
+
+### Refatorado
+
+-   **Módulo de Personagem (`src/personagem.py`):** A função `criar_personagem` foi refatorada para separar a lógica de criação de personagem da apresentação da UI, tornando-a mais modular e reutilizável.
+-   **Fluxo Principal do Jogo (`jogo.py`):** A função `main` e o processo de criação de personagem foram reescritos para orquestrar as chamadas às novas funções de UI, garantindo um fluxo de entrada coeso e visualmente padronizado.
+
 ## [0.7.2] - 2025-10-31
 
 ### Corrigido

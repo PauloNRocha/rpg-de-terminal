@@ -53,6 +53,79 @@ def criar_barra_de_status(valor_atual, valor_max, tamanho=25, cor=Fore.GREEN):
     barra = f"[{cor}{'█' * cheio}{Style.RESET_ALL}{' ' * vazio}]"
     return f"{barra} {valor_atual}/{valor_max}"
 
+def desenhar_menu_principal():
+    """Desenha o menu principal do jogo."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    largura = 81
+
+    print("╔" + "═" * (largura - 2) + "╗")
+    print(f"║ {COR_TITULO}🐲 AVENTURA NO TERMINAL 🐲{Style.RESET_ALL}".center(largura + len(COR_TITULO) + len(Style.RESET_ALL)) + " ║")
+    print("╠" + "═" * (largura - 2) + "╣")
+    print("║" + " " * (largura - 2) + "║")
+    print("║" + "Bem-vindo à sua jornada!".center(largura - 2) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    print("╠" + "═" * (largura - 2) + "╣")
+    print(f"║ {COR_ICONE}{ICONE_ACOES}{Style.RESET_ALL} O que você deseja fazer?" + " " * (largura - 30) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    print("║   1. Iniciar Nova Aventura".ljust(largura - 2) + "║")
+    print("║   2. Sair".ljust(largura - 2) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    print("╚" + "═" * (largura - 2) + "╝")
+    return input("> ")
+
+def desenhar_tela_input(titulo, prompt):
+    """Desenha uma tela genérica para solicitar input de texto do usuário."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    largura = 81
+
+    print("╔" + "═" * (largura - 2) + "╗")
+    print(f"║ {COR_TITULO}{titulo.upper()}{Style.RESET_ALL}" + " " * (largura - 4 - len(titulo)) + "║")
+    print("╠" + "═" * (largura - 2) + "╣")
+    print("║" + " " * (largura - 2) + "║")
+    print(f"║   {prompt}".ljust(largura - 2) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    print("╚" + "═" * (largura - 2) + "╝")
+    return input("> ")
+
+def desenhar_tela_escolha_classe(classes):
+    """Desenha a tela de seleção de classe."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    largura = 81
+
+    print("╔" + "═" * (largura - 2) + "╗")
+    print(f"║ {COR_TITULO}CRIAÇÃO DE PERSONAGEM{Style.RESET_ALL}".ljust(largura + len(COR_TITULO) + len(Style.RESET_ALL) - 24) + "║")
+    print("╠" + "═" * (largura - 2) + "╣")
+    print("║" + " " * (largura - 2) + "║")
+    print("║   Escolha sua classe:".ljust(largura - 2) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    for i, (nome, stats) in enumerate(classes.items(), 1):
+        stats_str = f"HP: {stats['hp']}, Ataque: {stats['ataque']}, Defesa: {stats['defesa']}"
+        linha = f"   {i}. {nome.capitalize().ljust(10)} ({stats_str})"
+        print("║" + linha.ljust(largura - 2) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    print("╚" + "═" * (largura - 2) + "╝")
+    return input("> ")
+
+def desenhar_tela_resumo_personagem(jogador):
+    """Mostra um resumo do personagem criado."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    largura = 81
+
+    print("╔" + "═" * (largura - 2) + "╗")
+    print(f"║ {COR_TITULO}PERSONAGEM CRIADO!{Style.RESET_ALL}".ljust(largura + len(COR_TITULO) + len(Style.RESET_ALL) - 21) + "║")
+    print("╠" + "═" * (largura - 2) + "╣")
+    print("║" + " " * (largura - 2) + "║")
+    print(f"║   Nome:   {jogador['nome']}".ljust(largura - 2) + "║")
+    print(f"║   Classe: {jogador['classe']}".ljust(largura - 2) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    print(f"║   HP:     {jogador['hp']}/{jogador['hp_max']}".ljust(largura - 2) + "║")
+    print(f"║   Ataque: {jogador['ataque']}".ljust(largura - 2) + "║")
+    print(f"║   Defesa: {jogador['defesa']}".ljust(largura - 2) + "║")
+    print("║" + " " * (largura - 2) + "║")
+    print("╚" + "═" * (largura - 2) + "╝")
+    input("\nPressione Enter para começar a aventura...")
+
+
 def desenhar_tela_evento(titulo, mensagem):
     """Desenha uma tela de evento genérica para mensagens como Level Up ou Game Over."""
     os.system('cls' if os.name == 'nt' else 'clear')
