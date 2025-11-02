@@ -5,6 +5,19 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2025-11-01
+
+### Adicionado
+
+-   **Cobertura de Testes (`jogo.py`):**
+    -   Adicionado o novo arquivo de teste `tests/test_jogo.py`.
+    -   Implementados testes unitários para a função `verificar_level_up`, cobrindo cenários de level up único, múltiplo e nenhum.
+    -   Implementados testes unitários para a função `aplicar_bonus_equipamento`, cobrindo a aplicação de bônus de arma, escudo, ambos e a remoção de equipamento.
+
+### Corrigido
+
+-   **Testes de Level Up:** Corrigidos os testes de `level_up` que falhavam devido à espera por input do usuário. A função de UI `desenhar_tela_evento` foi substituída por uma função vazia durante os testes usando `monkeypatch` do `pytest`.
+
 ## [0.9.0] - 2025-11-02
 
 ### Adicionado
