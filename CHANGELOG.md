@@ -5,6 +5,20 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-11-02
+
+### Adicionado
+
+-   **Geração Procedural de Mapas:** O jogo agora gera masmorras aleatoriamente a cada nova aventura, proporcionando rejogabilidade infinita.
+    -   Criado o novo módulo `src/gerador_mapa.py` para encapsular a lógica de geração de mapas.
+    -   O algoritmo de geração cria salas conectadas e define níveis de área dinamicamente.
+
+### Modificado
+
+-   **Módulo Principal do Jogo (`jogo.py`):**
+    -   Removida a importação do mapa estático (`src/mapa.py`).
+    -   Integrada a chamada ao `gerar_mapa()` para criar um novo mapa a cada início de aventura.
+
 ## [0.9.1] - 2025-11-02
 
 ### Adicionado

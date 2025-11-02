@@ -2,9 +2,9 @@ import os
 import time
 import sys
 from src.combate import iniciar_combate
-from src.mapa import MAPA
 from src.gerador_itens import gerar_item_aleatorio
 from src.gerador_inimigos import gerar_inimigo
+from src.gerador_mapa import gerar_mapa # Importa o novo gerador de mapas
 from src.personagem import criar_personagem as criar_personagem_logica, CLASSES
 from src.ui import (
     desenhar_hud_exploracao,
@@ -285,12 +285,12 @@ def main():
         while True:
             escolha = desenhar_menu_principal()
             
-            if escolha == "1":
-                jogador = processo_criacao_personagem()
-                iniciar_aventura(jogador, MAPA)
-
-            elif escolha == "2":
-                desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
+                    if escolha == "1":
+                        jogador = processo_criacao_personagem()
+                        mapa_gerado = gerar_mapa() # Gera um novo mapa a cada aventura
+                        iniciar_aventura(jogador, mapa_gerado)
+            
+                    elif escolha == "2":                desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
                 break
             else:
                 # TODO: Adicionar mensagem de feedback na UI para erro
