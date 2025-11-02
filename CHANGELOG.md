@@ -5,6 +5,16 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-11-02
+
+### Corrigido
+
+-   **`NameError` na Função `usar_item`:** Corrigido o erro que impedia a função `usar_item` de limpar a tela, importando corretamente a função `limpar_tela` de `src/ui.py`.
+
+### Melhorado
+
+-   **Refatoração da UI de `usar_item`:** A função `usar_item` foi refatorada para utilizar o novo padrão de interface do usuário, substituindo `print()` e `input()` diretos por chamadas a funções de UI como `desenhar_tela_input` e `desenhar_tela_evento`, garantindo consistência visual e melhorando a experiência do jogador.
+
 ## [1.0.1] - 2025-11-02
 
 ### Corrigido

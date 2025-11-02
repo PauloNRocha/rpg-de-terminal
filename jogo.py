@@ -15,6 +15,7 @@ from src.ui import (
     desenhar_tela_input,
     desenhar_tela_escolha_classe,
     desenhar_tela_resumo_personagem,
+    limpar_tela, # Importa a função limpar_tela
 )
 
 def verificar_level_up(jogador):
@@ -68,24 +69,20 @@ def mostrar_inventario(jogador):
 
 
 def usar_item(jogador):
-    # TODO: Refatorar esta tela para o novo padrão de UI
-    limpar_tela()
-    print("=== USAR ITEM ===")
-    
-    itens_consumiveis = [item for item in jogador["inventario"] if item["tipo"] == "consumivel"]
-    if not itens_consumiveis:
-        print("Você não tem itens consumíveis no inventário.")
-        time.sleep(2)
-        return False
-
-    print("Seus itens consumíveis:")
-    for i, item in enumerate(itens_consumiveis, 1):
-        print(f"{i}. {item['nome']} ({item['descricao']})")
-    print(f"{len(itens_consumiveis) + 1}. Voltar")
-
+    """Gerencia a lógica de usar um item consumível usando a nova UI."""
     while True:
+        itens_consumiveis = [item for item in jogador["inventario"] if item["tipo"] == "consumivel"]
+        
+        opcoes_itens = [f"{i+1}. {item['nome']} ({item['descricao']})" for i, item in enumerate(itens_consumiveis)]
+        opcoes_itens.append(f"{len(itens_consumiveis) + 1}. Voltar")
+
+        escolha_str = desenhar_tela_input(
+            "USAR ITEM",
+            "Seus itens consumíveis:\n" + "\n".join(opcoes_itens) + "\n\nEscolha um item para usar ou 'Voltar': "
+        )
+
         try:
-            escolha = int(input("\nEscolha um item para usar ou 'Voltar': "))
+            escolha = int(escolha_str)
             if escolha == len(itens_consumiveis) + 1:
                 return False
             if not (1 <= escolha <= len(itens_consumiveis)):
@@ -96,13 +93,11 @@ def usar_item(jogador):
             if "hp" in item_escolhido["efeito"]:
                 cura = item_escolhido["efeito"]["hp"]
                 jogador["hp"] = min(jogador["hp_max"], jogador["hp"] + cura)
-                print(f"Você usou {item_escolhido['nome']} e restaurou {cura} de HP.")
+                desenhar_tela_evento("ITEM USADO", f"Você usou {item_escolhido['nome']} e restaurou {cura} de HP.")
                 jogador["inventario"].remove(item_escolhido)
-                time.sleep(2)
                 return True
         except (ValueError, IndexError):
-            print("Opção inválida! Tente novamente.")
-            time.sleep(1)
+            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
 def equipar_item(jogador):
     """Gerencia a lógica de equipar um item usando a nova UI."""
