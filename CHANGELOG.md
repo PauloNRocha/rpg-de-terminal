@@ -18,6 +18,12 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
     -   A tela de inventário agora exibe os bônus de cada item.
     -   Uma nova tela de "Equipar Item" foi criada, mostrando o equipamento atual e os itens da mochila lado a lado para facilitar a comparação.
 
+## [0.7.1] - 2025-10-31
+
+### Corrigido
+
+-   Corrigidas as asserções no teste `tests/test_combate.py` para refletir a variação de dano correta (+/- 20%), garantindo que os testes passem.
+
 ## [0.7.0] - 2025-10-30
 
 ### Adicionado
