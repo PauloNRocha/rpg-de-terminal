@@ -5,7 +5,7 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.1] - 2025-11-01
+## [0.9.1] - 2025-11-02
 
 ### Adicionado
 
@@ -40,13 +40,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   **Módulo de Combate (`src/combate.py`):** A função `iniciar_combate` agora retorna uma tupla `(resultado_combate, inimigo_atualizado)`, permitindo que o estado do inimigo seja salvo após o combate.
 -   **Módulo Principal do Jogo (`jogo.py`):** A função `iniciar_aventura` foi atualizada para gerenciar a persistência de inimigos, verificando inimigos existentes, gerando novos quando necessário e atualizando o estado do inimigo na sala após cada combate.
 
-## [0.7.4] - 2025-11-01
+## [0.7.4] - 2025-11-02
 
 ### Corrigido
 
 -   **Bug Crítico (`NameError`):** Corrigido um `NameError` que impedia o jogo de iniciar após a criação do personagem. A variável `MAPA` não estava sendo importada em `jogo.py` após a refatoração da UI.
 
-## [0.7.3] - 2025-11-01
+## [0.7.3] - 2025-11-02
 
 ### Melhorado
 
