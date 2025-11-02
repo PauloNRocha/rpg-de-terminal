@@ -5,6 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-11-02
+
+### Corrigido
+
+-   **`NameError` no Menu de Ações:** Corrigido um erro de digitação (`aco_escolhida` em vez de `acao_escolhida`) que causava um `NameError` e quebrava o jogo ao tentar selecionar uma ação como "Ver Inventário".
+-   **Posição Inicial do Jogador:** O jogador agora começa consistentemente na sala "Entrada da Masmorra", em vez de em uma posição fixa (0,0) que poderia ser uma parede ou uma sala aleatória.
+-   **Balanceamento de Dificuldade Inicial:** O gerador de mapas foi ajustado para garantir que as salas imediatamente adjacentes à entrada sejam sempre de nível 1, evitando encontros com inimigos de nível muito alto no início do jogo.
+
+### Melhorado
+
+-   **Nomes das Salas:** As salas geradas proceduralmente agora recebem nomes descritivos e variados (ex: "Câmara Empoeirada", "Corredor Estreito") em vez de nomes genéricos como "Sala 63", melhorando a imersão.
+
 ## [1.0.0] - 2025-11-02
 
 ### Adicionado

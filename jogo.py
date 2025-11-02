@@ -146,7 +146,18 @@ def equipar_item(jogador):
 def iniciar_aventura(jogador, mapa):
     """Loop principal da exploração do mapa com menu de ações numérico."""
     
-    jogador["x"], jogador["y"] = 0, 0
+    # Encontra a posição inicial do jogador na "Entrada da Masmorra"
+    start_x, start_y = 0, 0
+    for y_idx, linha in enumerate(mapa):
+        for x_idx, sala in enumerate(linha):
+            if sala.get("nome") == "Entrada da Masmorra":
+                start_x, start_y = x_idx, y_idx
+                break
+        else:
+            continue
+        break
+    
+    jogador["x"], jogador["y"] = start_x, start_y
     posicao_anterior = None
 
     # Inicializa os atributos base para aplicar bônus de equipamento
@@ -237,8 +248,8 @@ def iniciar_aventura(jogador, mapa):
                 jogador["x"] -= 1
             elif acao_escolhida == "Voltar por onde veio":
                 jogador["x"], jogador["y"] = posicao_anterior
-            elif aco_escolhida == "Ver Inventário":
-                mostrar_inventario(jogador)
+            elif acao_escolhida == "Ver Inventário":
+                mostrar_inventário(jogador)
                 continue
             elif acao_escolhida == "Usar Item":
                 usar_item(jogador)
@@ -285,12 +296,13 @@ def main():
         while True:
             escolha = desenhar_menu_principal()
             
-                    if escolha == "1":
-                        jogador = processo_criacao_personagem()
-                        mapa_gerado = gerar_mapa() # Gera um novo mapa a cada aventura
-                        iniciar_aventura(jogador, mapa_gerado)
+            if escolha == "1":
+                jogador = processo_criacao_personagem()
+                mapa_gerado = gerar_mapa() # Gera um novo mapa a cada aventura
+                iniciar_aventura(jogador, mapa_gerado)
             
-                    elif escolha == "2":                desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
+            elif escolha == "2":
+                desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
                 break
             else:
                 # TODO: Adicionar mensagem de feedback na UI para erro

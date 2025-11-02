@@ -24,6 +24,12 @@ def gerar_mapa(tamanho_min=5, tamanho_max=10):
     salas_criadas = [(start_x, start_y)]
     salas_para_explorar = [(start_x, start_y)]
 
+    nomes_de_sala = [
+        "Câmara Empoeirada", "Corredor Estreito", "Salão Rachado", 
+        "Antecâmara", "Arsenal Desmoronado", "Cripta Esquecida",
+        "Galeria Sussurrante", "Câmara de Ecos", "Passagem Inundada"
+    ]
+
     # Geração do mapa usando um algoritmo de expansão
     while salas_para_explorar:
         x, y = salas_para_explorar.pop(0)
@@ -35,12 +41,16 @@ def gerar_mapa(tamanho_min=5, tamanho_max=10):
             nx, ny = x + dx, y + dy
 
             if 0 <= nx < tamanho and 0 <= ny < tamanho and mapa[ny][nx] is None:
-                # Cria uma nova sala
-                nivel_area = random.randint(max(1, mapa[y][x]["nivel_area"] - 1), mapa[y][x]["nivel_area"] + 1)
-                pode_ter_inimigo = random.choice([True, False])
+                # Garante que as salas ao redor da entrada sejam de nível 1
+                if (x, y) == (start_x, start_y):
+                    nivel_area = 1
+                else:
+                    nivel_area = random.randint(max(1, mapa[y][x]["nivel_area"] - 1), mapa[y][x]["nivel_area"] + 1)
+                
+                pode_ter_inimigo = random.choice([True, True, False]) # Aumenta a chance de ter inimigo
 
                 mapa[ny][nx] = {
-                    "nome": f"Sala {len(salas_criadas) + 1}",
+                    "nome": random.choice(nomes_de_sala),
                     "descricao": "Uma sala escura e misteriosa.",
                     "nivel_area": nivel_area,
                     "pode_ter_inimigo": pode_ter_inimigo,
