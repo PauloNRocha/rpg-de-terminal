@@ -5,6 +5,12 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2025-11-02
+
+### Corrigido
+
+-   **`ImportError` da Função `limpar_tela`:** Resolvido o erro de importação da função `limpar_tela` ao criá-la explicitamente no módulo `src/ui.py`, permitindo que `jogo.py` a importe e utilize corretamente.
+
 ## [1.0.2] - 2025-11-02
 
 ### Corrigido

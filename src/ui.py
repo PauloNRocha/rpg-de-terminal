@@ -1,8 +1,16 @@
 import os
 from colorama import init, Fore, Style
 
-# Inicializa o colorama
 init(autoreset=True)
+
+def limpar_tela():
+    """Limpa a tela do terminal."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def desenhar_caixa(titulo, conteudo, largura=75):
+    """Desenha uma caixa de texto com título e conteúdo."""
+    linhas_conteudo = conteudo.split('\n')
+    caixa = []
 
 # Paleta de Cores
 COR_HP = Fore.GREEN
