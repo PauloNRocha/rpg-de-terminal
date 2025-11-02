@@ -1,341 +1,292 @@
 import os
-from colorama import init, Fore, Style
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+from rich import box
+from rich.progress import Bar
 
-init(autoreset=True)
+console = Console()
 
 def limpar_tela():
     """Limpa a tela do terminal."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def desenhar_caixa(titulo, conteudo, largura=75):
-    """Desenha uma caixa de texto com título e conteúdo."""
-    linhas_conteudo = conteudo.split('\n')
-    caixa = []
-
-# Paleta de Cores
-COR_HP = Fore.GREEN
-COR_XP = Fore.YELLOW
-COR_NOME_SALA = Fore.CYAN
-COR_TITULO = Fore.MAGENTA
-COR_TEXTO = Fore.WHITE
-COR_ACAO = Fore.LIGHTWHITE_EX
-COR_ICONE = Fore.YELLOW
-
-# Ícones (Unicode)
-ICONE_JOGADOR = "👤"
-ICONE_NIVEL = "🌟"
-ICONE_HP = "❤️"
-ICONE_XP = "⭐"
-ICONE_ATAQUE = "⚔️"
-ICONE_DEFESA = "🛡️"
-ICONE_MAPA = "🗺️"
-ICONE_ACOES = "🧭"
-ICONE_INVENTARIO = "🎒"
-ICONE_USAR_ITEM = "🧪"
-ICONE_EQUIPAR_ITEM = "🧥"
-ICONE_SAIR = "🚪"
-
-def formatar_bonus_item(item):
-    """Transforma o dicionário de bônus de um item em uma string legível."""
-    if not item or "bonus" not in item:
-        return ""
-    
-    partes = []
-    if "ataque" in item["bonus"]:
-        partes.append(f"+{item['bonus']['ataque']} Ataque")
-    if "defesa" in item["bonus"]:
-        partes.append(f"+{item['bonus']['defesa']} Defesa")
-    
-    return ", ".join(partes)
-
-def criar_barra_de_status(valor_atual, valor_max, tamanho=25, cor=Fore.GREEN):
-    """Cria uma barra de status visual com base nos valores."""
-    if valor_max == 0:
-        percentual = 0
-    else:
-        percentual = valor_atual / valor_max
-    
-    cheio = int(tamanho * percentual)
-    vazio = tamanho - cheio
-    
-    barra = f"[{cor}{'█' * cheio}{Style.RESET_ALL}{' ' * vazio}]"
-    return f"{barra} {valor_atual}/{valor_max}"
-
-def desenhar_menu_principal():
-    """Desenha o menu principal do jogo."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_TITULO}🐲 AVENTURA NO TERMINAL 🐲{Style.RESET_ALL}".center(largura + len(COR_TITULO) + len(Style.RESET_ALL)) + " ║")
-    print("╠" + "═" * (largura - 2) + "╣")
-    print("║" + " " * (largura - 2) + "║")
-    print("║" + "Bem-vindo à sua jornada!".center(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-    print(f"║ {COR_ICONE}{ICONE_ACOES}{Style.RESET_ALL} O que você deseja fazer?" + " " * (largura - 30) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print("║   1. Iniciar Nova Aventura".ljust(largura - 2) + "║")
-    print("║   2. Sair".ljust(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print("╚" + "═" * (largura - 2) + "╝")
-    return input("> ")
-
-def desenhar_tela_input(titulo, prompt):
-    """Desenha uma tela genérica para solicitar input de texto do usuário."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_TITULO}{titulo.upper()}{Style.RESET_ALL}" + " " * (largura - 4 - len(titulo)) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-    print("║" + " " * (largura - 2) + "║")
-    print(f"║   {prompt}".ljust(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print("╚" + "═" * (largura - 2) + "╝")
-    return input("> ")
-
-def desenhar_tela_escolha_classe(classes):
-    """Desenha a tela de seleção de classe."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_TITULO}CRIAÇÃO DE PERSONAGEM{Style.RESET_ALL}".ljust(largura + len(COR_TITULO) + len(Style.RESET_ALL) - 24) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-    print("║" + " " * (largura - 2) + "║")
-    print("║   Escolha sua classe:".ljust(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    for i, (nome, stats) in enumerate(classes.items(), 1):
-        stats_str = f"HP: {stats['hp']}, Ataque: {stats['ataque']}, Defesa: {stats['defesa']}"
-        linha = f"   {i}. {nome.capitalize().ljust(10)} ({stats_str})"
-        print("║" + linha.ljust(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print("╚" + "═" * (largura - 2) + "╝")
-    return input("> ")
-
-def desenhar_tela_resumo_personagem(jogador):
-    """Mostra um resumo do personagem criado."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_TITULO}PERSONAGEM CRIADO!{Style.RESET_ALL}".ljust(largura + len(COR_TITULO) + len(Style.RESET_ALL) - 21) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-    print("║" + " " * (largura - 2) + "║")
-    print(f"║   Nome:   {jogador['nome']}".ljust(largura - 2) + "║")
-    print(f"║   Classe: {jogador['classe']}".ljust(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print(f"║   HP:     {jogador['hp']}/{jogador['hp_max']}".ljust(largura - 2) + "║")
-    print(f"║   Ataque: {jogador['ataque']}".ljust(largura - 2) + "║")
-    print(f"║   Defesa: {jogador['defesa']}".ljust(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print("╚" + "═" * (largura - 2) + "╝")
-    input("\nPressione Enter para começar a aventura...")
-
-
-def desenhar_tela_evento(titulo, mensagem):
-    """Desenha uma tela de evento genérica para mensagens como Level Up ou Game Over."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_TITULO}{titulo.upper()}{Style.RESET_ALL}" + " " * (largura - 4 - len(titulo)) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-    print("║" + " " * (largura - 2) + "║")
-
-    # Centraliza a mensagem
-    for linha in mensagem.split('\n'):
-        print("║" + linha.center(largura - 2) + "║")
-
-    print("║" + " " * (largura - 2) + "║")
-    print("╚" + "═" * (largura - 2) + "╝")
-    input("\nPressione Enter para continuar...")
-
-
-def desenhar_tela_combate(jogador, inimigo, log_combate):
-    """Desenha a interface de combate, mostrando jogador e inimigo lado a lado."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_TITULO}🐲 COMBATE!{Style.RESET_ALL}" + " " * (largura - 14) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Nomes
-    nome_jogador = f"{ICONE_JOGADOR} {jogador['nome']}"
-    nome_inimigo = f"👹 {inimigo['nome']}"
-    print(f"║ {nome_jogador.ljust(38)} VS. {nome_inimigo.ljust(37)} ║")
-
-    # Barras de HP
-    barra_hp_jogador = criar_barra_de_status(jogador['hp'], jogador['hp_max'], tamanho=25, cor=COR_HP)
-    barra_hp_inimigo = criar_barra_de_status(inimigo['hp'], inimigo.get('hp_max', inimigo['hp']), tamanho=25, cor=COR_HP)
-    print(f"║ {ICONE_HP} {barra_hp_jogador.ljust(35)} | {ICONE_HP} {barra_hp_inimigo.ljust(35)} ║")
-
-    # Atributos
-    stats_jogador = f"{ICONE_ATAQUE} Atq: {jogador['ataque']} | {ICONE_DEFESA} Def: {jogador['defesa']}"
-    stats_inimigo = f"{ICONE_ATAQUE} Atq: {inimigo['ataque']} | {ICONE_DEFESA} Def: {inimigo['defesa']}"
-    print(f"║ {stats_jogador.ljust(38)} | {stats_inimigo.ljust(38)} ║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Log de Batalha
-    print(f"║ 📜 LOG DE BATALHA" + " " * (largura - 20) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    # Exibe as últimas 4 mensagens do log
-    for mensagem in log_combate[-4:]:
-        print("║   " + mensagem.ljust(largura - 6) + "║")
-    # Preenche com linhas vazias se o log for menor
-    for _ in range(4 - len(log_combate)):
-        print("║" + " " * (largura - 2) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Ações (Apenas o título, as opções serão mostradas em combate.py)
-    print(f"║ {COR_ICONE}{ICONE_ACOES}{Style.RESET_ALL} Ações de Combate" + " " * (largura - 22) + "║")
-    print("╚" + "═" * (largura - 2) + "╝")
-
-
-def desenhar_tela_equipar(jogador, itens_equipaveis):
-    """Desenha a interface para equipar itens, mostrando o equipamento atual para comparação."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_ICONE}{ICONE_EQUIPAR_ITEM}{Style.RESET_ALL} {COR_TITULO}EQUIPAR ITEM{Style.RESET_ALL}" + " " * (largura - 18) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Equipamento Atual
-    print(f"║ {COR_ICONE}🧥{Style.RESET_ALL} Equipado Atualmente" + " " * (largura - 25) + "║")
-    arma = jogador['equipamento']['arma']
-    escudo = jogador['equipamento']['escudo']
-    arma_str = f"   {ICONE_ATAQUE} Arma: {arma['nome'] if arma else 'Nenhuma'}"
-    if arma:
-        arma_str += f" ({formatar_bonus_item(arma)})"
-    escudo_str = f"   {ICONE_DEFESA} Escudo: {escudo['nome'] if escudo else 'Nenhum'}"
-    if escudo:
-        escudo_str += f" ({formatar_bonus_item(escudo)})"
-    print("║" + arma_str.ljust(largura - 2) + "║")
-    print("║" + escudo_str.ljust(largura - 2) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Itens na Mochila
-    print(f"║ {COR_ICONE}🎒{Style.RESET_ALL} Itens Equipáveis na Mochila" + " " * (largura - 32) + "║")
-    if not itens_equipaveis:
-        print("║   Você não tem itens equipáveis na mochila." + " " * (largura - 46) + "║")
-    else:
-        for i, item in enumerate(itens_equipaveis, 1):
-            bonus_str = formatar_bonus_item(item)
-            item_str = f"   {i}. {item['nome']} ({bonus_str})"
-            print("║" + item_str.ljust(largura - 2) + "║")
-    
-    print("║" + " " * (largura - 2) + "║")
-    print(f"║   {len(itens_equipaveis) + 1}. Voltar" + " " * (largura - 13) + "║")
-    print("╚" + "═" * (largura - 2) + "╝")
-
-
-def desenhar_tela_inventario(jogador):
-    """Desenha a interface do inventário do jogador."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-    largura = 81
-
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_ICONE}{ICONE_INVENTARIO}{Style.RESET_ALL} {COR_TITULO}INVENTÁRIO{Style.RESET_ALL}" + " " * (largura - 16) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Status do Jogador (resumido)
-    nome_classe = f"{jogador['nome']}, o {jogador['classe']}"
-    nivel_str = f"{ICONE_NIVEL} Nível: {jogador['nivel']}"
-    print(f"║ {COR_ICONE}{ICONE_JOGADOR}{Style.RESET_ALL} {nome_classe.ljust(35)} {COR_ICONE}{nivel_str.ljust(30)}{Style.RESET_ALL} ║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Equipamento
-    print(f"║ {COR_ICONE}🧥{Style.RESET_ALL} Equipamento Atual" + " " * (largura - 22) + "║")
-    arma = jogador['equipamento']['arma']
-    escudo = jogador['equipamento']['escudo']
-    arma_str = f"   {ICONE_ATAQUE} Arma: {arma['nome'] if arma else 'Nenhuma'}"
-    if arma:
-        arma_str += f" ({formatar_bonus_item(arma)})"
-    escudo_str = f"   {ICONE_DEFESA} Escudo: {escudo['nome'] if escudo else 'Nenhum'}"
-    if escudo:
-        escudo_str += f" ({formatar_bonus_item(escudo)})"
-
-    print("║" + arma_str.ljust(largura - 2) + "║")
-    print("║" + escudo_str.ljust(largura - 2) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
-
-    # Itens no Inventário
-    print(f"║ {COR_ICONE}🎒{Style.RESET_ALL} Itens na Mochila" + " " * (largura - 21) + "║")
-    if not jogador['inventario']:
-        print("║   Sua mochila está vazia." + " " * (largura - 28) + "║")
-    else:
-        for i, item in enumerate(jogador['inventario'], 1):
-            bonus_str = formatar_bonus_item(item)
-            desc_item = f"({item['descricao']})" if item['tipo'] == 'consumivel' else f"({bonus_str})"
-            item_str = f"   {i}. {item['nome']} {desc_item}"
-            print("║" + item_str.ljust(largura - 2) + "║")
-    
-    print("╚" + "═" * (largura - 2) + "╝")
-    input("\nPressione Enter para voltar...")
-
+    """Desenha uma caixa de texto com título e conteúdo usando rich.Panel."""
+    panel = Panel(
+        Text(conteudo, justify="left"),
+        title=Text(titulo, justify="center", style="bold yellow"),
+        width=largura,
+        box=box.DOUBLE,
+        border_style="blue"
+    )
+    console.print(panel)
 
 def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
-    """Desenha a interface principal de exploração do jogo."""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    """Desenha o HUD de exploração com informações do jogador, sala e opções."""
+    limpar_tela()
 
-    # Largura total da UI
-    largura = 81
+    # --- Seção do Jogador ---
+    hp_percent = (jogador["hp"] / jogador["hp_max"]) * 100
+    xp_percent = (jogador["xp_atual"] / jogador["xp_para_proximo_nivel"]) * 100
 
-    # Cabeçalho
-    print("╔" + "═" * (largura - 2) + "╗")
-    print(f"║ {COR_TITULO}🐲 AVENTURA NO TERMINAL{Style.RESET_ALL}" + " " * (largura - 28) + "║")
-    print("╠" + "═" * 25 + "╦" + "═" * (largura - 28) + "╣")
+    hud_jogador = Panel(
+        Text(f"👤 {jogador['nome']}, o {jogador['classe']}", style="bold green") + "\n" +
+        Text(f"🌟 Nível: {jogador['nivel']}", style="yellow") + "\n" +
+        Text(f"❤️  HP: {Bar(100, 0, hp_percent, color="red")} {jogador['hp']}/{jogador['hp_max']}") + "\n" +
+        Text(f"⭐  XP: {Bar(100, 0, xp_percent, color="cyan")} {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}") + "\n" +
+        Text(f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}", style="bold white"),
+        title=Text("Jogador", style="bold blue"),
+        border_style="blue",
+        width=75
+    )
 
-    # Status do Jogador
-    nome_classe = f"{jogador['nome']}, o {jogador['classe']}"
-    nivel_str = f"{ICONE_NIVEL} Nível: {jogador['nivel']}"
-    print(f"║ {COR_ICONE}{ICONE_JOGADOR}{Style.RESET_ALL} {nome_classe.ljust(20)} ║ {COR_ICONE}{nivel_str.ljust(20)}{Style.RESET_ALL}" + " " * (largura - 53) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
+    # --- Seção da Sala ---
+    hud_sala = Panel(
+        Text(f"🗺️  Local: {sala_atual['nome']}", style="bold magenta") + "\n" +
+        Text(sala_atual['descricao'], style="white"),
+        title=Text("Localização", style="bold blue"),
+        border_style="blue",
+        width=75
+    )
 
-    # Barras de HP e XP
-    barra_hp = criar_barra_de_status(jogador['hp'], jogador['hp_max'], tamanho=30, cor=COR_HP)
-    barra_xp = criar_barra_de_status(jogador['xp_atual'], jogador['xp_para_proximo_nivel'], tamanho=30, cor=COR_XP)
-    print(f"║ {COR_ICONE}{ICONE_HP}{Style.RESET_ALL}  HP: {barra_hp}" + " " * (largura - 46) + "║")
-    print(f"║ {COR_ICONE}{ICONE_XP}{Style.RESET_ALL}  XP: {barra_xp}" + " " * (largura - 46) + "║")
+    # --- Seção de Opções ---
+    opcoes_texto = Text("", style="green")
+    for i, opcao in enumerate(opcoes, 1):
+        opcoes_texto.append(f"{i}. {opcao}\n")
 
-    # Atributos
-    ataque_str = f"{ICONE_ATAQUE}  Ataque: {jogador['ataque']}"
-    defesa_str = f"{ICONE_DEFESA}  Defesa: {jogador['defesa']}"
-    print(f"║ {COR_ICONE}{ataque_str.ljust(15)}{Style.RESET_ALL} | {COR_ICONE}{defesa_str.ljust(15)}{Style.RESET_ALL}" + " " * (largura - 41) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
+    hud_opcoes = Panel(
+        opcoes_texto,
+        title=Text("Ações Disponíveis", style="bold blue"),
+        border_style="blue",
+        width=75
+    )
 
-    # Descrição da Sala
-    print(f"║ {COR_ICONE}{ICONE_MAPA}{Style.RESET_ALL}  Local: {COR_NOME_SALA}{sala_atual['nome'].upper()}{Style.RESET_ALL}" + " " * (largura - 16 - len(sala_atual['nome'])) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    # Quebra de linha automática para descrição
-    palavras = sala_atual['descricao'].split()
-    linha_atual = "   "
-    for palavra in palavras:
-        if len(linha_atual) + len(palavra) + 1 < largura - 4:
-            linha_atual += palavra + " "
-        else:
-            print("║" + linha_atual.ljust(largura - 2) + "║")
-            linha_atual = "   " + palavra + " "
-    print("║" + linha_atual.ljust(largura - 2) + "║")
-    print("║" + " " * (largura - 2) + "║")
-    print("╠" + "═" * (largura - 2) + "╣")
+    console.print(hud_jogador)
+    console.print(hud_sala)
+    console.print(hud_opcoes)
 
-    # Ações
-    print(f"║ {COR_ICONE}{ICONE_ACOES}{Style.RESET_ALL} Ações Disponíveis" + " " * (largura - 23) + "║")
-    # Formata as opções em duas colunas
-    metade = (len(opcoes) + 1) // 2
-    for i in range(metade):
-        opcao_esq = f"{i+1}. {opcoes[i]}"
-        linha = f"   {COR_ACAO}{opcao_esq.ljust(35)}{Style.RESET_ALL}"
-        if i + metade < len(opcoes):
-            opcao_dir = f"{i+1+metade}. {opcoes[i+metade]}"
-            linha += f"{COR_ACAO}{opcao_dir.ljust(35)}{Style.RESET_ALL}"
-        print("║" + linha.ljust(largura - 3) + " ║")
+    return console.input("[bold yellow]> [/]")
 
-    print("╚" + "═" * (largura - 2) + "╝")
+def desenhar_tela_evento(titulo, mensagem):
+    """Desenha uma tela de evento com título e mensagem usando rich.Panel."""
+    limpar_tela()
+    desenhar_caixa(titulo, mensagem)
+    console.input("[bold yellow]Pressione Enter para continuar... [/]")
+
+def desenhar_tela_equipar(jogador, itens_equipaveis):
+    """Desenha a tela de equipar itens, comparando com o equipamento atual."""
+    limpar_tela()
+
+    tabela_equipamento = Table(
+        title=Text("EQUIPAR ITENS", style="bold yellow"),
+        box=box.DOUBLE,
+        border_style="blue",
+        header_style="bold cyan"
+    )
+    tabela_equipamento.add_column("Slot", style="dim", width=15)
+    tabela_equipamento.add_column("Equipado", style="green", width=30)
+    tabela_equipamento.add_column("Bônus", style="white", width=25)
+
+    # Equipamento atual
+    arma_equipada = jogador["equipamento"]["arma"]
+    escudo_equipado = jogador["equipamento"]["escudo"]
+
+    tabela_equipamento.add_row(
+        "Arma:",
+        arma_equipada["nome"] if arma_equipada else "Nenhuma",
+        ", ".join([f"{k}: {v}" for k, v in arma_equipada.get("bonus", {}).items()]) if arma_equipada else ""
+    )
+    tabela_equipamento.add_row(
+        "Escudo:",
+        escudo_equipada["nome"] if escudo_equipada else "Nenhum",
+        ", ".join([f"{k}: {v}" for k, v in escudo_equipada.get("bonus", {}).items()]) if escudo_equipada else ""
+    )
+
+    console.print(tabela_equipamento)
+
+    if itens_equipaveis:
+        tabela_disponiveis = Table(
+            title=Text("ITENS DISPONÍVEIS", style="bold yellow"),
+            box=box.DOUBLE,
+            border_style="blue",
+            header_style="bold cyan"
+        )
+        tabela_disponiveis.add_column("Opção", style="dim", width=5)
+        tabela_disponiveis.add_column("Item", style="green", width=25)
+        tabela_disponiveis.add_column("Tipo", style="magenta", width=10)
+        tabela_disponiveis.add_column("Bônus", style="white", width=25)
+
+        for i, item in enumerate(itens_equipaveis):
+            bonus_str = ", ".join([f"{k}: {v}" for k, v in item.get("bonus", {}).items()])
+            tabela_disponiveis.add_row(str(i + 1), item["nome"], item["tipo"], bonus_str)
+        
+        console.print(tabela_disponiveis)
+    else:
+        console.print(Panel(Text("Você não tem itens equipáveis no inventário.", justify="center"), width=75, border_style="blue"))
+
+def desenhar_menu_principal():
+
+    """Desenha o menu principal do jogo e retorna a escolha do jogador."""
+
+    limpar_tela()
+
+    menu_texto = Text("", justify="center")
+
+    menu_texto.append("1. Iniciar Nova Aventura\n", style="bold green")
+
+    menu_texto.append("2. Sair\n", style="bold red")
+
+
+
+    panel = Panel(
+
+        menu_texto,
+
+        title=Text("AVENTURA NO TERMINAL", justify="center", style="bold yellow"),
+
+        width=75,
+
+        box=box.DOUBLE,
+
+        border_style="blue"
+
+    )
+
+    console.print(panel)
+
+    return console.input("[bold yellow]Escolha uma opção: [/]")
+
+
+
+def desenhar_tela_input(titulo, prompt):
+    """Desenha uma tela para entrada de texto do usuário."""
+    limpar_tela()
+    panel = Panel(
+        Text(prompt, justify="center"),
+        title=Text(titulo, justify="center", style="bold yellow"),
+        width=75,
+        box=box.DOUBLE,
+        border_style="blue"
+    )
+    console.print(panel)
+    return console.input("[bold yellow]> [/]")
+
+def desenhar_tela_escolha_classe(classes):
+
+    """Desenha a tela de escolha de classe e retorna a escolha do jogador."""
+
+    limpar_tela()
+
+
+
+    tabela_classes = Table(
+
+        title=Text("ESCOLHA SUA CLASSE", style="bold yellow"),
+
+        box=box.DOUBLE,
+
+        border_style="blue",
+
+        header_style="bold cyan"
+
+    )
+
+    tabela_classes.add_column("Opção", style="dim", width=5)
+
+    tabela_classes.add_column("Classe", style="green", width=15)
+
+    tabela_classes.add_column("Descrição", style="white", width=45)
+
+
+
+    for i, (nome_classe, detalhes) in enumerate(classes.items()):
+
+        tabela_classes.add_row(str(i + 1), nome_classe, detalhes["descricao"])
+
     
-    # Prompt de entrada
-    return input("> ")
+
+    console.print(tabela_classes)
+
+    return console.input("[bold yellow]Escolha sua classe: [/]")
+
+
+
+def desenhar_tela_resumo_personagem(jogador):
+
+
+
+    """Desenha a tela de resumo do personagem após a criação."""
+
+
+
+    limpar_tela()
+
+
+
+    resumo_texto = Text("", justify="left")
+
+
+
+    resumo_texto.append(f"Nome: {jogador['nome']}\n", style="bold green")
+
+
+
+    resumo_texto.append(f"Classe: {jogador['classe']}\n", style="bold yellow")
+
+
+
+    resumo_texto.append(f"HP: {jogador['hp_max']}\n", style="red")
+
+
+
+    resumo_texto.append(f"Ataque: {jogador['ataque']}\n", style="cyan")
+
+
+
+    resumo_texto.append(f"Defesa: {jogador['defesa']}\n", style="blue")
+
+
+
+    resumo_texto.append(f"Nível: {jogador['nivel']}\n", style="magenta")
+
+
+
+
+
+
+
+    panel = Panel(
+
+
+
+        resumo_texto,
+
+
+
+        title=Text("SEU PERSONAGEM", justify="center", style="bold white"),
+
+
+
+        width=75,
+
+
+
+        box=box.DOUBLE,
+
+
+
+        border_style="green"
+
+
+
+    )
+
+
+
+    console.print(panel)
+
+
+
+    console.input("[bold yellow]Pressione Enter para iniciar a aventura... [/]")

@@ -5,6 +5,24 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-11-02
+
+### Adicionado
+
+-   **Dependência `rich`:** Adicionada a biblioteca `rich` ao `requirements.txt` para uma interface de usuário aprimorada no terminal.
+
+### Melhorado
+
+-   **Interface de Usuário (UI) Completa:** Todas as funções de UI no módulo `src/ui.py` foram refatoradas para utilizar a biblioteca `rich`, substituindo a implementação anterior baseada em `colorama` e `print()`/`input()` diretos.
+    -   **`desenhar_caixa`:** Agora utiliza `rich.panel.Panel` para caixas de texto com títulos e conteúdo formatados.
+    -   **`desenhar_hud_exploracao`:** Implementa `rich.panel.Panel` para as seções de jogador, sala e opções, e `rich.progress.Bar` para as barras de HP e XP, oferecendo um HUD mais visual e informativo.
+    -   **`desenhar_tela_evento`:** Utiliza `rich.panel.Panel` para exibir mensagens de evento de forma padronizada.
+    -   **`desenhar_tela_equipar`:** Apresenta a comparação de itens equipados e disponíveis usando `rich.table.Table` para maior clareza.
+    -   **`desenhar_menu_principal`:** Refatorado com `rich.panel.Panel` e `rich.text.Text` para um menu principal mais atraente.
+    -   **`desenhar_tela_input`:** Utiliza `rich.panel.Panel` e `console.input` para prompts de entrada de texto consistentes.
+    -   **`desenhar_tela_escolha_classe`:** Exibe as opções de classe usando `rich.panel.Panel` e `rich.table.Table`.
+    -   **`desenhar_tela_resumo_personagem`:** Apresenta o resumo do personagem com `rich.panel.Panel` e `rich.text.Text` formatado.
+
 ## [1.0.3] - 2025-11-02
 
 ### Corrigido
