@@ -9,7 +9,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ### Corrigido
 
--   **`ImportError` da Classe `Bar`:** Corrigido o erro de importação da classe `Bar` da biblioteca `rich`, que impedia a execução do jogo e dos testes. A importação foi alterada para o caminho correto (`rich.progress_bar`).
+-   **`ImportError` da Classe `Bar`:** Corrigido o erro de importação da classe `Bar` da biblioteca `rich`, que impedia a execução do jogo e dos testes. A importação foi alterada para o caminho correto (`rich.bar`).
+-   **`ImportError` da Função `desenhar_tela_combate`:** Adicionada a função `desenhar_tela_combate` ao arquivo `src/ui.py`, que estava faltando após as refatorações da UI, resolvendo o erro de importação e permitindo a execução do jogo e dos testes.
 
 ## [1.1.0] - 2025-11-02
 

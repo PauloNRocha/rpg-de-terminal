@@ -4,7 +4,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich import box
-from rich.progress_bar import Bar
+from rich.bar import Bar
 
 console = Console()
 
@@ -287,6 +287,35 @@ def desenhar_tela_resumo_personagem(jogador):
 
     console.print(panel)
 
-
-
     console.input("[bold yellow]Pressione Enter para iniciar a aventura... [/]")
+
+def desenhar_tela_combate(jogador, inimigo, mensagem=""):
+    """Desenha a tela de combate com informações do jogador, inimigo e mensagens."""
+    limpar_tela()
+
+    # Informações do Jogador
+    hp_jogador_percent = (jogador["hp"] / jogador["hp_max"]) * 100
+    jogador_info = Text(f"👤 {jogador['nome']} (HP: {Bar(100, 0, hp_jogador_percent, color="green")} {jogador['hp']}/{jogador['hp_max']})", style="bold green")
+
+    # Informações do Inimigo
+    hp_inimigo_percent = (inimigo["hp"] / inimigo["hp_max"]) * 100
+    inimigo_info = Text(f"👹 {inimigo['nome']} (HP: {Bar(100, 0, hp_inimigo_percent, color="red")} {inimigo['hp']}/{inimigo['hp_max']})", style="bold red")
+
+    # Mensagens de Combate
+    log_combate = Text(mensagem, style="white")
+
+    # Layout da tela de combate
+    combate_panel = Panel(
+        Text.assemble(
+            jogador_info, "\n\n",
+            inimigo_info, "\n\n",
+            log_combate
+        ),
+        title=Text("COMBATE", justify="center", style="bold yellow"),
+        width=75,
+        box=box.DOUBLE,
+        border_style="red"
+    )
+    console.print(combate_panel)
+
+    return console.input("[bold yellow]Sua ação (1. Atacar, 2. Usar Item, 3. Fugir): [/]")
