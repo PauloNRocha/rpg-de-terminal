@@ -5,6 +5,19 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2025-10-31
+
+### Corrigido
+
+-   **Loop de Múltiplos Level Ups:** A lógica de subida de nível agora usa um loop `while`, permitindo que o jogador ganhe vários níveis de uma vez se acumular XP suficiente.
+-   **Lógica do Chefe:** A sala final da masmorra agora gera o "Chefe Orc" de forma consistente, como pretendido.
+
+### Melhorado
+
+-   **Comparação de Itens (UX):**
+    -   A tela de inventário agora exibe os bônus de cada item.
+    -   Uma nova tela de "Equipar Item" foi criada, mostrando o equipamento atual e os itens da mochila lado a lado para facilitar a comparação.
+
 ## [0.7.0] - 2025-10-30
 
 ### Adicionado

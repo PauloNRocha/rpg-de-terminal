@@ -27,6 +27,19 @@ ICONE_USAR_ITEM = "🧪"
 ICONE_EQUIPAR_ITEM = "🧥"
 ICONE_SAIR = "🚪"
 
+def formatar_bonus_item(item):
+    """Transforma o dicionário de bônus de um item em uma string legível."""
+    if not item or "bonus" not in item:
+        return ""
+    
+    partes = []
+    if "ataque" in item["bonus"]:
+        partes.append(f"+{item['bonus']['ataque']} Ataque")
+    if "defesa" in item["bonus"]:
+        partes.append(f"+{item['bonus']['defesa']} Defesa")
+    
+    return ", ".join(partes)
+
 def criar_barra_de_status(valor_atual, valor_max, tamanho=25, cor=Fore.GREEN):
     """Cria uma barra de status visual com base nos valores."""
     if valor_max == 0:
@@ -100,6 +113,44 @@ def desenhar_tela_combate(jogador, inimigo, log_combate):
     print("╚" + "═" * (largura - 2) + "╝")
 
 
+def desenhar_tela_equipar(jogador, itens_equipaveis):
+    """Desenha a interface para equipar itens, mostrando o equipamento atual para comparação."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    largura = 81
+
+    print("╔" + "═" * (largura - 2) + "╗")
+    print(f"║ {COR_ICONE}{ICONE_EQUIPAR_ITEM}{Style.RESET_ALL} {COR_TITULO}EQUIPAR ITEM{Style.RESET_ALL}" + " " * (largura - 18) + "║")
+    print("╠" + "═" * (largura - 2) + "╣")
+
+    # Equipamento Atual
+    print(f"║ {COR_ICONE}🧥{Style.RESET_ALL} Equipado Atualmente" + " " * (largura - 25) + "║")
+    arma = jogador['equipamento']['arma']
+    escudo = jogador['equipamento']['escudo']
+    arma_str = f"   {ICONE_ATAQUE} Arma: {arma['nome'] if arma else 'Nenhuma'}"
+    if arma:
+        arma_str += f" ({formatar_bonus_item(arma)})"
+    escudo_str = f"   {ICONE_DEFESA} Escudo: {escudo['nome'] if escudo else 'Nenhum'}"
+    if escudo:
+        escudo_str += f" ({formatar_bonus_item(escudo)})"
+    print("║" + arma_str.ljust(largura - 2) + "║")
+    print("║" + escudo_str.ljust(largura - 2) + "║")
+    print("╠" + "═" * (largura - 2) + "╣")
+
+    # Itens na Mochila
+    print(f"║ {COR_ICONE}🎒{Style.RESET_ALL} Itens Equipáveis na Mochila" + " " * (largura - 32) + "║")
+    if not itens_equipaveis:
+        print("║   Você não tem itens equipáveis na mochila." + " " * (largura - 46) + "║")
+    else:
+        for i, item in enumerate(itens_equipaveis, 1):
+            bonus_str = formatar_bonus_item(item)
+            item_str = f"   {i}. {item['nome']} ({bonus_str})"
+            print("║" + item_str.ljust(largura - 2) + "║")
+    
+    print("║" + " " * (largura - 2) + "║")
+    print(f"║   {len(itens_equipaveis) + 1}. Voltar" + " " * (largura - 13) + "║")
+    print("╚" + "═" * (largura - 2) + "╝")
+
+
 def desenhar_tela_inventario(jogador):
     """Desenha a interface do inventário do jogador."""
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -120,7 +171,12 @@ def desenhar_tela_inventario(jogador):
     arma = jogador['equipamento']['arma']
     escudo = jogador['equipamento']['escudo']
     arma_str = f"   {ICONE_ATAQUE} Arma: {arma['nome'] if arma else 'Nenhuma'}"
+    if arma:
+        arma_str += f" ({formatar_bonus_item(arma)})"
     escudo_str = f"   {ICONE_DEFESA} Escudo: {escudo['nome'] if escudo else 'Nenhum'}"
+    if escudo:
+        escudo_str += f" ({formatar_bonus_item(escudo)})"
+
     print("║" + arma_str.ljust(largura - 2) + "║")
     print("║" + escudo_str.ljust(largura - 2) + "║")
     print("╠" + "═" * (largura - 2) + "╣")
@@ -131,7 +187,9 @@ def desenhar_tela_inventario(jogador):
         print("║   Sua mochila está vazia." + " " * (largura - 28) + "║")
     else:
         for i, item in enumerate(jogador['inventario'], 1):
-            item_str = f"   {i}. {item['nome']} ({item['descricao']})"
+            bonus_str = formatar_bonus_item(item)
+            desc_item = f"({item['descricao']})" if item['tipo'] == 'consumivel' else f"({bonus_str})"
+            item_str = f"   {i}. {item['nome']} {desc_item}"
             print("║" + item_str.ljust(largura - 2) + "║")
     
     print("╚" + "═" * (largura - 2) + "╝")

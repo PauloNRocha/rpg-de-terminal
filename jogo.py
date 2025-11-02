@@ -5,11 +5,18 @@ from src.mapa import MAPA
 from src.combate import iniciar_combate
 from src.gerador_itens import gerar_item_aleatorio
 from src.gerador_inimigos import gerar_inimigo
-from src.ui import desenhar_hud_exploracao, desenhar_tela_inventario, desenhar_tela_evento # Nova importação de UI
+from src.ui import (
+    desenhar_hud_exploracao,
+    desenhar_tela_inventario,
+    desenhar_tela_evento,
+    desenhar_tela_equipar,
+)
 
 def verificar_level_up(jogador):
     """Verifica se o jogador tem XP suficiente para subir de nível e aplica as mudanças."""
-    if jogador["xp_atual"] >= jogador["xp_para_proximo_nivel"]:
+    subiu_de_nivel = False
+    while jogador["xp_atual"] >= jogador["xp_para_proximo_nivel"]:
+        subiu_de_nivel = True
         jogador["nivel"] += 1
         xp_excedente = jogador["xp_atual"] - jogador["xp_para_proximo_nivel"]
         jogador["xp_atual"] = xp_excedente
@@ -32,7 +39,8 @@ def verificar_level_up(jogador):
             "Seu HP foi totalmente restaurado!"
         )
         desenhar_tela_evento(titulo, mensagem)
-        
+    
+    if subiu_de_nivel:
         aplicar_bonus_equipamento(jogador)
 
 # Função auxiliar para aplicar bônus de equipamento
@@ -91,48 +99,41 @@ def usar_item(jogador):
             time.sleep(1)
 
 def equipar_item(jogador):
-    limpar_tela()
-    print("=== EQUIPAR ITEM ===")
-    
-    itens_equipaveis = [item for item in jogador["inventario"] if item["tipo"] in ["arma", "escudo"]]
-    if not itens_equipaveis:
-        print("Você não tem itens equipáveis no inventário.")
-        time.sleep(2)
-        return
-
-    print("Seus itens equipáveis:")
-    for i, item in enumerate(itens_equipaveis, 1):
-        print(f"{i}. {item['nome']} ({item['descricao']})")
-    print(f"{len(itens_equipaveis) + 1}. Voltar")
-
+    """Gerencia a lógica de equipar um item usando a nova UI."""
     while True:
+        itens_equipaveis = [item for item in jogador["inventario"] if item["tipo"] in ["arma", "escudo"]]
+        
+        desenhar_tela_equipar(jogador, itens_equipaveis)
+        
         try:
-            escolha = int(input("\nEscolha um item para equipar ou 'Voltar': "))
-            if escolha == len(itens_equipaveis) + 1:
+            escolha_str = input("> ")
+            if not escolha_str.isdigit():
+                raise ValueError
+
+            escolha = int(escolha_str)
+            
+            if escolha == len(itens_equipaveis) + 1: # Opção "Voltar"
                 return
+
             if not (1 <= escolha <= len(itens_equipaveis)):
                 raise ValueError
 
             item_escolhido = itens_equipaveis[escolha - 1]
             tipo_item = item_escolhido["tipo"]
 
-            # Desequipa o item atual, se houver
+            # Desequipa o item atual (se houver) e o devolve ao inventário
             if jogador["equipamento"][tipo_item]:
                 item_desequipado = jogador["equipamento"][tipo_item]
                 jogador["inventario"].append(item_desequipado)
-                print(f"Você desequipou {item_desequipado['nome']}.")
-                time.sleep(1)
 
             # Equipa o novo item
             jogador["equipamento"][tipo_item] = item_escolhido
             jogador["inventario"].remove(item_escolhido)
+            
             aplicar_bonus_equipamento(jogador) # Recalcula os bônus
-            print(f"Você equipou {item_escolhido['nome']}.")
-            time.sleep(2)
-            return
 
         except (ValueError, IndexError):
-            print("Opção inválida! Tente novamente.")
+            # TODO: Adicionar mensagem de feedback na UI para erro
             time.sleep(1)
 
 
@@ -153,7 +154,12 @@ def iniciar_aventura(jogador, mapa):
         # Gera um inimigo dinamicamente se a sala permitir
         if sala_atual.get("pode_ter_inimigo") and not sala_atual.get("inimigo_derrotado"):
             nivel_inimigo = sala_atual.get("nivel_area", 1)
-            inimigo = gerar_inimigo(nivel_inimigo)
+            
+            # Verifica se a sala é de um chefe
+            if sala_atual.get("chefe"):
+                inimigo = gerar_inimigo(nivel_inimigo, tipo_inimigo="chefe_orc")
+            else:
+                inimigo = gerar_inimigo(nivel_inimigo)
             
             # TODO: Melhorar a tela de início de combate
             print(f"\nCUIDADO! Um {inimigo['nome']} está na sala!")
