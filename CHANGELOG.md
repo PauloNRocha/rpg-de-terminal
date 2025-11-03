@@ -9,7 +9,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ### Corrigido
 
--   **Renderização da UI (Barras de HP/XP):** Corrigido o `TypeError` na renderização das barras de HP e XP em `desenhar_hud_exploracao` e `desenhar_tela_combate`. As funções foram refatoradas para usar `Table.grid` e `Text.assemble` da biblioteca `rich`, garantindo a composição correta de texto e objetos `Bar`.
+-   **Renderização da UI (Barras de HP/XP):** Corrigido o `TypeError` na renderização das barras de HP e XP em `desenhar_hud_exploracao` e `desenhar_tela_combate`. As funções foram refatoradas para usar `Table.grid` com múltiplas colunas, que é a maneira correta de compor texto e objetos `Bar`, garantindo a renderização correta.
 -   **Inconsistências de UI em `src/combate.py`:** Removidas chamadas diretas a `print` e `input` no loop de combate, centralizando a interação com o usuário na função `desenhar_tela_combate`.
 -   **Inconsistências de UI em `equipar_item`:** A função `desenhar_tela_equipar` em `src/ui.py` foi modificada para usar `console.input` e a função `equipar_item` em `jogo.py` foi ajustada para usar o retorno de `desenhar_tela_equipar`.
 -   **Inconsistências de UI em `jogo.py`:**
@@ -34,7 +34,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   **`KeyError` na Descrição da Classe:** Adicionada a chave `descricao` a cada classe no dicionário `CLASSES` em `src/personagem.py`, resolvendo o `KeyError` que ocorria ao tentar exibir a descrição da classe na tela de escolha.
 -   **Consistência da UI:** A função `desenhar_tela_escolha_classe` em `src/ui.py` foi modificada para usar `console.input` em vez de `input` direto, garantindo consistência com a biblioteca `rich` e melhorando a interação.
 -   **`NameError` na Chamada de `mostrar_inventario`:** Corrigido o erro de digitação na chamada da função `mostrar_inventario` em `jogo.py` (removido o acento).
--   **`NameError` na Variável `escudo_equipado`:** Corrigido o erro de digitação na variável `escudo_equipada` em `src/ui.py` (alterado para `escudo_equipado`).
+-   **`NameError` na Variável `escudo_equipado`:** Corrigido o `NameError` na função `desenhar_tela_equipar` em `src/ui.py`. A variável `escudo_equipada` foi alterada para `escudo_equipado`, resolvendo o erro que impedia a renderização correta da tela de equipamento.
 
 ## [1.1.0] - 2025-11-02
 

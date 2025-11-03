@@ -36,8 +36,23 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
     grid_jogador.add_column()
     grid_jogador.add_row(Text(f"👤 {jogador['nome']}, o {jogador['classe']}", style="bold green"))
     grid_jogador.add_row(Text(f"🌟 Nível: {jogador['nivel']}", style="yellow"))
-    grid_jogador.add_row(Text.assemble("❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {jogador['hp']}/{jogador['hp_max']}"))
-    grid_jogador.add_row(Text.assemble("⭐  XP: ", Bar(100, 0, xp_percent, color="cyan"), f" {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}"))
+
+    # Grid para HP
+    hp_grid = Table.grid(expand=True, padding=0)
+    hp_grid.add_column(width=7)
+    hp_grid.add_column(ratio=1)
+    hp_grid.add_column(no_wrap=True, justify="right")
+    hp_grid.add_row("❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {jogador['hp']}/{jogador['hp_max']}")
+    grid_jogador.add_row(hp_grid)
+
+    # Grid para XP
+    xp_grid = Table.grid(expand=True, padding=0)
+    xp_grid.add_column(width=7)
+    xp_grid.add_column(ratio=1)
+    xp_grid.add_column(no_wrap=True, justify="right")
+    xp_grid.add_row("⭐  XP: ", Bar(100, 0, xp_percent, color="cyan"), f" {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}")
+    grid_jogador.add_row(xp_grid)
+
     grid_jogador.add_row(Text(f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}", style="bold white"))
 
     hud_jogador = Panel(
@@ -106,7 +121,7 @@ def desenhar_tela_equipar(jogador, itens_equipaveis):
     tabela_equipamento.add_row(
         "Escudo:",
         escudo_equipado["nome"] if escudo_equipado else "Nenhum",
-        ", ".join([f"{k}: {v}" for k, v in escudo_equipada.get("bonus", {}).items()]) if escudo_equipada else ""
+        ", ".join([f"{k}: {v}" for k, v in escudo_equipado.get("bonus", {}).items()]) if escudo_equipado else ""
     )
 
     console.print(tabela_equipamento)
@@ -330,29 +345,45 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     """Desenha a tela de combate com informações do jogador, inimigo e mensagens."""
     limpar_tela()
 
-    # Informações do Jogador
+    # Grid do Jogador
     hp_jogador_percent = (jogador["hp"] / jogador["hp_max"]) * 100
-    jogador_info = Text(f"👤 {jogador['nome']} (HP: {Bar(100, 0, hp_jogador_percent, color="green")} {jogador['hp']}/{jogador['hp_max']})", style="bold green")
+    grid_jogador = Table.grid(expand=True, padding=0)
+    grid_jogador.add_column(no_wrap=True)
+    grid_jogador.add_column(ratio=1)
+    grid_jogador.add_column(no_wrap=True, justify="right")
+    grid_jogador.add_row(
+        Text(f"👤 {jogador['nome']}", style="bold green"),
+        Bar(100, 0, hp_jogador_percent, color="green"),
+        Text(f" {jogador['hp']}/{jogador['hp_max']}", style="bold green")
+    )
 
-    # Informações do Inimigo
+    # Grid do Inimigo
     hp_inimigo_percent = (inimigo["hp"] / inimigo["hp_max"]) * 100
-    inimigo_info = Text(f"👹 {inimigo['nome']} (HP: {Bar(100, 0, hp_inimigo_percent, color="red")} {inimigo['hp']}/{inimigo['hp_max']})", style="bold red")
+    grid_inimigo = Table.grid(expand=True, padding=0)
+    grid_inimigo.add_column(no_wrap=True)
+    grid_inimigo.add_column(ratio=1)
+    grid_inimigo.add_column(no_wrap=True, justify="right")
+    grid_inimigo.add_row(
+        Text(f"👹 {inimigo['nome']}", style="bold red"),
+        Bar(100, 0, hp_inimigo_percent, color="red"),
+        Text(f" {inimigo['hp']}/{inimigo['hp_max']}", style="bold red")
+    )
 
     # Mensagens de Combate
     log_combate_texto = "\n".join(mensagem)
     log_combate = Text(log_combate_texto, style="white")
 
     # Layout da tela de combate
-    grid_combate = Table.grid(expand=True)
-    grid_combate.add_column()
-    grid_combate.add_row(jogador_info)
-    grid_combate.add_row("") # Espaçamento
-    grid_combate.add_row(inimigo_info)
-    grid_combate.add_row("") # Espaçamento
-    grid_combate.add_row(log_combate)
+    grid_principal = Table.grid(expand=True)
+    grid_principal.add_column()
+    grid_principal.add_row(grid_jogador)
+    grid_principal.add_row("") # Espaçamento
+    grid_principal.add_row(grid_inimigo)
+    grid_principal.add_row("") # Espaçamento
+    grid_principal.add_row(log_combate)
 
     combate_panel = Panel(
-        grid_combate,
+        grid_principal,
         title=Text("COMBATE", justify="center", style="bold yellow"),
         width=75,
         box=box.DOUBLE,
