@@ -31,12 +31,17 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
     hp_percent = (jogador["hp"] / jogador["hp_max"]) * 100
     xp_percent = (jogador["xp_atual"] / jogador["xp_para_proximo_nivel"]) * 100
 
+    # Usando Text.assemble para compor texto e renderizáveis (Bar)
+    info_jogador = Text.assemble(
+        (f"👤 {jogador['nome']}, o {jogador['classe']}\n", "bold green"),
+        (f"🌟 Nível: {jogador['nivel']}\n", "yellow"),
+        "❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {jogador['hp']}/{jogador['hp_max']}\n",
+        "⭐  XP: ", Bar(100, 0, xp_percent, color="cyan"), f" {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}\n",
+        (f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}", "bold white")
+    )
+
     hud_jogador = Panel(
-        Text(f"👤 {jogador['nome']}, o {jogador['classe']}", style="bold green") + "\n" +
-        Text(f"🌟 Nível: {jogador['nivel']}", style="yellow") + "\n" +
-        Text(f"❤️  HP: {Bar(100, 0, hp_percent, color="red")} {jogador['hp']}/{jogador['hp_max']}") + "\n" +
-        Text(f"⭐  XP: {Bar(100, 0, xp_percent, color="cyan")} {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}") + "\n" +
-        Text(f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}", style="bold white"),
+        info_jogador,
         title=Text("Jogador", style="bold blue"),
         border_style="blue",
         width=75
@@ -327,7 +332,8 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     inimigo_info = Text(f"👹 {inimigo['nome']} (HP: {Bar(100, 0, hp_inimigo_percent, color="red")} {inimigo['hp']}/{inimigo['hp_max']})", style="bold red")
 
     # Mensagens de Combate
-    log_combate = Text(mensagem, style="white")
+    log_combate_texto = "\n".join(mensagem)
+    log_combate = Text(log_combate_texto, style="white")
 
     # Layout da tela de combate
     combate_panel = Panel(

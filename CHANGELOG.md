@@ -5,6 +5,13 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-11-03
+
+### Corrigido
+
+-   **Renderização da UI:** Corrigido o bug visual onde as barras de HP e XP eram exibidas como texto (`Bar(...)`) em vez de uma barra gráfica. A função `desenhar_hud_exploracao` agora usa `Text.assemble` para garantir a renderização correta.
+-   **`AttributeError` na Tela de Combate:** Corrigida a função `desenhar_tela_combate` para lidar corretamente com o log de combate (uma lista de strings), resolvendo o erro que impedia a renderização da tela.
+
 ## [1.1.1] - 2025-11-03
 
 ### Corrigido
