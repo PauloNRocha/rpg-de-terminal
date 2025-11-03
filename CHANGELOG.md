@@ -5,13 +5,17 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.1] - 2025-11-02
+## [1.1.1] - 2025-11-03
 
 ### Corrigido
 
--   **`ImportError` da Classe `Bar`:** Corrigido o erro de importação da classe `Bar` da biblioteca `rich`, que impedia a execução do jogo e dos testes. A importação foi alterada para o caminho correto (`rich.bar`).
--   **`ImportError` da Função `desenhar_tela_combate`:** Adicionada a função `desenhar_tela_combate` ao arquivo `src/ui.py`, que estava faltando após as refatorações da UI, resolvendo o erro de importação e permitindo a execução do jogo e dos testes.
--   **`ImportError` da Função `desenhar_tela_inventario`:** Adicionada a função `desenhar_tela_inventario` ao arquivo `src/ui.py`, que estava faltando após as refatorações da UI, resolvendo o erro de importação e permitindo a execução do jogo e dos testes.
+-   **`ImportError` da Classe `Bar`:** Corrigido o erro de importação da classe `Bar` da biblioteca `rich`, alterando a importação para o caminho correto (`rich.bar`).
+-   **`ImportError` da Função `desenhar_tela_combate`:** Adicionada a função `desenhar_tela_combate` ao arquivo `src/ui.py`, que estava faltando após as refatorações da UI.
+-   **`ImportError` da Função `desenhar_tela_inventario`:** Adicionada a função `desenhar_tela_inventario` ao arquivo `src/ui.py`, que estava faltando após as refatorações da UI.
+-   **`KeyError` na Descrição da Classe:** Adicionada a chave `descricao` a cada classe no dicionário `CLASSES` em `src/personagem.py`, resolvendo o `KeyError` que ocorria ao tentar exibir a descrição da classe na tela de escolha.
+-   **Consistência da UI:** A função `desenhar_tela_escolha_classe` em `src/ui.py` foi modificada para usar `console.input` em vez de `input` direto, garantindo consistência com a biblioteca `rich` e melhorando a interação.
+-   **`NameError` na Chamada de `mostrar_inventario`:** Corrigido o erro de digitação na chamada da função `mostrar_inventario` em `jogo.py` (removido o acento).
+-   **`NameError` na Variável `escudo_equipado`:** Corrigido o erro de digitação na variável `escudo_equipada` em `src/ui.py` (alterado para `escudo_equipado`).
 
 ## [1.1.0] - 2025-11-02
 

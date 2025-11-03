@@ -244,7 +244,7 @@ def iniciar_aventura(jogador, mapa):
             elif acao_escolhida == "Voltar por onde veio":
                 jogador["x"], jogador["y"] = posicao_anterior
             elif acao_escolhida == "Ver Inventário":
-                mostrar_inventário(jogador)
+                mostrar_inventario(jogador)
                 continue
             elif acao_escolhida == "Usar Item":
                 usar_item(jogador)

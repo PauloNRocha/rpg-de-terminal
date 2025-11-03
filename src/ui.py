@@ -100,7 +100,7 @@ def desenhar_tela_equipar(jogador, itens_equipaveis):
     )
     tabela_equipamento.add_row(
         "Escudo:",
-        escudo_equipada["nome"] if escudo_equipada else "Nenhum",
+        escudo_equipado["nome"] if escudo_equipado else "Nenhum",
         ", ".join([f"{k}: {v}" for k, v in escudo_equipada.get("bonus", {}).items()]) if escudo_equipada else ""
     )
 
@@ -208,7 +208,6 @@ def desenhar_tela_escolha_classe(classes):
     
 
     console.print(tabela_classes)
-
     return console.input("[bold yellow]Escolha sua classe: [/]")
 
 

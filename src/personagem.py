@@ -2,9 +2,9 @@ import time
 from src.utils import limpar_tela
 
 CLASSES = {
-    "guerreiro": {"hp": 25, "ataque": 6, "defesa": 4},
-    "mago": {"hp": 15, "ataque": 8, "defesa": 2},
-    "arqueiro": {"hp": 20, "ataque": 7, "defesa": 3},
+    "guerreiro": {"hp": 25, "ataque": 6, "defesa": 4, "descricao": "Mestre do combate corpo a corpo, com alta resistência."},
+    "mago": {"hp": 15, "ataque": 8, "defesa": 2, "descricao": "Usa poderes arcanos para causar dano massivo, mas é frágil."},
+    "arqueiro": {"hp": 20, "ataque": 7, "defesa": 3, "descricao": "Especialista em ataques à distância, ágil e preciso."},
 }
 
 def criar_personagem(nome, classe_escolhida):
