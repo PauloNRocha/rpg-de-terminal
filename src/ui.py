@@ -31,17 +31,17 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
     hp_percent = (jogador["hp"] / jogador["hp_max"]) * 100
     xp_percent = (jogador["xp_atual"] / jogador["xp_para_proximo_nivel"]) * 100
 
-    # Usando Text.assemble para compor texto e renderizáveis (Bar)
-    info_jogador = Text.assemble(
-        (f"👤 {jogador['nome']}, o {jogador['classe']}\n", "bold green"),
-        (f"🌟 Nível: {jogador['nivel']}\n", "yellow"),
-        "❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {jogador['hp']}/{jogador['hp_max']}\n",
-        "⭐  XP: ", Bar(100, 0, xp_percent, color="cyan"), f" {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}\n",
-        (f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}", "bold white")
-    )
+    # Usando uma tabela para organizar as informações do jogador de forma robusta
+    grid_jogador = Table.grid(expand=True)
+    grid_jogador.add_column()
+    grid_jogador.add_row(Text(f"👤 {jogador['nome']}, o {jogador['classe']}", style="bold green"))
+    grid_jogador.add_row(Text(f"🌟 Nível: {jogador['nivel']}", style="yellow"))
+    grid_jogador.add_row(Text.assemble("❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {jogador['hp']}/{jogador['hp_max']}"))
+    grid_jogador.add_row(Text.assemble("⭐  XP: ", Bar(100, 0, xp_percent, color="cyan"), f" {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}"))
+    grid_jogador.add_row(Text(f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}", style="bold white"))
 
     hud_jogador = Panel(
-        info_jogador,
+        grid_jogador,
         title=Text("Jogador", style="bold blue"),
         border_style="blue",
         width=75
@@ -130,6 +130,13 @@ def desenhar_tela_equipar(jogador, itens_equipaveis):
         console.print(tabela_disponiveis)
     else:
         console.print(Panel(Text("Você não tem itens equipáveis no inventário.", justify="center"), width=75, border_style="blue"))
+
+    opcoes_panel = Panel(
+        Text(f"Escolha um item (1-{len(itens_equipaveis)}) ou '{len(itens_equipaveis) + 1}' para Voltar.", justify="center"),
+        width=75
+    )
+    console.print(opcoes_panel)
+    return console.input("[bold yellow]> [/]")
 
 def desenhar_menu_principal():
 
@@ -336,12 +343,16 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     log_combate = Text(log_combate_texto, style="white")
 
     # Layout da tela de combate
+    grid_combate = Table.grid(expand=True)
+    grid_combate.add_column()
+    grid_combate.add_row(jogador_info)
+    grid_combate.add_row("") # Espaçamento
+    grid_combate.add_row(inimigo_info)
+    grid_combate.add_row("") # Espaçamento
+    grid_combate.add_row(log_combate)
+
     combate_panel = Panel(
-        Text.assemble(
-            jogador_info, "\n\n",
-            inimigo_info, "\n\n",
-            log_combate
-        ),
+        grid_combate,
         title=Text("COMBATE", justify="center", style="bold yellow"),
         width=75,
         box=box.DOUBLE,
@@ -350,3 +361,16 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     console.print(combate_panel)
 
     return console.input("[bold yellow]Sua ação (1. Atacar, 2. Usar Item, 3. Fugir): [/]")
+
+def tela_game_over():
+    """Desenha a tela de Game Over."""
+    limpar_tela()
+    panel = Panel(
+        Text("Você foi derrotado em combate!\n\nFIM DE JOGO", justify="center", style="bold red"),
+        title=Text("GAME OVER", justify="center", style="bold white"),
+        width=75,
+        box=box.DOUBLE,
+        border_style="red"
+    )
+    console.print(panel)
+    console.input("[bold yellow]Pressione Enter para voltar ao menu principal... [/]")

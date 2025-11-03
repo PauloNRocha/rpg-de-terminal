@@ -18,14 +18,7 @@ def iniciar_combate(jogador, inimigo, usar_pocao_callback):
     inimigo['hp_max'] = inimigo['hp'] # Armazena o HP máximo para a barra de status
 
     while jogador["hp"] > 0 and inimigo["hp"] > 0:
-        desenhar_tela_combate(jogador, inimigo, log_combate)
-        
-        # Menu de Ações
-        print("   1. Atacar (⚔️)")
-        print("   2. Usar Poção (🧪)")
-        print("   3. Fugir (🏃)")
-        
-        escolha = input("> ")
+        escolha = desenhar_tela_combate(jogador, inimigo, log_combate)
 
         if escolha == "1":
             # Turno do Jogador

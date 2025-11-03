@@ -16,6 +16,7 @@ from src.ui import (
     desenhar_tela_escolha_classe,
     desenhar_tela_resumo_personagem,
     limpar_tela, # Importa a função limpar_tela
+    tela_game_over, # Importa a função tela_game_over
 )
 
 def verificar_level_up(jogador):
@@ -104,10 +105,9 @@ def equipar_item(jogador):
     while True:
         itens_equipaveis = [item for item in jogador["inventario"] if item["tipo"] in ["arma", "escudo"]]
         
-        desenhar_tela_equipar(jogador, itens_equipaveis)
+        escolha_str = desenhar_tela_equipar(jogador, itens_equipaveis)
         
         try:
-            escolha_str = input("> ")
             if not escolha_str.isdigit():
                 raise ValueError
 
@@ -176,37 +176,33 @@ def iniciar_aventura(jogador, mapa):
                     inimigo = gerar_inimigo(nivel_inimigo)
                 sala_atual["inimigo_atual"] = inimigo # Armazena o inimigo na sala
             
-            # TODO: Melhorar a tela de início de combate
-            print(f"\nCUIDADO! Um {inimigo['nome']} está na sala!")
-            time.sleep(2)
+            desenhar_tela_evento("ENCONTRO!", f"CUIDADO! Um {inimigo['nome']} está na sala!")
             
             resultado_combate, inimigo_atualizado = iniciar_combate(jogador, inimigo, usar_item)
             sala_atual["inimigo_atual"] = inimigo_atualizado # Atualiza o inimigo na sala
             
             if resultado_combate: # Vitória
                 xp_ganho = inimigo_atualizado["xp_recompensa"]
-                print(f"Você ganhou {xp_ganho} de XP!")
+                desenhar_tela_evento("VITÓRIA!", f"Você derrotou o {inimigo['nome']} e ganhou {xp_ganho} de XP!")
                 jogador["xp_atual"] += xp_ganho
                 
                 if inimigo_atualizado.get("drop_raridade"):
                     item_dropado = gerar_item_aleatorio(inimigo_atualizado["drop_raridade"])
                     if item_dropado:
                         jogador["inventario"].append(item_dropado)
-                        print(f"O inimigo dropou: {item_dropado['nome']}!")
+                        desenhar_tela_evento("ITEM DROPADO!", f"O inimigo dropou: {item_dropado['nome']}!")
                 
                 sala_atual["inimigo_derrotado"] = True
                 sala_atual["inimigo_atual"] = None # Remove o inimigo da sala após a derrota
-                time.sleep(2)
                 verificar_level_up(jogador)
             else: # Derrota ou fuga
                 if jogador["hp"] <= 0:
                     tela_game_over()
                     return
                 else: # Fuga
-                    print("\nVocê recua para a sala anterior.")
+                    desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
                     if posicao_anterior:
                         jogador["x"], jogador["y"] = posicao_anterior
-                    time.sleep(2)
                     continue
 
         # Define as opções de ação
@@ -259,9 +255,7 @@ def iniciar_aventura(jogador, mapa):
             posicao_anterior = posicao_atual
 
         except (ValueError, IndexError):
-            # TODO: Adicionar mensagem de feedback na UI
-            print("\nOpção inválida! Tente novamente.")
-            time.sleep(1)
+            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
 def processo_criacao_personagem():
     """Orquestra o processo de criação de personagem usando a UI."""
@@ -278,8 +272,7 @@ def processo_criacao_personagem():
             if 0 <= idx < len(classes_lista):
                 classe_escolhida = classes_lista[idx]
         except (ValueError, IndexError):
-            # TODO: Adicionar mensagem de feedback na UI para erro
-            pass
+            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
             
     jogador = criar_personagem_logica(nome, classe_escolhida)
     desenhar_tela_resumo_personagem(jogador)
@@ -300,8 +293,7 @@ def main():
                 desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
                 break
             else:
-                # TODO: Adicionar mensagem de feedback na UI para erro
-                time.sleep(1)
+                desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
     except KeyboardInterrupt:
         desenhar_tela_evento("ATÉ LOGO!", "O jogo foi interrompido.\n\nEsperamos você para a próxima aventura!")
         sys.exit(0)

@@ -5,6 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-11-03
+
+### Corrigido
+
+-   **Renderização da UI (Barras de HP/XP):** Corrigido o `TypeError` na renderização das barras de HP e XP em `desenhar_hud_exploracao` e `desenhar_tela_combate`. As funções foram refatoradas para usar `Table.grid` e `Text.assemble` da biblioteca `rich`, garantindo a composição correta de texto e objetos `Bar`.
+-   **Inconsistências de UI em `src/combate.py`:** Removidas chamadas diretas a `print` e `input` no loop de combate, centralizando a interação com o usuário na função `desenhar_tela_combate`.
+-   **Inconsistências de UI em `equipar_item`:** A função `desenhar_tela_equipar` em `src/ui.py` foi modificada para usar `console.input` e a função `equipar_item` em `jogo.py` foi ajustada para usar o retorno de `desenhar_tela_equipar`.
+-   **Inconsistências de UI em `jogo.py`:**
+    -   Substituídas chamadas diretas a `print` por `desenhar_tela_evento` na função `iniciar_aventura`.
+    -   Criada e importada a função `tela_game_over` em `src/ui.py` para exibir a tela de fim de jogo.
+    -   Substituídos `pass` e `time.sleep` por `desenhar_tela_evento` nos blocos `except` e `else` das funções `processo_criacao_personagem` e `main`, respectivamente, para fornecer feedback consistente ao usuário.
+
 ## [1.1.2] - 2025-11-03
 
 ### Corrigido
