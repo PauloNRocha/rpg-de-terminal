@@ -1,11 +1,13 @@
-import time
-from src.utils import limpar_tela
+import json
+from pathlib import Path
 
-CLASSES = {
-    "guerreiro": {"hp": 25, "ataque": 6, "defesa": 4, "descricao": "Mestre do combate corpo a corpo, com alta resistência."},
-    "mago": {"hp": 15, "ataque": 8, "defesa": 2, "descricao": "Usa poderes arcanos para causar dano massivo, mas é frágil."},
-    "arqueiro": {"hp": 20, "ataque": 7, "defesa": 3, "descricao": "Especialista em ataques à distância, ágil e preciso."},
-}
+# Carrega os dados das classes do arquivo JSON
+def carregar_classes():
+    caminho_arquivo = Path(__file__).parent / "data" / "classes.json"
+    with open(caminho_arquivo, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+CLASSES = carregar_classes()
 
 def criar_personagem(nome, classe_escolhida):
     """

@@ -148,14 +148,16 @@ def equipar_item(jogador):
             time.sleep(1)
 
 
-def iniciar_aventura(jogador, mapa):
-    """Loop principal da exploração do mapa com menu de ações numérico."""
-    
+def iniciar_aventura(jogador, mapa, nivel_masmorra):
+    """
+    Loop principal da exploração. Retorna True se o jogador avançar para o próximo nível,
+    False caso contrário (morte ou saída voluntária).
+    """
     # Encontra a posição inicial do jogador na "Entrada da Masmorra"
     start_x, start_y = 0, 0
     for y_idx, linha in enumerate(mapa):
         for x_idx, sala in enumerate(linha):
-            if sala.get("nome") == "Entrada da Masmorra":
+            if sala.get("tipo") == "entrada":
                 start_x, start_y = x_idx, y_idx
                 break
         else:
@@ -166,8 +168,9 @@ def iniciar_aventura(jogador, mapa):
     posicao_anterior = None
 
     # Inicializa os atributos base para aplicar bônus de equipamento
-    jogador["ataque_base"] = jogador["ataque"]
-    jogador["defesa_base"] = jogador["defesa"]
+    if nivel_masmorra == 1:
+        jogador["ataque_base"] = jogador["ataque"]
+        jogador["defesa_base"] = jogador["defesa"]
 
     while True:
         x, y = jogador["x"], jogador["y"]
@@ -208,7 +211,7 @@ def iniciar_aventura(jogador, mapa):
             else: # Derrota ou fuga
                 if jogador["hp"] <= 0:
                     tela_game_over()
-                    return
+                    return False # Fim da aventura por morte
                 else: # Fuga
                     desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
                     if posicao_anterior:
@@ -217,14 +220,27 @@ def iniciar_aventura(jogador, mapa):
 
         # Define as opções de ação
         opcoes = []
-        if y > 0: opcoes.append("Ir para o Norte")
-        if y < len(mapa) - 1: opcoes.append("Ir para o Sul")
-        if x < len(mapa[0]) - 1: opcoes.append("Ir para o Leste")
-        if x > 0: opcoes.append("Ir para o Oeste")
-        if posicao_anterior is not None: opcoes.append("Voltar por onde veio")
+        # Verifica se a sala ao redor não é uma parede antes de adicionar a opção
+        if y > 0 and mapa[y - 1][x].get("tipo") != "parede": opcoes.append("Ir para o Norte")
+        if y < len(mapa) - 1 and mapa[y + 1][x].get("tipo") != "parede": opcoes.append("Ir para o Sul")
+        if x < len(mapa[0]) - 1 and mapa[y][x + 1].get("tipo") != "parede": opcoes.append("Ir para o Leste")
+        if x > 0 and mapa[y][x - 1].get("tipo") != "parede": opcoes.append("Ir para o Oeste")
+        
+        # Lógica para descer a escada
+        if sala_atual.get("tipo") == "escada":
+            chefe_derrotado = True
+            # Procura pela sala do chefe no mapa para ver se ele foi derrotado
+            for linha in mapa:
+                for sala in linha:
+                    if sala.get("tipo") == "chefe" and not sala.get("inimigo_derrotado"):
+                        chefe_derrotado = False
+                        break
+            if chefe_derrotado:
+                opcoes.append("Descer para o próximo nível")
+            else:
+                desenhar_tela_evento("AVISO", "A escada está bloqueada por uma força sombria. Derrote o chefe deste nível para prosseguir.")
+
         opcoes.append("Ver Inventário")
-        opcoes.append("Usar Item")
-        opcoes.append("Equipar Item")
         opcoes.append("Sair da masmorra")
 
         # Desenha a UI e captura a entrada do jogador
@@ -247,25 +263,18 @@ def iniciar_aventura(jogador, mapa):
                 jogador["x"] += 1
             elif acao_escolhida == "Ir para o Oeste":
                 jogador["x"] -= 1
-            elif acao_escolhida == "Voltar por onde veio":
-                jogador["x"], jogador["y"] = posicao_anterior
+            elif acao_escolhida == "Descer para o próximo nível":
+                return True # Avança para o próximo nível
             elif acao_escolhida == "Ver Inventário":
                 gerenciar_inventario(jogador)
                 continue
-            elif acao_escolhida == "Usar Item":
-                usar_item(jogador)
-                continue
-            elif acao_escolhida == "Equipar Item":
-                equipar_item(jogador)
-                continue
             elif acao_escolhida == "Sair da masmorra":
                 desenhar_tela_evento("FIM DE JOGO", "Você saiu da masmorra.\n\nObrigado por jogar!")
-                break
+                return False # Fim da aventura por saída voluntária
             
             posicao_anterior = posicao_atual
 
-        except (ValueError, IndexError):
-            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
+
 
 def processo_criacao_personagem():
     """Orquestra o processo de criação de personagem usando a UI."""
@@ -289,16 +298,31 @@ def processo_criacao_personagem():
     return jogador
 
 def main():
-    """Função principal do jogo."""
+    """Função principal do jogo, agora controla o loop de progressão da masmorra."""
     try:
         while True:
             escolha = desenhar_menu_principal()
             
             if escolha == "1":
                 jogador = processo_criacao_personagem()
-                mapa_gerado = gerar_mapa() # Gera um novo mapa a cada aventura
-                iniciar_aventura(jogador, mapa_gerado)
-            
+                nivel_masmorra = 1
+                
+                while True: # Loop para os níveis da masmorra
+                    mapa_gerado = gerar_mapa(nivel_masmorra)
+                    aventura_continua = iniciar_aventura(jogador, mapa_gerado, nivel_masmorra)
+                    
+                    if aventura_continua: # Jogador desceu para o próximo nível
+                        nivel_masmorra += 1
+                        # Recompensa por passar de nível
+                        hp_cura = int(jogador["hp_max"] * 0.25)
+                        jogador["hp"] = min(jogador["hp_max"], jogador["hp"] + hp_cura)
+                        desenhar_tela_evento(
+                            f"NÍVEL {nivel_masmorra} ALCANÇADO!",
+                            f"Você desce para o próximo nível da masmorra.\nVocê recuperou {hp_cura} de HP."
+                        )
+                    else: # Jogador morreu ou saiu da masmorra
+                        break
+
             elif escolha == "2":
                 desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
                 break

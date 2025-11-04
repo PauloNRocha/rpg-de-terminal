@@ -5,6 +5,19 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-11-03
+
+### Adicionado
+
+-   **Sistema de Progressão de Masmorra:** Implementado um sistema que permite ao jogador avançar para níveis de masmorra progressivamente mais difíceis.
+-   **Gerador de Mapa Aprimorado:** O gerador de mapa foi completamente refatorado para criar níveis com um caminho principal garantido, uma sala de chefe estratégica e uma escadaria para o próximo nível, eliminando a sensação de exploração sem rumo.
+
+### Alterado
+
+-   **Fluxo de Jogo Principal:** A lógica principal do jogo foi movida para a função `main` para gerenciar os níveis da masmorra e a geração de novos mapas.
+-   **Dados de Classes Externalizados:** As definições de classes de personagens foram movidas do código Python para o arquivo `src/data/classes.json`, facilitando o balanceamento e a adição de novas classes.
+-   **Dados de Itens Externalizados:** A geração procedural de itens foi substituída por um sistema que carrega itens pré-definidos do arquivo `src/data/itens.json`, simplificando a lógica e o gerenciamento de itens.
+
 ## [1.1.4] - 2025-11-03
 
 ### Corrigido

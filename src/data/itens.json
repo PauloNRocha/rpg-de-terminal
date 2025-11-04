@@ -1,0 +1,64 @@
+{
+    "comum": [
+        {
+            "nome": "Adaga Enferrujada",
+            "tipo": "arma",
+            "bonus": { "ataque": 2 },
+            "descricao": "+2 Ataque"
+        },
+        {
+            "nome": "Escudo de Madeira",
+            "tipo": "escudo",
+            "bonus": { "defesa": 2 },
+            "descricao": "+2 Defesa"
+        },
+        {
+            "nome": "Espada Curta",
+            "tipo": "arma",
+            "bonus": { "ataque": 3 },
+            "descricao": "+3 Ataque"
+        }
+    ],
+    "incomum": [
+        {
+            "nome": "Espada Afiada",
+            "tipo": "arma",
+            "bonus": { "ataque": 5 },
+            "descricao": "+5 Ataque"
+        },
+        {
+            "nome": "Escudo de Ferro Reforçado",
+            "tipo": "escudo",
+            "bonus": { "defesa": 4 },
+            "descricao": "+4 Defesa"
+        },
+        {
+            "nome": "Machado de Batalha",
+            "tipo": "arma",
+            "bonus": { "ataque": 6 },
+            "descricao": "+6 Ataque"
+        }
+    ],
+    "raro": [
+        {
+            "nome": "Espada Mágica da Brutalidade",
+            "tipo": "arma",
+            "bonus": { "ataque": 8, "defesa": 1 },
+            "descricao": "+8 Ataque, +1 Defesa"
+        },
+        {
+            "nome": "Escudo Mágico da Proteção",
+            "tipo": "escudo",
+            "bonus": { "defesa": 5, "ataque": 1 },
+            "descricao": "+5 Defesa, +1 Ataque"
+        }
+    ],
+    "consumivel": [
+        {
+            "nome": "Poção de Cura",
+            "tipo": "consumivel",
+            "efeito": { "hp": 15 },
+            "descricao": "Restaura 15 pontos de vida."
+        }
+    ]
+}

@@ -2,82 +2,100 @@
 
 import random
 
-def gerar_mapa(tamanho_min=5, tamanho_max=10):
+LARGURA_MAPA = 10
+ALTURA_MAPA = 10
+
+def gerar_mapa(nivel=1):
     """
-    Gera um mapa proceduralmente para a masmorra.
-    O mapa é uma lista de listas de dicionários, onde cada dicionário representa uma sala.
+    Gera um novo mapa com um caminho principal garantido da entrada até a saída.
+    A dificuldade dos inimigos e a estrutura podem variar com o nível.
     """
-    tamanho = random.randint(tamanho_min, tamanho_max)
-    mapa = [[None for _ in range(tamanho)] for _ in range(tamanho)]
+    # Inicializa o mapa com salas vazias (paredes)
+    mapa = [[{"tipo": "parede"} for _ in range(LARGURA_MAPA)] for _ in range(ALTURA_MAPA)]
 
-    # Ponto de partida
-    start_x, start_y = random.randint(0, tamanho - 1), random.randint(0, tamanho - 1)
-    mapa[start_y][start_x] = {
-        "nome": "Entrada da Masmorra",
-        "descricao": "Você está na entrada de uma masmorra escura e úmida.",
-        "nivel_area": 1,
-        "pode_ter_inimigo": False,
-        "inimigo_atual": None,
-        "visitada": False,
-    }
+    # Define o ponto de partida e o caminho
+    x, y = random.randint(1, LARGURA_MAPA - 2), 0
+    caminho_principal = []
 
-    salas_criadas = [(start_x, start_y)]
-    salas_para_explorar = [(start_x, start_y)]
+    # 1. Cria um caminho principal de cima para baixo
+    while y < ALTURA_MAPA - 1:
+        mapa[y][x] = _criar_sala("caminho", nivel)
+        caminho_principal.append((x, y))
+        
+        # Movimenta o caminho aleatoriamente para os lados, mas prioriza ir para baixo
+        direcao = random.choice(["esquerda", "direita", "baixo", "baixo", "baixo"])
+        if direcao == "esquerda" and x > 1:
+            x -= 1
+        elif direcao == "direita" and x < LARGURA_MAPA - 2:
+            x += 1
+        else: # Para baixo
+            y += 1
 
-    nomes_de_sala = [
-        "Câmara Empoeirada", "Corredor Estreito", "Salão Rachado", 
-        "Antecâmara", "Arsenal Desmoronado", "Cripta Esquecida",
-        "Galeria Sussurrante", "Câmara de Ecos", "Passagem Inundada"
-    ]
+    # 2. Define as salas especiais no caminho principal
+    entrada_x, entrada_y = caminho_principal[0]
+    mapa[entrada_y][entrada_x] = _criar_sala("entrada", nivel)
 
-    # Geração do mapa usando um algoritmo de expansão
-    while salas_para_explorar:
-        x, y = salas_para_explorar.pop(0)
+    chefe_x, chefe_y = caminho_principal[-2]
+    mapa[chefe_y][chefe_x] = _criar_sala("chefe", nivel)
 
-        direcoes = [(0, 1), (0, -1), (1, 0), (-1, 0)] # Sul, Norte, Leste, Oeste
+    escada_x, escada_y = caminho_principal[-1]
+    mapa[escada_y][escada_x] = _criar_sala("escada", nivel)
+
+    # 3. Adiciona salas secundárias e becos sem saída
+    for _ in range(int(LARGURA_MAPA * ALTURA_MAPA / 4)): # Adiciona um número de salas extras
+        px, py = random.choice(caminho_principal)
+        direcoes = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         random.shuffle(direcoes)
-
+        
         for dx, dy in direcoes:
-            nx, ny = x + dx, y + dy
+            nx, ny = px + dx, py + dy
+            if 0 <= nx < LARGURA_MAPA and 0 <= ny < ALTURA_MAPA and mapa[ny][nx]["tipo"] == "parede":
+                mapa[ny][nx] = _criar_sala("secundaria", nivel)
+                break
 
-            if 0 <= nx < tamanho and 0 <= ny < tamanho and mapa[ny][nx] is None:
-                # Garante que as salas ao redor da entrada sejam de nível 1
-                if (x, y) == (start_x, start_y):
-                    nivel_area = 1
-                else:
-                    nivel_area = random.randint(max(1, mapa[y][x]["nivel_area"] - 1), mapa[y][x]["nivel_area"] + 1)
-                
-                pode_ter_inimigo = random.choice([True, True, False]) # Aumenta a chance de ter inimigo
+    return mapa
 
-                mapa[ny][nx] = {
-                    "nome": random.choice(nomes_de_sala),
-                    "descricao": "Uma sala escura e misteriosa.",
-                    "nivel_area": nivel_area,
-                    "pode_ter_inimigo": pode_ter_inimigo,
-                    "inimigo_atual": None,
-                    "visitada": False,
-                }
-                salas_criadas.append((nx, ny))
-                salas_para_explorar.append((nx, ny))
-    
-    # Garante que o mapa seja retangular e preenche espaços vazios com salas "vazias"
-    mapa_final = []
-    for linha in mapa:
-        nova_linha = []
-        for sala in linha:
-            if sala is None:
-                nova_linha.append({
-                    "nome": "Parede Sólida",
-                    "descricao": "Não há nada aqui além de uma parede fria e sólida.",
-                    "nivel_area": 0,
-                    "pode_ter_inimigo": False,
-                    "inimigo_atual": None,
-                    "visitada": False,
-                })
-            else:
-                nova_linha.append(sala)
-        mapa_final.append(nova_linha)
-
-    # TODO: Garantir uma sala de chefe no final do mapa
-    # Por enquanto, vamos apenas retornar o mapa gerado
-    return mapa_final
+def _criar_sala(tipo, nivel):
+    """Função auxiliar para criar diferentes tipos de sala."""
+    sala = {
+        "visitada": False,
+        "inimigo_derrotado": False,
+        "inimigo_atual": None,
+        "nivel_area": nivel
+    }
+    if tipo == "entrada":
+        sala.update({
+            "tipo": "entrada",
+            "nome": "Entrada da Masmorra",
+            "descricao": "A luz da entrada desaparece atrás de você. O ar é úmido e cheira a poeira e morte.",
+            "pode_ter_inimigo": False,
+        })
+    elif tipo == "chefe":
+        sala.update({
+            "tipo": "chefe",
+            "nome": "Covil do Chefe",
+            "descricao": "Uma aura de poder emana desta sala. Ossos espalhados pelo chão indicam que você não é o primeiro a chegar.",
+            "pode_ter_inimigo": True,
+            "chefe": True,
+        })
+    elif tipo == "escada":
+        sala.update({
+            "tipo": "escada",
+            "nome": "Escadaria para as Profundezas",
+            "descricao": "Uma escadaria de pedra desce para a escuridão. Você sente um ar ainda mais frio vindo de baixo.",
+            "pode_ter_inimigo": False,
+        })
+    else: # Caminho principal ou sala secundária
+        descricoes = [
+            "Um corredor escuro e úmido. O som de gotas de água ecoa ao longe.",
+            "Uma pequena câmara com teias de aranha cobrindo as paredes.",
+            "Uma sala com entalhes estranhos nas paredes de pedra.",
+            "Um túnel estreito que parece ter sido cavado às pressas."
+        ]
+        sala.update({
+            "tipo": "sala",
+            "nome": random.choice(["Corredor Escuro", "Câmara Poeirenta", "Túnel Apertado"]),
+            "descricao": random.choice(descricoes),
+            "pode_ter_inimigo": random.random() < 0.6, # 60% de chance de ter inimigo
+        })
+    return sala
