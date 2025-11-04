@@ -28,9 +28,7 @@ def iniciar_combate(jogador, inimigo, usar_pocao_callback):
             
             if inimigo["hp"] <= 0:
                 log_combate.append(f"Você derrotou o {inimigo['nome']}!")
-                desenhar_tela_combate(jogador, inimigo, log_combate)
-                time.sleep(2)
-                return True, inimigo # Retorna True e o inimigo derrotado
+                break # Sai do loop de combate
 
             # Turno do Inimigo
             dano_recebido = calcular_dano(inimigo["ataque"], jogador["defesa"])
@@ -39,9 +37,7 @@ def iniciar_combate(jogador, inimigo, usar_pocao_callback):
 
             if jogador["hp"] <= 0:
                 log_combate.append("Você foi derrotado...")
-                desenhar_tela_combate(jogador, inimigo, log_combate)
-                time.sleep(2)
-                return False, inimigo # Retorna False e o inimigo com HP restante
+                break # Sai do loop de combate
 
         elif escolha == "2":
             # Tenta usar uma poção

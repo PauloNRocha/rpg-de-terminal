@@ -1,4 +1,5 @@
 import os
+import random
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -42,7 +43,7 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
     hp_grid.add_column(width=7)
     hp_grid.add_column(ratio=1)
     hp_grid.add_column(no_wrap=True, justify="right")
-    hp_grid.add_row("❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {jogador['hp']}/{jogador['hp_max']}")
+    hp_grid.add_row("❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {max(0, jogador['hp'])}/{jogador['hp_max']}")
     grid_jogador.add_row(hp_grid)
 
     # Grid para XP
@@ -354,7 +355,7 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     grid_jogador.add_row(
         Text(f"👤 {jogador['nome']}", style="bold green"),
         Bar(100, 0, hp_jogador_percent, color="green"),
-        Text(f" {jogador['hp']}/{jogador['hp_max']}", style="bold green")
+        Text(f" {max(0, jogador['hp'])}/{jogador['hp_max']}", style="bold green")
     )
 
     # Grid do Inimigo
@@ -366,7 +367,7 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     grid_inimigo.add_row(
         Text(f"👹 {inimigo['nome']}", style="bold red"),
         Bar(100, 0, hp_inimigo_percent, color="red"),
-        Text(f" {inimigo['hp']}/{inimigo['hp_max']}", style="bold red")
+        Text(f" {max(0, inimigo['hp'])}/{inimigo['hp_max']}", style="bold red")
     )
 
     # Mensagens de Combate
@@ -394,11 +395,27 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     return console.input("[bold yellow]Sua ação (1. Atacar, 2. Usar Item, 3. Fugir): [/]")
 
 def tela_game_over():
-    """Desenha a tela de Game Over."""
+    """Desenha uma tela de Game Over épica com mensagens aleatórias."""
     limpar_tela()
+
+    mensagens_epicas = [
+        "Sua lenda termina aqui, nas profundezas esquecidas...",
+        "A escuridão consome sua alma. A masmorra clama mais uma vítima.",
+        "Seu nome será sussurrado como um aviso para outros aventureiros.",
+        "Apesar de sua bravura, o destino decretou seu fim.",
+        "Os monstros celebram sua queda. A esperança se esvai."
+    ]
+    mensagem_escolhida = random.choice(mensagens_epicas)
+
+    texto_game_over = Text.assemble(
+        (mensagem_escolhida, "italic red"),
+        "\n\n",
+        ("FIM DE JOGO", "bold white")
+    )
+
     panel = Panel(
-        Text("Você foi derrotado em combate!\n\nFIM DE JOGO", justify="center", style="bold red"),
-        title=Text("GAME OVER", justify="center", style="bold white"),
+        texto_game_over,
+        title=Text("GAME OVER", justify="center", style="bold red"),
         width=75,
         box=box.DOUBLE,
         border_style="red"

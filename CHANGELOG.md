@@ -5,6 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2025-11-03
+
+### Corrigido
+
+-   **Loop de Combate:** Corrigido o bug onde as opções de combate continuavam a ser exibidas após a vitória ou derrota do jogador. O loop agora termina imediatamente.
+-   **Lógica do Inventário:** Corrigido o bug onde todas as opções do inventário levavam de volta ao mapa. As opções "Usar Item" e "Equipar Item" agora funcionam corretamente.
+-   **Exibição de HP Negativo:** O HP exibido na UI (HUD e tela de combate) agora é fixado em um mínimo de 0, evitando a exibição de valores negativos.
+
+### Adicionado
+
+-   **Tela de Game Over Aprimorada:** A tela de "Game Over" foi reformulada para exibir mensagens mais temáticas e aleatórias, melhorando a imersão.
+
 ## [1.1.3] - 2025-11-03
 
 ### Corrigido

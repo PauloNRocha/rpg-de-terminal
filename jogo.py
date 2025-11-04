@@ -65,8 +65,18 @@ def aplicar_bonus_equipamento(jogador):
         jogador["defesa"] += bonus_defesa
 
 
-def mostrar_inventario(jogador):
-    desenhar_tela_inventario(jogador)
+def gerenciar_inventario(jogador):
+    """Cria um loop para gerenciar as ações do inventário."""
+    while True:
+        escolha = desenhar_tela_inventario(jogador)
+        if escolha == "1":
+            usar_item(jogador)
+        elif escolha == "2":
+            equipar_item(jogador)
+        elif escolha == "3":
+            break # Volta para o mapa
+        else:
+            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
 
 def usar_item(jogador):
@@ -240,7 +250,7 @@ def iniciar_aventura(jogador, mapa):
             elif acao_escolhida == "Voltar por onde veio":
                 jogador["x"], jogador["y"] = posicao_anterior
             elif acao_escolhida == "Ver Inventário":
-                mostrar_inventario(jogador)
+                gerenciar_inventario(jogador)
                 continue
             elif acao_escolhida == "Usar Item":
                 usar_item(jogador)
