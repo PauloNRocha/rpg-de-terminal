@@ -1,0 +1,42 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # Pyflakes
+    "I", # Isort
+    "N", # pep8-naming
+    "D", # pydocstyle
+    "UP", # pyupgrade
+    "C4", # flake8-comprehensions
+    "B", # flake8-bugbear
+    "A", # flake8-builtins
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "ANN", # flake8-annotations
+    "ASYNC", # flake8-async
+    "PERF", # perflint
+    "RUF", # Ruff-specific rules
+]
+
+ignore = [
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in public method
+    "D107", # Missing docstring in __init__
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

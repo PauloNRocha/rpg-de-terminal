@@ -1,3 +1,7 @@
-pytest==8.2.2
+pytest==8.4.2
 colorama==0.4.6
-rich==13.7.1
+rich==14.2.0
+
+# Ferramentas de Desenvolvimento
+ruff==0.14.3
+pre-commit==4.3.0

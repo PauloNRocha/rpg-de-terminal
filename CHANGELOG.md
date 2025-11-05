@@ -5,6 +5,20 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2025-11-05
+
+### Adicionado
+
+-   **Ferramentas de Developer Experience (DevEx):** Integradas as ferramentas `ruff` (linting e formatação) e `pre-commit` (ganchos do Git) para garantir a qualidade e consistência do código.
+    -   Atualizadas as dependências no `requirements.txt` para as versões mais recentes.
+    -   Criado o arquivo `pyproject.toml` para configurar as regras do `ruff`.
+    -   Criado o arquivo `.pre-commit-config.yaml` para automatizar a execução do `ruff` antes de cada commit.
+    -   Realizada uma limpeza inicial em todo o projeto com `ruff check . --fix` e `ruff format .`.
+
+### Alterado
+
+-   **Configuração do Ruff:** Atualizado o `pyproject.toml` para usar a nova estrutura de configuração `[tool.ruff.lint]` e removidas as regras `ANN101` e `ANN102` depreciadas.
+
 ## [1.2.3] - 2025-11-05
 
 ### Alterado
