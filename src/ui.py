@@ -1,30 +1,41 @@
 import os
 import random
+from typing import Any
+
+from rich import box
+from rich.bar import Bar
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich import box
-from rich.bar import Bar
 
 console = Console()
 
-def limpar_tela():
-    """Limpa a tela do terminal."""
-    os.system('cls' if os.name == 'nt' else 'clear')
+# Define tipos para facilitar a anotação
+Personagem = dict[str, Any]
+Sala = dict[str, Any]
+ClassesConfig = dict[str, dict[str, Any]]
+Item = dict[str, Any]
 
-def desenhar_caixa(titulo, conteudo, largura=75):
+
+def limpar_tela() -> None:
+    """Limpa a tela do terminal."""
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def desenhar_caixa(titulo: str, conteudo: str, largura: int = 75) -> None:
     """Desenha uma caixa de texto com título e conteúdo usando rich.Panel."""
     panel = Panel(
         Text(conteudo, justify="left"),
         title=Text(titulo, justify="center", style="bold yellow"),
         width=largura,
         box=box.DOUBLE,
-        border_style="blue"
+        border_style="blue",
     )
     console.print(panel)
 
-def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
+
+def desenhar_hud_exploracao(jogador: Personagem, sala_atual: Sala, opcoes: list[str]) -> str:
     """Desenha o HUD de exploração com informações do jogador, sala e opções."""
     limpar_tela()
 
@@ -43,7 +54,11 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
     hp_grid.add_column(width=7)
     hp_grid.add_column(ratio=1)
     hp_grid.add_column(no_wrap=True, justify="right")
-    hp_grid.add_row("❤️  HP: ", Bar(100, 0, hp_percent, color="red"), f" {max(0, jogador['hp'])}/{jogador['hp_max']}")
+    hp_grid.add_row(
+        "❤️  HP: ",
+        Bar(100, 0, hp_percent, color="red"),
+        f" {max(0, jogador['hp'])}/{jogador['hp_max']}",
+    )
     grid_jogador.add_row(hp_grid)
 
     # Grid para XP
@@ -51,25 +66,32 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
     xp_grid.add_column(width=7)
     xp_grid.add_column(ratio=1)
     xp_grid.add_column(no_wrap=True, justify="right")
-    xp_grid.add_row("⭐  XP: ", Bar(100, 0, xp_percent, color="cyan"), f" {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}")
+    xp_grid.add_row(
+        "⭐  XP: ",
+        Bar(100, 0, xp_percent, color="cyan"),
+        f" {jogador['xp_atual']}/{jogador['xp_para_proximo_nivel']}",
+    )
     grid_jogador.add_row(xp_grid)
 
-    grid_jogador.add_row(Text(f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}", style="bold white"))
+    grid_jogador.add_row(
+        Text(
+            f"⚔️  Ataque: {jogador['ataque']}   | 🛡️  Defesa: {jogador['defesa']}",
+            style="bold white",
+        )
+    )
 
     hud_jogador = Panel(
-        grid_jogador,
-        title=Text("Jogador", style="bold blue"),
-        border_style="blue",
-        width=75
+        grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=75
     )
 
     # --- Seção da Sala ---
     hud_sala = Panel(
-        Text(f"🗺️  Local: {sala_atual['nome']}", style="bold magenta") + "\n" +
-        Text(sala_atual['descricao'], style="white"),
+        Text(f"🗺️  Local: {sala_atual['nome']}", style="bold magenta")
+        + "\n"
+        + Text(sala_atual["descricao"], style="white"),
         title=Text("Localização", style="bold blue"),
         border_style="blue",
-        width=75
+        width=75,
     )
 
     # --- Seção de Opções ---
@@ -81,7 +103,7 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
         opcoes_texto,
         title=Text("Ações Disponíveis", style="bold blue"),
         border_style="blue",
-        width=75
+        width=75,
     )
 
     console.print(hud_jogador)
@@ -90,13 +112,15 @@ def desenhar_hud_exploracao(jogador, sala_atual, opcoes):
 
     return console.input("[bold yellow]> [/]")
 
-def desenhar_tela_evento(titulo, mensagem):
+
+def desenhar_tela_evento(titulo: str, mensagem: str) -> None:
     """Desenha uma tela de evento com título e mensagem usando rich.Panel."""
     limpar_tela()
     desenhar_caixa(titulo, mensagem)
     console.input("[bold yellow]Pressione Enter para continuar... [/]")
 
-def desenhar_tela_equipar(jogador, itens_equipaveis):
+
+def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> str:
     """Desenha a tela de equipar itens, comparando com o equipamento atual."""
     limpar_tela()
 
@@ -104,25 +128,29 @@ def desenhar_tela_equipar(jogador, itens_equipaveis):
         title=Text("EQUIPAR ITENS", style="bold yellow"),
         box=box.DOUBLE,
         border_style="blue",
-        header_style="bold cyan"
+        header_style="bold cyan",
     )
     tabela_equipamento.add_column("Slot", style="dim", width=15)
     tabela_equipamento.add_column("Equipado", style="green", width=30)
     tabela_equipamento.add_column("Bônus", style="white", width=25)
 
     # Equipamento atual
-    arma_equipada = jogador["equipamento"]["arma"]
-    escudo_equipado = jogador["equipamento"]["escudo"]
+    arma_equipada: Item | None = jogador["equipamento"]["arma"]
+    escudo_equipado: Item | None = jogador["equipamento"]["escudo"]
 
     tabela_equipamento.add_row(
         "Arma:",
         arma_equipada["nome"] if arma_equipada else "Nenhuma",
-        ", ".join([f"{k}: {v}" for k, v in arma_equipada.get("bonus", {}).items()]) if arma_equipada else ""
+        ", ".join([f"{k}: {v}" for k, v in arma_equipada.get("bonus", {}).items()])
+        if arma_equipada
+        else "",
     )
     tabela_equipamento.add_row(
         "Escudo:",
         escudo_equipado["nome"] if escudo_equipado else "Nenhum",
-        ", ".join([f"{k}: {v}" for k, v in escudo_equipado.get("bonus", {}).items()]) if escudo_equipado else ""
+        ", ".join([f"{k}: {v}" for k, v in escudo_equipado.get("bonus", {}).items()])
+        if escudo_equipado
+        else "",
     )
 
     console.print(tabela_equipamento)
@@ -132,7 +160,7 @@ def desenhar_tela_equipar(jogador, itens_equipaveis):
             title=Text("ITENS DISPONÍVEIS", style="bold yellow"),
             box=box.DOUBLE,
             border_style="blue",
-            header_style="bold cyan"
+            header_style="bold cyan",
         )
         tabela_disponiveis.add_column("Opção", style="dim", width=5)
         tabela_disponiveis.add_column("Item", style="green", width=25)
@@ -142,22 +170,31 @@ def desenhar_tela_equipar(jogador, itens_equipaveis):
         for i, item in enumerate(itens_equipaveis):
             bonus_str = ", ".join([f"{k}: {v}" for k, v in item.get("bonus", {}).items()])
             tabela_disponiveis.add_row(str(i + 1), item["nome"], item["tipo"], bonus_str)
-        
+
         console.print(tabela_disponiveis)
     else:
-        console.print(Panel(Text("Você não tem itens equipáveis no inventário.", justify="center"), width=75, border_style="blue"))
+        console.print(
+            Panel(
+                Text("Você não tem itens equipáveis no inventário.", justify="center"),
+                width=75,
+                border_style="blue",
+            )
+        )
 
     opcoes_panel = Panel(
-        Text(f"Escolha um item (1-{len(itens_equipaveis)}) ou '{len(itens_equipaveis) + 1}' para Voltar.", justify="center"),
-        width=75
+        Text(
+            f"Escolha um item (1-{len(itens_equipaveis)}) ou "
+            f"'{len(itens_equipaveis) + 1}' para Voltar.",
+            justify="center",
+        ),
+        width=75,
     )
     console.print(opcoes_panel)
     return console.input("[bold yellow]> [/]")
 
-def desenhar_menu_principal(footer_text=""):
 
+def desenhar_menu_principal(footer_text: str = "") -> str:
     """Desenha o menu principal do jogo e retorna a escolha do jogador."""
-
     limpar_tela()
 
     menu_texto = Text("", justify="center")
@@ -166,22 +203,13 @@ def desenhar_menu_principal(footer_text=""):
 
     menu_texto.append("2. Sair\n", style="bold red")
 
-
-
     panel = Panel(
-
         menu_texto,
-
         title=Text("AVENTURA NO TERMINAL", justify="center", style="bold yellow"),
-
         subtitle=Text(footer_text, justify="center", style="dim white"),
-
         width=75,
-
         box=box.DOUBLE,
-
-        border_style="blue"
-
+        border_style="blue",
     )
 
     console.print(panel)
@@ -189,8 +217,7 @@ def desenhar_menu_principal(footer_text=""):
     return console.input("[bold yellow]Escolha uma opção: [/]")
 
 
-
-def desenhar_tela_input(titulo, prompt):
+def desenhar_tela_input(titulo: str, prompt: str) -> str:
     """Desenha uma tela para entrada de texto do usuário."""
     limpar_tela()
     panel = Panel(
@@ -198,29 +225,21 @@ def desenhar_tela_input(titulo, prompt):
         title=Text(titulo, justify="center", style="bold yellow"),
         width=75,
         box=box.DOUBLE,
-        border_style="blue"
+        border_style="blue",
     )
     console.print(panel)
     return console.input("[bold yellow]> [/]")
 
-def desenhar_tela_escolha_classe(classes):
 
+def desenhar_tela_escolha_classe(classes: ClassesConfig) -> str:
     """Desenha a tela de escolha de classe e retorna a escolha do jogador."""
-
     limpar_tela()
 
-
-
     tabela_classes = Table(
-
         title=Text("ESCOLHA SUA CLASSE", style="bold yellow"),
-
         box=box.DOUBLE,
-
         border_style="blue",
-
-        header_style="bold cyan"
-
+        header_style="bold cyan",
     )
 
     tabela_classes.add_column("Opção", style="dim", width=5)
@@ -229,96 +248,45 @@ def desenhar_tela_escolha_classe(classes):
 
     tabela_classes.add_column("Descrição", style="white", width=45)
 
-
-
     for i, (nome_classe, detalhes) in enumerate(classes.items()):
-
         tabela_classes.add_row(str(i + 1), nome_classe, detalhes["descricao"])
-
-    
 
     console.print(tabela_classes)
     return console.input("[bold yellow]Escolha sua classe: [/]")
 
 
-
-def desenhar_tela_resumo_personagem(jogador):
-
-
-
+def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
     """Desenha a tela de resumo do personagem após a criação."""
-
-
-
     limpar_tela()
-
-
 
     resumo_texto = Text("", justify="left")
 
-
-
     resumo_texto.append(f"Nome: {jogador['nome']}\n", style="bold green")
-
-
 
     resumo_texto.append(f"Classe: {jogador['classe']}\n", style="bold yellow")
 
-
-
     resumo_texto.append(f"HP: {jogador['hp_max']}\n", style="red")
-
-
 
     resumo_texto.append(f"Ataque: {jogador['ataque']}\n", style="cyan")
 
-
-
     resumo_texto.append(f"Defesa: {jogador['defesa']}\n", style="blue")
-
-
 
     resumo_texto.append(f"Nível: {jogador['nivel']}\n", style="magenta")
 
-
-
-
-
-
-
     panel = Panel(
-
-
-
         resumo_texto,
-
-
-
         title=Text("SEU PERSONAGEM", justify="center", style="bold white"),
-
-
-
         width=75,
-
-
-
         box=box.DOUBLE,
-
-
-
-        border_style="green"
-
-
-
+        border_style="green",
     )
-
-
 
     console.print(panel)
 
     console.input("[bold yellow]Pressione Enter para iniciar a aventura... [/]")
 
-def desenhar_tela_inventario(jogador):
+
+def desenhar_tela_inventario(jogador: Personagem) -> str:
     """Desenha a tela de inventário do jogador."""
     limpar_tela()
 
@@ -326,7 +294,7 @@ def desenhar_tela_inventario(jogador):
         title=Text("INVENTÁRIO", style="bold yellow"),
         box=box.DOUBLE,
         border_style="blue",
-        header_style="bold cyan"
+        header_style="bold cyan",
     )
     tabela_inventario.add_column("Opção", style="dim", width=5)
     tabela_inventario.add_column("Item", style="green", width=25)
@@ -334,18 +302,35 @@ def desenhar_tela_inventario(jogador):
     tabela_inventario.add_column("Efeito", style="white", width=25)
 
     if not jogador["inventario"]:
-        console.print(Panel(Text("Seu inventário está vazio.", justify="center"), width=75, border_style="blue"))
+        console.print(
+            Panel(
+                Text("Seu inventário está vazio.", justify="center"),
+                width=75,
+                border_style="blue",
+            )
+        )
     else:
         for i, item in enumerate(jogador["inventario"]):
             efeito_str = ", ".join([f"{k}: {v}" for k, v in item.get("efeito", {}).items()])
             tabela_inventario.add_row(str(i + 1), item["nome"], item["tipo"], efeito_str)
         console.print(tabela_inventario)
 
-    console.print(Panel(Text("1. Usar Item | 2. Equipar Item | 3. Voltar", justify="center"), width=75, border_style="blue"))
+    console.print(
+        Panel(
+            Text("1. Usar Item | 2. Equipar Item | 3. Voltar", justify="center"),
+            width=75,
+            border_style="blue",
+        )
+    )
     return console.input("[bold yellow]Escolha uma opção: [/]")
 
-def desenhar_tela_combate(jogador, inimigo, mensagem=""):
+
+def desenhar_tela_combate(
+    jogador: Personagem, inimigo: Personagem, mensagem: list[str] | None = None
+) -> str:
     """Desenha a tela de combate com informações do jogador, inimigo e mensagens."""
+    if mensagem is None:
+        mensagem = []
     limpar_tela()
 
     # Grid do Jogador
@@ -357,7 +342,7 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     grid_jogador.add_row(
         Text(f"👤 {jogador['nome']}", style="bold green"),
         Bar(100, 0, hp_jogador_percent, color="green"),
-        Text(f" {max(0, jogador['hp'])}/{jogador['hp_max']}", style="bold green")
+        Text(f" {max(0, jogador['hp'])}/{jogador['hp_max']}", style="bold green"),
     )
 
     # Grid do Inimigo
@@ -369,7 +354,7 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     grid_inimigo.add_row(
         Text(f"👹 {inimigo['nome']}", style="bold red"),
         Bar(100, 0, hp_inimigo_percent, color="red"),
-        Text(f" {max(0, inimigo['hp'])}/{inimigo['hp_max']}", style="bold red")
+        Text(f" {max(0, inimigo['hp'])}/{inimigo['hp_max']}", style="bold red"),
     )
 
     # Mensagens de Combate
@@ -380,9 +365,9 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
     grid_principal = Table.grid(expand=True)
     grid_principal.add_column()
     grid_principal.add_row(grid_jogador)
-    grid_principal.add_row("") # Espaçamento
+    grid_principal.add_row("")  # Espaçamento
     grid_principal.add_row(grid_inimigo)
-    grid_principal.add_row("") # Espaçamento
+    grid_principal.add_row("")  # Espaçamento
     grid_principal.add_row(log_combate)
 
     combate_panel = Panel(
@@ -390,13 +375,14 @@ def desenhar_tela_combate(jogador, inimigo, mensagem=""):
         title=Text("COMBATE", justify="center", style="bold yellow"),
         width=75,
         box=box.DOUBLE,
-        border_style="red"
+        border_style="red",
     )
     console.print(combate_panel)
 
     return console.input("[bold yellow]Sua ação (1. Atacar, 2. Usar Item, 3. Fugir): [/]")
 
-def tela_game_over():
+
+def tela_game_over() -> None:
     """Desenha uma tela de Game Over épica com mensagens aleatórias."""
     limpar_tela()
 
@@ -405,14 +391,12 @@ def tela_game_over():
         "A escuridão consome sua alma. A masmorra clama mais uma vítima.",
         "Seu nome será sussurrado como um aviso para outros aventureiros.",
         "Apesar de sua bravura, o destino decretou seu fim.",
-        "Os monstros celebram sua queda. A esperança se esvai."
+        "Os monstros celebram sua queda. A esperança se esvai.",
     ]
     mensagem_escolhida = random.choice(mensagens_epicas)
 
     texto_game_over = Text.assemble(
-        (mensagem_escolhida, "italic red"),
-        "\n\n",
-        ("FIM DE JOGO", "bold white")
+        (mensagem_escolhida, "italic red"), "\n\n", ("FIM DE JOGO", "bold white")
     )
 
     panel = Panel(
@@ -420,7 +404,7 @@ def tela_game_over():
         title=Text("GAME OVER", justify="center", style="bold red"),
         width=75,
         box=box.DOUBLE,
-        border_style="red"
+        border_style="red",
     )
     console.print(panel)
     console.input("[bold yellow]Pressione Enter para voltar ao menu principal... [/]")

@@ -5,6 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2025-11-05
+
+### Corrigido
+
+-   **Padronização de Código (DevEx):** Aplicadas correções abrangentes de linting e formatação em todos os arquivos do projeto, incluindo:
+    -   **Anotações de Tipo (Type Hints):** Adicionadas anotações de tipo a funções e argumentos para melhorar a clareza e a detecção de erros. Corrigida a tipagem de `monkeypatch` em `tests/test_jogo.py` para `pytest.MonkeyPatch`.
+    -   **Linhas Longas (`E501`):** Quebradas linhas que excediam o limite de 100 caracteres. Corrigido `SyntaxError` de f-string não terminada em `src/ui.py`.
+    -   **Múltiplas Instruções por Linha (`E701`):** Separadas instruções em linhas distintas para maior legibilidade.
+    -   **Docstrings (`D103`, `D205`):** Adicionadas docstrings ausentes e ajustado o formato das existentes, incluindo a correção em `src/gerador_itens.py`.
+    -   **Otimização (`SIM118`):** Corrigido o uso de `key in dict.keys()` para `key in dict`.
+-   **Remoção de Arquivo Obsoleto:** Removido `src/utils.py`, pois suas funções foram migradas para `src/ui.py`.
+
 ## [1.2.4] - 2025-11-05
 
 ### Adicionado
