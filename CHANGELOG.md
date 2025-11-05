@@ -5,6 +5,12 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-11-05
+
+### Adicionado
+
+-   **Licença GNU GPLv3:** Adicionada a licença GNU General Public License v3.0 ao projeto, garantindo que o software e suas derivações permaneçam de código aberto.
+
 ## [1.2.1] - 2025-11-03
 
 ### Corrigido
