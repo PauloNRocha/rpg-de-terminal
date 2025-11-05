@@ -1,6 +1,4 @@
-# Templates base para os inimigos (estatísticas de nível 1)
-
-INIMIGO_TEMPLATES = {
+{
     "goblin": {
         "nome": "Goblin",
         "hp_base": 10,

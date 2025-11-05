@@ -5,6 +5,12 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-11-05
+
+### Alterado
+
+-   **Dados de Inimigos Externalizados:** Os templates de inimigos foram movidos do código Python (`src/inimigos.py`) para o arquivo `src/data/inimigos.json`, completando a migração para uma arquitetura orientada a dados e facilitando o balanceamento e a adição de novos inimigos.
+
 ## [1.2.2] - 2025-11-05
 
 ### Adicionado
