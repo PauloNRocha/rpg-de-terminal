@@ -19,6 +19,8 @@ from src.ui import (
     tela_game_over, # Importa a função tela_game_over
 )
 
+from src.version import __version__ # Importa a versão do jogo
+
 def verificar_level_up(jogador):
     """Verifica se o jogador tem XP suficiente para subir de nível e aplica as mudanças."""
     subiu_de_nivel = False
@@ -303,7 +305,7 @@ def main():
     """Função principal do jogo, agora controla o loop de progressão da masmorra."""
     try:
         while True:
-            escolha = desenhar_menu_principal()
+            escolha = desenhar_menu_principal(f"v{__version__} - Desenvolvido por Paulo N. Rocha")
             
             if escolha == "1":
                 jogador = processo_criacao_personagem()

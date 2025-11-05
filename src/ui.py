@@ -154,7 +154,7 @@ def desenhar_tela_equipar(jogador, itens_equipaveis):
     console.print(opcoes_panel)
     return console.input("[bold yellow]> [/]")
 
-def desenhar_menu_principal():
+def desenhar_menu_principal(footer_text=""):
 
     """Desenha o menu principal do jogo e retorna a escolha do jogador."""
 
@@ -173,6 +173,8 @@ def desenhar_menu_principal():
         menu_texto,
 
         title=Text("AVENTURA NO TERMINAL", justify="center", style="bold yellow"),
+
+        subtitle=Text(footer_text, justify="center", style="dim white"),
 
         width=75,
 
