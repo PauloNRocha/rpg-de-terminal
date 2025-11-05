@@ -144,8 +144,7 @@ def equipar_item(jogador):
             aplicar_bonus_equipamento(jogador) # Recalcula os bônus
 
         except (ValueError, IndexError):
-            # TODO: Adicionar mensagem de feedback na UI para erro
-            time.sleep(1)
+            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
 
 def iniciar_aventura(jogador, mapa, nivel_masmorra):
@@ -273,6 +272,9 @@ def iniciar_aventura(jogador, mapa, nivel_masmorra):
                 return False # Fim da aventura por saída voluntária
             
             posicao_anterior = posicao_atual
+
+        except (ValueError, IndexError):
+            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
 
 

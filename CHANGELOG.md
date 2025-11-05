@@ -5,6 +5,13 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-11-03
+
+### Corrigido
+
+-   **`SyntaxError` em `iniciar_aventura`:** Corrigido o `SyntaxError` na função `iniciar_aventura` em `jogo.py`, onde um bloco `try` não tinha um `except` correspondente.
+-   **`SyntaxError` em `equipar_item`:** Corrigido o `SyntaxError` na função `equipar_item` em `jogo.py`, onde o bloco `except` estava vazio. Adicionada uma chamada a `desenhar_tela_evento` para fornecer feedback ao usuário em caso de entrada inválida.
+
 ## [1.2.0] - 2025-11-03
 
 ### Adicionado
