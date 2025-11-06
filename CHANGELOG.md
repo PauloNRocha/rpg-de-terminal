@@ -7,6 +7,19 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.3.1] - 2025-11-06
+
+### Corrigido
+
+-   **Falha Crítica - Verificação de Versão no Carregamento de Saves:** Implementada a validação da versão do jogo salvo ao carregar um save. Agora, se a versão do save for incompatível com a versão atual do jogo, o carregamento será impedido e uma mensagem de erro clara será exibida ao jogador, prevenindo crashes e corrupção de dados em futuras atualizações.
+
+## [1.3.0] - 2025-11-06
+
+### Adicionado
+
+-   Sistema de salvamento e carregamento em JSON, incluindo opção de salvar durante a aventura e continuar pelo menu principal.
+-   Menu principal dinâmico exibindo "Continuar Aventura" quando há um save disponível.
+
 ### Corrigido
 
 -   Exibição do campo "Efeito" no inventário agora mostra bônus de armas e escudos.
@@ -14,7 +27,6 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 ### Removido
 
 -   Arquivos PostScript gerados acidentalmente (`copy`, `json`, `random`) foram excluídos do repositório e adicionados ao `.gitignore`.
-
 -   Arquivo legado `src/mapa.py` removido após a migração completa para geração procedural (`src/gerador_mapa.py`).
 
 ## [1.2.9] - 2025-11-06

@@ -1,6 +1,7 @@
 import sys
 from typing import Any
 
+from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
 from src.combate import iniciar_combate
 from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio
@@ -272,6 +273,7 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
                 desenhar_tela_evento("AVISO", mensagem_aviso)
 
         opcoes.append("Ver Inventário")
+        opcoes.append("Salvar jogo")
         opcoes.append("Sair da masmorra")
 
         # Desenha a UI e captura a entrada do jogador
@@ -298,6 +300,21 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
                 return True  # Avança para o próximo nível
             elif acao_escolhida == "Ver Inventário":
                 gerenciar_inventario(jogador)
+                continue
+            elif acao_escolhida == "Salvar jogo":
+                estado = {
+                    "jogador": jogador,
+                    "mapa": mapa,
+                    "nivel_masmorra": nivel_masmorra,
+                }
+                try:
+                    caminho = salvar_jogo(estado)
+                except OSError as erro:
+                    mensagem = f"Não foi possível salvar: {erro}."
+                    desenhar_tela_evento("ERRO AO SALVAR", mensagem)
+                else:
+                    mensagem = f"Progresso salvo em {caminho}."
+                    desenhar_tela_evento("JOGO SALVO", mensagem)
                 continue
             elif acao_escolhida == "Sair da masmorra":
                 desenhar_tela_evento("FIM DE JOGO", "Você saiu da masmorra.\n\nObrigado por jogar!")
@@ -332,34 +349,67 @@ def processo_criacao_personagem() -> Personagem:
     return jogador
 
 
+def executar_campanha(
+    jogador: Personagem,
+    nivel_masmorra: int,
+    mapa_atual: Mapa | None = None,
+) -> None:
+    """Executa o loop principal de exploração a partir de um estado inicial."""
+    mapa_corrente = mapa_atual
+
+    while True:
+        if mapa_corrente is None:
+            mapa_corrente = gerar_mapa(nivel_masmorra)
+
+        aventura_continua = iniciar_aventura(jogador, mapa_corrente, nivel_masmorra)
+
+        if aventura_continua:
+            nivel_masmorra += 1
+            mapa_corrente = None
+            hp_cura = int(jogador["hp_max"] * 0.25)
+            jogador["hp"] = min(jogador["hp_max"], jogador["hp"] + hp_cura)
+            mensagem_nivel = (
+                f"Você desce para o próximo nível da masmorra.\nVocê recuperou {hp_cura} de HP."
+            )
+            desenhar_tela_evento(f"NÍVEL {nivel_masmorra} ALCANÇADO!", mensagem_nivel)
+        else:
+            break
+
+
 def main() -> None:
-    """Função principal do jogo, agora controla o loop de progressão da masmorra."""
+    """Função principal do jogo, agora com suporte a salvar e carregar progresso."""
     try:
         while True:
-            escolha = desenhar_menu_principal(__version__)
+            tem_save = existe_save()
+            escolha = desenhar_menu_principal(__version__, tem_save)
 
             if escolha == "1":
                 jogador = processo_criacao_personagem()
-                nivel_masmorra = 1
+                executar_campanha(jogador, nivel_masmorra=1)
+            elif escolha == "2" and tem_save:
+                try:
+                    estado = carregar_jogo()
+                except ErroCarregamento as erro:
+                    desenhar_tela_evento("ERRO AO CARREGAR", str(erro))
+                    continue
 
-                while True:  # Loop para os níveis da masmorra
-                    mapa_gerado = gerar_mapa(nivel_masmorra)
-                    aventura_continua = iniciar_aventura(jogador, mapa_gerado, nivel_masmorra)
+                jogador = estado.get("jogador")
+                mapa_salvo = estado.get("mapa")
+                nivel_masmorra = estado.get("nivel_masmorra")
 
-                    if aventura_continua:  # Jogador desceu para o próximo nível
-                        nivel_masmorra += 1
-                        # Recompensa por passar de nível
-                        hp_cura = int(jogador["hp_max"] * 0.25)
-                        jogador["hp"] = min(jogador["hp_max"], jogador["hp"] + hp_cura)
-                        mensagem_nivel = (
-                            "Você desce para o próximo nível da masmorra.\n"
-                            f"Você recuperou {hp_cura} de HP."
-                        )
-                        desenhar_tela_evento(f"NÍVEL {nivel_masmorra} ALCANÇADO!", mensagem_nivel)
-                    else:  # Jogador morreu ou saiu da masmorra
-                        break
+                if (
+                    not isinstance(jogador, dict)
+                    or not isinstance(mapa_salvo, list)
+                    or not isinstance(nivel_masmorra, int)
+                ):
+                    mensagem_erro = "Arquivo de save inválido ou corrompido."
+                    desenhar_tela_evento("ERRO AO CARREGAR", mensagem_erro)
+                    continue
 
-            elif escolha == "2":
+                mensagem_sucesso = "Seu progresso foi restaurado! Boa aventura."
+                desenhar_tela_evento("JOGO CARREGADO", mensagem_sucesso)
+                executar_campanha(jogador, nivel_masmorra=nivel_masmorra, mapa_atual=mapa_salvo)
+            elif (tem_save and escolha == "3") or (not tem_save and escolha == "2"):
                 desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
                 break
             else:
