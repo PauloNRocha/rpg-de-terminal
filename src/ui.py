@@ -193,15 +193,15 @@ def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> 
     return console.input("[bold yellow]> [/]")
 
 
-def desenhar_menu_principal(footer_text: str = "") -> str:
+def desenhar_menu_principal(versao: str) -> str:
     """Desenha o menu principal do jogo e retorna a escolha do jogador."""
     limpar_tela()
 
     menu_texto = Text("", justify="center")
-
     menu_texto.append("1. Iniciar Nova Aventura\n", style="bold green")
-
     menu_texto.append("2. Sair\n", style="bold red")
+
+    footer_text = f"v{versao} - Desenvolvido por Paulo N. Rocha"
 
     panel = Panel(
         menu_texto,

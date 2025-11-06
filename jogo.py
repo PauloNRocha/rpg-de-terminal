@@ -336,8 +336,7 @@ def main() -> None:
     """Função principal do jogo, agora controla o loop de progressão da masmorra."""
     try:
         while True:
-            versao_completa = f"v{__version__} - Desenvolvido por Paulo N. Rocha"
-            escolha = desenhar_menu_principal(versao_completa)
+            escolha = desenhar_menu_principal(__version__)
 
             if escolha == "1":
                 jogador = processo_criacao_personagem()

@@ -10,7 +10,7 @@ TemplatesInimigos = dict[str, Inimigo]
 
 # Carrega os templates de inimigos do arquivo JSON
 try:
-    caminho_json: Path = Path(__file__).parent.parent / "data" / "inimigos.json"
+    caminho_json: Path = Path(__file__).parent / "data" / "inimigos.json"
     with open(caminho_json, encoding="utf-8") as f:
         INIMIGO_TEMPLATES: TemplatesInimigos = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError):

@@ -5,6 +5,15 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6] - 2025-11-05
+
+### Corrigido
+
+-   **`RuntimeError` no Carregamento de Inimigos:** Corrigido o caminho para o arquivo `inimigos.json` em `src/gerador_inimigos.py`. O script agora localiza corretamente o diretório `data` dentro de `src`, resolvendo o erro que impedia o jogo de iniciar ou continuar.
+-   **Inconsistência de Versionamento:** Padronizado o controle de versão do projeto.
+    -   Criado o arquivo `src/version.py` como um "único ponto de verdade" para a versão.
+    -   O `CHANGELOG.md` foi atualizado e alinhado com a nova versão.
+
 ## [1.2.5] - 2025-11-05
 
 ### Corrigido

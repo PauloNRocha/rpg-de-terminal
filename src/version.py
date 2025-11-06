@@ -1,1 +1,3 @@
-__version__ = "1.2.2"
+"""Contém a versão do projeto como um único ponto de verdade."""
+
+__version__ = "1.2.6"
