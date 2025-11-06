@@ -15,6 +15,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   Arquivos PostScript gerados acidentalmente (`copy`, `json`, `random`) foram excluídos do repositório e adicionados ao `.gitignore`.
 
+-   Arquivo legado `src/mapa.py` removido após a migração completa para geração procedural (`src/gerador_mapa.py`).
+
 ## [1.2.9] - 2025-11-06
 
 ### Alterado
