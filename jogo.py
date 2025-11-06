@@ -5,8 +5,7 @@ from src.combate import iniciar_combate
 from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio
 from src.gerador_mapa import gerar_mapa  # Importa o novo gerador de mapas
-from src.personagem import CLASSES
-from src.personagem import criar_personagem as criar_personagem_logica
+from src.personagem import CLASSES, criar_personagem
 from src.ui import (
     desenhar_hud_exploracao,
     desenhar_menu_principal,
@@ -16,6 +15,7 @@ from src.ui import (
     desenhar_tela_input,
     desenhar_tela_inventario,
     desenhar_tela_resumo_personagem,
+    desenhar_tela_saida,
     tela_game_over,  # Importa a função tela_game_over
 )
 from src.version import __version__  # Importa a versão do jogo
@@ -133,7 +133,7 @@ def equipar_item(jogador: Personagem) -> None:
     """Gerencia a lógica de equipar um item usando a nova UI."""
     while True:
         itens_equipaveis = [
-            item for item in jogador["inventário"] if item["tipo"] in ["arma", "escudo"]
+            item for item in jogador["inventario"] if item["tipo"] in ["arma", "escudo"]
         ]
 
         escolha_str = desenhar_tela_equipar(jogador, itens_equipaveis)
@@ -226,7 +226,7 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
                     if item_dropado:
                         jogador["inventario"].append(item_dropado)
                         mensagem_drop = f"O inimigo dropou: {item_dropado['nome']}!"
-                        desenhar_tela_evento("ITEM DROPADO!", mensagem_drop)
+                        desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_drop)
 
                 sala_atual["inimigo_derrotado"] = True
                 sala_atual["inimigo_atual"] = None  # Remove o inimigo da sala após a derrota
@@ -327,7 +327,7 @@ def processo_criacao_personagem() -> Personagem:
         except (ValueError, IndexError):
             desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
-    jogador = criar_personagem_logica(nome, classe_escolhida)
+    jogador = criar_personagem(nome, classe_escolhida)
     desenhar_tela_resumo_personagem(jogador)
     return jogador
 
@@ -366,7 +366,7 @@ def main() -> None:
                 desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
     except KeyboardInterrupt:
         mensagem_saida = "O jogo foi interrompido.\n\nEsperamos você para a próxima aventura!"
-        desenhar_tela_evento("ATÉ LOGO!", mensagem_saida)
+        desenhar_tela_saida("ATÉ LOGO!", mensagem_saida)
         sys.exit(0)
 
 

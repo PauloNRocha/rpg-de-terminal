@@ -5,6 +5,22 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8] - 2025-11-05
+
+### Corrigido
+
+-   **`KeyboardInterrupt` Duplo:** Corrigido o comportamento ao sair do jogo com `Ctrl+C`. A mensagem de despedida agora é exibida sem esperar por um novo `input`, evitando um segundo `KeyboardInterrupt` e a exibição de um traceback.
+
+## [1.2.7] - 2025-11-05
+
+### Corrigido
+
+-   **`KeyError` no Inventário:** Corrigido um erro de digitação (`inventário` em vez de `inventario`) que causava um `KeyError` e quebrava o jogo ao tentar equipar um item.
+-   **Inconsistências Lógicas em `jogo.py`:**
+    -   **`KeyError` Potencial:** Garantido que `ataque_base` e `defesa_base` sejam inicializados na criação do personagem para evitar erros durante o `level up`.
+    -   **`NameError`:** Corrigida a chamada da função de criação de personagem.
+    -   **Feedback de UI:** Adicionada uma mensagem de evento para informar ao jogador quando um item é dropado por um inimigo.
+
 ## [1.2.6] - 2025-11-05
 
 ### Corrigido

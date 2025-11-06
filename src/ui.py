@@ -120,6 +120,12 @@ def desenhar_tela_evento(titulo: str, mensagem: str) -> None:
     console.input("[bold yellow]Pressione Enter para continuar... [/]")
 
 
+def desenhar_tela_saida(titulo: str, mensagem: str) -> None:
+    """Desenha uma tela de evento final sem esperar por input do usuário."""
+    limpar_tela()
+    desenhar_caixa(titulo, mensagem)
+
+
 def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> str:
     """Desenha a tela de equipar itens, comparando com o equipamento atual."""
     limpar_tela()
