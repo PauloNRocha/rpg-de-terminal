@@ -5,13 +5,13 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.8] - 2025-11-05
+## [1.2.8] - 2025-11-06
 
 ### Corrigido
 
 -   **`KeyboardInterrupt` Duplo:** Corrigido o comportamento ao sair do jogo com `Ctrl+C`. A mensagem de despedida agora é exibida sem esperar por um novo `input`, evitando um segundo `KeyboardInterrupt` e a exibição de um traceback.
 
-## [1.2.7] - 2025-11-05
+## [1.2.7] - 2025-11-06
 
 ### Corrigido
 
