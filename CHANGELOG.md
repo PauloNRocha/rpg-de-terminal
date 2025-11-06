@@ -7,6 +7,14 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+### Corrigido
+
+-   Exibição do campo "Efeito" no inventário agora mostra bônus de armas e escudos.
+
+### Removido
+
+-   Arquivos PostScript gerados acidentalmente (`copy`, `json`, `random`) foram excluídos do repositório e adicionados ao `.gitignore`.
+
 ## [1.2.9] - 2025-11-06
 
 ### Alterado

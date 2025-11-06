@@ -317,7 +317,17 @@ def desenhar_tela_inventario(jogador: Personagem) -> str:
         )
     else:
         for i, item in enumerate(jogador["inventario"]):
-            efeito_str = ", ".join([f"{k}: {v}" for k, v in item.get("efeito", {}).items()])
+            efeitos: dict[str, Any] | None = None
+            if isinstance(item.get("efeito"), dict):
+                efeitos = item["efeito"]
+            elif isinstance(item.get("bonus"), dict):
+                efeitos = item["bonus"]
+
+            if efeitos:
+                efeito_str = ", ".join(f"{chave}: {valor}" for chave, valor in efeitos.items())
+            else:
+                efeito_str = "-"
+
             tabela_inventario.add_row(str(i + 1), item["nome"], item["tipo"], efeito_str)
         console.print(tabela_inventario)
 
