@@ -7,6 +7,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-11-06
+
+### Adicionado
+
+-   Sistema de salvamento e carregamento em JSON, incluindo opção de salvar durante a aventura e continuar pelo menu principal.
+-   Menu principal dinâmico exibindo "Continuar Aventura" quando há um save disponível.
+
 ### Corrigido
 
 -   Exibição do campo "Efeito" no inventário agora mostra bônus de armas e escudos.
@@ -14,7 +21,6 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 ### Removido
 
 -   Arquivos PostScript gerados acidentalmente (`copy`, `json`, `random`) foram excluídos do repositório e adicionados ao `.gitignore`.
-
 -   Arquivo legado `src/mapa.py` removido após a migração completa para geração procedural (`src/gerador_mapa.py`).
 
 ## [1.2.9] - 2025-11-06

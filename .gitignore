@@ -131,3 +131,7 @@ copy
 json
 random
 .pre-commit-cache/
+# Arquivos de save locais
+saves/
+.pre-commit-home/
+.gitconfig-local

@@ -51,11 +51,12 @@ pre-commit install
 pytest
 ```
 
-## Funcionalidades Principais (v1.2.8)
+## Funcionalidades Principais (v1.3.0)
 
 - **Progressão de Masmorra Dinâmica:** mapas 10x10 gerados proceduralmente com caminho garantido, salas especiais (entrada, chefe, escada) e becos extras (`src/gerador_mapa.py`).
 - **Combate por Turnos Estilizado:** interface completa com barras de HP/XP, log de combate e opções de ação (`src/combate.py`, `src/ui.py`).
 - **Sistema de XP e Level Up:** múltiplos níveis por loop, atributos restaurados e bônus aplicados automaticamente (`jogo.py:29`).
+- **Salvar e Continuar:** grave o progresso com um clique no menu de exploração e retome pelo menu principal quando quiser.
 - **Inventário Inteligente:** telas dedicadas para visualizar, equipar e usar itens, com comparação lado a lado dos bônus (`jogo.py`, `src/ui.py`).
 - **Loot Procedural:** inimigos droparam itens gerados a partir de templates por raridade (`src/gerador_itens.py`, `src/data/itens.json`).
 - **Inimigos Escaláveis:** atributos escalam 15% por nível e tipos são carregados de JSON (`src/gerador_inimigos.py`, `src/data/inimigos.json`).
@@ -67,10 +68,11 @@ pytest
 1. Inicie o jogo (`python3 jogo.py`).
 2. **Criação do Personagem:** informe o nome e escolha uma classe (Guerreiro, Mago ou Arqueiro) visualizando a descrição completa.
 3. **Exploração:** use o menu numérico para se mover, abrir o inventário ou sair da masmorra.
-4. **Combate:** enfrente inimigos por turnos; use itens, ataque ou tente fugir. Vitória concede XP e loot.
-5. **Level Up:** ao acumular XP suficiente, suba de nível, restaure o HP e receba melhorias automáticas.
-6. **Chefe e Escada:** derrote o Chefe Orc para liberar a escada e avançar para níveis mais profundos (com cura parcial ao descer).
-7. **Fim de Jogo:** morrendo, fugindo ou saindo voluntariamente, receba uma despedida estilizada.
+4. **Salvar Progresso:** escolha a opção "Salvar jogo" a qualquer momento da exploração para gravar o estado atual. O menu principal exibirá "Continuar Aventura" quando houver um save.
+5. **Combate:** enfrente inimigos por turnos; use itens, ataque ou tente fugir. Vitória concede XP e loot.
+6. **Level Up:** ao acumular XP suficiente, suba de nível, restaure o HP e receba melhorias automáticas.
+7. **Chefe e Escada:** derrote o Chefe Orc para liberar a escada e avançar para níveis mais profundos (com cura parcial ao descer).
+8. **Fim de Jogo:** morrendo, fugindo ou saindo voluntariamente, receba uma despedida estilizada.
 
 ## Estrutura do Código
 

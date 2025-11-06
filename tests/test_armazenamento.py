@@ -1,0 +1,55 @@
+import json
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from src import armazenamento
+
+EstadoJogo = dict[str, Any]
+
+
+def configurar_diretorio(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Redireciona o sistema de salvamento para um diretório temporário."""
+    arquivo = tmp_path / "save.json"
+    monkeypatch.setattr(armazenamento, "_DIRETORIO_SALVAMENTO", tmp_path)
+    monkeypatch.setattr(armazenamento, "_ARQUIVO_SALVAMENTO", arquivo)
+    return arquivo
+
+
+def test_salvar_e_carregar_estado(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Garante que o estado salvo é recuperado sem alterações."""
+    arquivo_save = configurar_diretorio(tmp_path, monkeypatch)
+    estado: EstadoJogo = {
+        "jogador": {"nome": "Hero", "nivel": 3, "hp": 20, "inventario": []},
+        "mapa": [[{"tipo": "entrada"}]],
+        "nivel_masmorra": 2,
+    }
+
+    caminho = armazenamento.salvar_jogo(estado)
+    assert caminho == arquivo_save
+    assert caminho.exists()
+
+    dados_brutos = json.loads(caminho.read_text(encoding="utf-8"))
+    assert dados_brutos["dados"] == estado
+
+    estado_carregado = armazenamento.carregar_jogo()
+    assert estado_carregado == estado
+
+
+def test_carregar_sem_arquivo_dispara_erro(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """carregar_jogo deve falhar quando não há arquivo de save."""
+    configurar_diretorio(tmp_path, monkeypatch)
+    with pytest.raises(armazenamento.ErroCarregamento):
+        armazenamento.carregar_jogo()
+
+
+def test_remover_save(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Remover o save deve excluir o arquivo sem gerar exceção."""
+    arquivo = configurar_diretorio(tmp_path, monkeypatch)
+    estado: EstadoJogo = {"jogador": {}, "mapa": [], "nivel_masmorra": 1}
+    armazenamento.salvar_jogo(estado)
+    assert arquivo.exists()
+
+    armazenamento.remover_save()
+    assert not arquivo.exists()
