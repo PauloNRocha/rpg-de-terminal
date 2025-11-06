@@ -1,49 +1,99 @@
 # Aventura no Terminal
 
-Bem-vindo ao "Aventura no Terminal", um RPG de texto clássico inspirado em D&D, construído com Python.
+Bem-vindo a "Aventura no Terminal", um RPG solo em modo texto que roda direto no seu terminal, com uma interface moderna construída com `rich`.
 
-## Sobre o Jogo
+## Panorama do Projeto
 
-Este é um jogo de RPG para um jogador onde você assume o papel de um herói explorando masmorras perigosas, enfrentando monstros e buscando tesouros. Toda a interação acontece através de comandos de texto simples no seu terminal.
+- **Gênero:** Roguelike leve por turnos.
+- **Versão atual:** `v1.2.8`.
+- **Plataforma:** Python 3.12+.
+- **UI:** Painéis, barras e entradas estilizadas com `rich` (nada de `print` cru!).
 
-## Como Jogar
+## Pré-requisitos
 
-Para executar o jogo, siga os passos:
+1. **Python 3.12 ou superior** instalado e disponível no seu `PATH`.
+2. Opcional, mas recomendado: criar um ambiente virtual (`venv`, `conda`, `pipenv`, etc.).
 
-1.  **Clone o repositório (se ainda não o fez):**
-    ```bash
-    git clone https://github.com/PauloNRocha/rpg-de-terminal.git
-    ```
+## Instalação Rápida (Jogador)
 
-2.  **Navegue até o diretório do projeto:**
-    ```bash
-    cd rpg-de-terminal
-    ```
+Execute os comandos abaixo exatamente nessa ordem:
 
-3.  **Instale as dependências:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/PauloNRocha/rpg-de-terminal.git
 
-4.  **Execute o script principal:**
-    ```bash
-    python3 jogo.py
-    ```
+# 2. Entrar na pasta do projeto
+cd rpg-de-terminal
 
-## Funcionalidades Atuais (v0.5.0)
+# 3. (Opcional) Criar e ativar um ambiente virtual
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-*   **Criação de Personagem:** Escolha nome e classe (Guerreiro, Mago, Arqueiro) com atributos iniciais.
-*   **Exploração de Mapa:** Navegue por um mapa de masmorra com um menu de ações numérico e dinâmico.
-*   **Sistema de Combate:** Enfrente monstros em batalhas por turnos, com opções de atacar e fugir.
-*   **Sistema de Itens e Inventário:**
-    *   Colete itens gerados proceduralmente (armas, escudos, poções) com bônus aleatórios.
-    *   Gerencie seu inventário, equipe armas e escudos, e use poções de cura (inclusive em combate).
-*   **Tela de Game Over:** Uma tela de fim de jogo mais elaborada para quando seu herói for derrotado.
-*   **Estrutura Modular:** O código é organizado em módulos (`personagem`, `mapa`, `combate`, `itens`, `gerador_itens`, `utils`) para facilitar a manutenção e expansão.
-*   **Testes Automatizados:** Testes unitários com `pytest` garantem a qualidade do código.
-*   **CI/CD com GitHub Actions:** O projeto é automaticamente testado em cada `push` e `pull request`.
+# 4. Instalar dependências de execução
+pip install -r requirements.txt
 
-## Próximos Passos
+# 5. Iniciar a aventura 😎
+python3 jogo.py
+```
 
-*   Sistema de Experiência e Níveis.
-*   Geração Procedural de Mapas (Masmorras Infinitas).
+## Ambiente de Desenvolvimento
+
+Se for contribuir ou rodar os testes automatizados:
+
+```bash
+# Partindo da raíz do projeto e com o venv ativo (se estiver usando)
+pip install -r requirements-dev.txt
+
+# (Opcional) Configurar o pre-commit para o lint automático
+pre-commit install
+
+# Rodar o suite de testes
+pytest
+```
+
+## Funcionalidades Principais (v1.2.8)
+
+- **Progressão de Masmorra Dinâmica:** mapas 10x10 gerados proceduralmente com caminho garantido, salas especiais (entrada, chefe, escada) e becos extras (`src/gerador_mapa.py`).
+- **Combate por Turnos Estilizado:** interface completa com barras de HP/XP, log de combate e opções de ação (`src/combate.py`, `src/ui.py`).
+- **Sistema de XP e Level Up:** múltiplos níveis por loop, atributos restaurados e bônus aplicados automaticamente (`jogo.py:29`).
+- **Inventário Inteligente:** telas dedicadas para visualizar, equipar e usar itens, com comparação lado a lado dos bônus (`jogo.py`, `src/ui.py`).
+- **Loot Procedural:** inimigos droparam itens gerados a partir de templates por raridade (`src/gerador_itens.py`, `src/data/itens.json`).
+- **Inimigos Escaláveis:** atributos escalam 15% por nível e tipos são carregados de JSON (`src/gerador_inimigos.py`, `src/data/inimigos.json`).
+- **Fluxo Polido de UI:** menus, prompts, eventos e game over cinematográfico via `rich.Panel`, `rich.Table` e `rich.Bar` (`src/ui.py`).
+- **Tratamento Seguro de Ctrl+C:** saída elegante com mensagem final (`jogo.py:348`).
+
+## Como Jogar (Passo a Passo)
+
+1. Inicie o jogo (`python3 jogo.py`).
+2. **Criação do Personagem:** informe o nome e escolha uma classe (Guerreiro, Mago ou Arqueiro) visualizando a descrição completa.
+3. **Exploração:** use o menu numérico para se mover, abrir o inventário ou sair da masmorra.
+4. **Combate:** enfrente inimigos por turnos; use itens, ataque ou tente fugir. Vitória concede XP e loot.
+5. **Level Up:** ao acumular XP suficiente, suba de nível, restaure o HP e receba melhorias automáticas.
+6. **Chefe e Escada:** derrote o Chefe Orc para liberar a escada e avançar para níveis mais profundos (com cura parcial ao descer).
+7. **Fim de Jogo:** morrendo, fugindo ou saindo voluntariamente, receba uma despedida estilizada.
+
+## Estrutura do Código
+
+- `jogo.py` – loop principal, gerenciamento de estados e progressão de masmorra.
+- `src/ui.py` – todos os componentes de interface baseados em `rich`.
+- `src/gerador_mapa.py` – geração procedural do mapa.
+- `src/gerador_inimigos.py` / `src/data/inimigos.json` – templates e escala de inimigos.
+- `src/gerador_itens.py` / `src/data/itens.json` – catálogo de itens e raridades.
+- `src/personagem.py` / `src/data/classes.json` – classes jogáveis e criação de personagem.
+- `tests/` – suíte de testes unitários com `pytest`.
+
+## Roadmap Sugerido
+
+- Sistema de salvamento e carregamento rápido.
+- Novos slots de equipamento (armadura, acessórios) e efeitos especiais de itens.
+- Balanceamento fino da curva de XP e raridade de drops via tabelas JSON.
+- Empacotamento com `console_scripts` para rodar via `aventura-terminal` após instalação.
+
+## Contribuindo
+
+1. Crie um fork e uma branch descritiva.
+2. Garanta que `pre-commit` e `pytest` passem antes do commit.
+3. Atualize `CHANGELOG.md` (Keep a Changelog) e o número da versão em `src/version.py` quando entregar novas features.
+4. Abra um PR descrevendo claramente as mudanças e incluindo demonstrações se possível.
+
+Divirta-se explorando a masmorra pelo terminal! 🐉

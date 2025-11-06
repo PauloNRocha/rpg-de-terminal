@@ -5,6 +5,15 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.2.9] - 2025-11-06
+
+### Alterado
+
+-   README atualizado com instruções para v1.2.8, diferenciando ambientes de jogador e desenvolvimento.
+-   Dependências separadas entre `requirements.txt` (execução) e `requirements-dev.txt` (ferramentas de desenvolvimento).
+
 ## [1.2.8] - 2025-11-06
 
 ### Corrigido
