@@ -1,5 +1,6 @@
 """Define as estruturas de dados centrais (dataclasses) do jogo."""
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -21,7 +22,11 @@ class Item:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Item":
         """Cria uma instância de Item a partir de um dicionário."""
-        return cls(**data)
+        payload = data.copy()
+        payload.setdefault("descricao", "")
+        payload.setdefault("bonus", {})
+        payload.setdefault("efeito", {})
+        return cls(**payload)
 
 
 @dataclass
@@ -87,3 +92,38 @@ class Personagem(Entidade):
         )
         data["inventario"] = [item.to_dict() for item in self.inventario]
         return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "Personagem":
+        """Cria uma instância de Personagem a partir de um dicionário serializado."""
+
+        def _hidratar_item(item_raw: Item | Mapping[str, Any] | None) -> Item | None:
+            if isinstance(item_raw, Item):
+                return item_raw
+            if isinstance(item_raw, dict):
+                return Item.from_dict(item_raw)
+            return None
+
+        payload = data.copy()
+        inventario_raw = payload.pop("inventario", [])
+        equipamento_raw = payload.pop("equipamento", {"arma": None, "escudo": None}) or {
+            "arma": None,
+            "escudo": None,
+        }
+
+        inventario: list[Item] = []
+        for item_data in inventario_raw:
+            item = _hidratar_item(item_data)
+            if item:
+                inventario.append(item)
+
+        equipamento = {
+            "arma": _hidratar_item(equipamento_raw.get("arma")),
+            "escudo": _hidratar_item(equipamento_raw.get("escudo")),
+        }
+
+        return cls(
+            inventario=inventario,
+            equipamento=equipamento,
+            **payload,
+        )

@@ -7,30 +7,21 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
-## [1.5.0] - 2025-11-07
+## [1.4.0] - 2025-11-07
 
 ### Adicionado
 
 -   **Refatoração Completa para Dataclasses:** Concluída a migração de todas as entidades do jogo (Personagem, Inimigo, Item) de dicionários para `dataclasses`.
-    -   Melhora significativa na segurança de tipos, legibilidade e manutenibilidade do código.
-    -   Atualização de todos os módulos (`jogo.py`, `src/combate.py`, `src/ui.py`, `src/armazenamento.py`, `src/gerador_inimigos.py`, `src/gerador_itens.py`, `src/personagem.py`) para interagir com as novas estruturas de dados.
-    -   Ajustes nos testes (`tests/test_jogo.py`) para criar e manipular instâncias de `dataclasses` corretamente.
+    -   Criado o módulo `src/entidades.py` como um único ponto para as estruturas.
+    -   Todos os módulos (`jogo.py`, `src/combate.py`, `src/ui.py`, `src/armazenamento.py`, `src/gerador_inimigos.py`, `src/gerador_itens.py`, `src/personagem.py`) e os testes foram atualizados para consumir as novas estruturas, elevando a legibilidade e a segurança de tipos.
+    -   O sistema de salvamento/carregamento passou a serializar as `dataclasses`, preparando o terreno para evoluções futuras.
 
 ### Corrigido
 
--   **Erros de Linting e Formatação:** Resolvidos todos os erros de linting (`F821`, `E501`, `D401`, `D205`) e formatação (`invalid-syntax`) identificados pelo `ruff` e `pre-commit`.
-    -   Garantida a conformidade com os padrões de código Python e docstrings.
--   **Erros de Teste (`AttributeError`, `TypeError`):** Corrigidos os erros nos testes que surgiram devido à transição de dicionários para `dataclasses`.
-    -   Atualizadas as fixtures e a lógica dos testes para criar e manipular corretamente as instâncias de `Personagem` e `Item`.
-
-## [1.4.0] - 2025-11-06
-
-### Alterado
-
--   **Refatoração Arquitetural para Dataclasses:** Realizada uma refatoração completa da estrutura de dados do jogo, substituindo o uso de dicionários (`dict`) por `dataclasses` para representar as entidades principais (Jogador, Inimigo, Item).
-    -   Criado o novo módulo `src/entidades.py` para centralizar as definições das `dataclasses`.
-    -   Todos os módulos, incluindo `jogo.py`, `src/combate.py`, `src/ui.py`, e os geradores, foram atualizados para usar as novas estruturas de dados, resultando em um código mais seguro, legível e fácil de manter.
-    -   O sistema de salvamento e carregamento foi ajustado para serializar e desserializar as `dataclasses` de forma transparente.
+-   **Erros de Linting e Formatação:** Resolvidos todos os problemas sinalizados pelo `ruff`/`pre-commit` (`F821`, `E501`, `D401`, `D205`, `invalid-syntax`).
+    -   Código formatado e com docstrings padronizadas em todo o projeto.
+-   **Erros de Teste e Carregamento:** Ajustadas fixtures e lógica de carregamento para lidar corretamente com as `dataclasses`.
+    -   Implementadas rotinas de desserialização para restaurar inventário/equipamentos ao carregar um save.
 
 ## [1.3.1] - 2025-11-06
 
