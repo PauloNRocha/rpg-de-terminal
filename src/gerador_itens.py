@@ -1,12 +1,11 @@
-import copy
 import json
 import random
 from pathlib import Path
 from typing import Any
 
-# Define um tipo para o item para facilitar a anotação
-Item = dict[str, Any]
-ItensPorRaridade = dict[str, list[Item]]
+from src.entidades import Item
+
+ItensPorRaridade = dict[str, list[dict[str, Any]]]
 
 
 def carregar_itens() -> ItensPorRaridade:
@@ -20,14 +19,15 @@ ITENS_POR_RARIDADE: ItensPorRaridade = carregar_itens()
 
 
 def gerar_item_aleatorio(raridade: str = "comum") -> Item | None:
-    """Gera um item aleatório com base na raridade, selecionando de uma lista.
-
-    pré-definida carregada de um arquivo JSON.
-    """
+    """Gera um item aleatório com base na raridade, retornando uma instância de Item."""
     if raridade not in ITENS_POR_RARIDADE:
         return None
 
-    lista_itens: list[Item] = ITENS_POR_RARIDADE[raridade]
-    item_escolhido: Item = random.choice(lista_itens)
+    lista_itens_data: list[dict[str, Any]] = ITENS_POR_RARIDADE[raridade]
+    item_data: dict[str, Any] = random.choice(lista_itens_data)
 
-    return copy.deepcopy(item_escolhido)
+    # Garante que os campos opcionais existam antes de criar a instância
+    item_data.setdefault("bonus", {})
+    item_data.setdefault("efeito", {})
+
+    return Item.from_dict(item_data)

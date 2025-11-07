@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -38,7 +37,7 @@ def salvar_jogo(estado: EstadoJogo) -> Path:
     estado_serializavel = {
         "versao": __version__,
         "salvo_em": datetime.now(UTC).isoformat(timespec="seconds"),
-        "dados": copy.deepcopy(estado),
+        "dados": estado,
     }
 
     with caminho_save().open("w", encoding="utf-8") as arquivo:

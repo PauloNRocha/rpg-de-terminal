@@ -5,7 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.1] - 2025-11-07
+## [Unreleased]
+
+## [1.4.0] - 2025-11-06
+
+### Alterado
+
+-   **Refatoração Arquitetural para Dataclasses:** Realizada uma refatoração completa da estrutura de dados do jogo, substituindo o uso de dicionários (`dict`) por `dataclasses` para representar as entidades principais (Jogador, Inimigo, Item).
+    -   Criado o novo módulo `src/entidades.py` para centralizar as definições das `dataclasses`.
+    -   Todos os módulos, incluindo `jogo.py`, `src/combate.py`, `src/ui.py`, e os geradores, foram atualizados para usar as novas estruturas de dados, resultando em um código mais seguro, legível e fácil de manter.
+    -   O sistema de salvamento e carregamento foi ajustado para serializar e desserializar as `dataclasses` de forma transparente.
+
+## [1.3.1] - 2025-11-06
 
 ### Corrigido
 

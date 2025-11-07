@@ -2,8 +2,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-# Define um tipo para o personagem para facilitar a anotação
-Personagem = dict[str, Any]
+from src.entidades import Personagem
+
 ClassesConfig = dict[str, dict[str, Any]]
 
 
@@ -18,27 +18,21 @@ CLASSES: ClassesConfig = carregar_classes()
 
 
 def criar_personagem(nome: str, classe_escolhida: str) -> Personagem:
-    """Cria e retorna um dicionário de personagem com base no nome e na classe.
-
-    A lógica de UI (input/print) foi movida para o loop principal do jogo.
-    """
+    """Cria e retorna uma instância da dataclass Personagem com base no nome e na classe."""
     stats = CLASSES[classe_escolhida]
 
-    jogador: Personagem = {
-        "nome": nome,
-        "classe": classe_escolhida.capitalize(),
-        "hp": stats["hp"],
-        "hp_max": stats["hp"],
-        "ataque": stats["ataque"],
-        "ataque_base": stats["ataque"],
-        "defesa": stats["defesa"],
-        "defesa_base": stats["defesa"],
-        "x": 0,
-        "y": 0,
-        "inventario": [],
-        "equipamento": {"arma": None, "escudo": None},
-        "nivel": 1,
-        "xp_atual": 0,
-        "xp_para_proximo_nivel": 100,
-    }
-    return jogador
+    return Personagem(
+        nome=nome,
+        classe=classe_escolhida.capitalize(),
+        hp=stats["hp"],
+        hp_max=stats["hp"],
+        ataque=stats["ataque"],
+        ataque_base=stats["ataque"],
+        defesa=stats["defesa"],
+        defesa_base=stats["defesa"],
+        x=0,
+        y=0,
+        nivel=1,
+        xp_atual=0,
+        xp_para_proximo_nivel=100,
+    )

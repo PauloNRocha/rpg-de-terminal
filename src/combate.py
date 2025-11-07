@@ -1,11 +1,9 @@
 import random
 import time
 from collections.abc import Callable
-from typing import Any
 
+from src.entidades import Inimigo, Personagem
 from src.ui import desenhar_tela_combate
-
-Personagem = dict[str, Any]
 
 
 def calcular_dano(ataque: int, defesa: int) -> int:
@@ -17,71 +15,63 @@ def calcular_dano(ataque: int, defesa: int) -> int:
 
 
 def iniciar_combate(
-    jogador: Personagem, inimigo: Personagem, usar_item_callback: Callable[[Personagem], bool]
-) -> tuple[bool, Personagem]:
-    """Inicia e gerencia um loop de combate por turnos com a nova UI.
+    jogador: Personagem, inimigo: Inimigo, usar_item_callback: Callable[[Personagem], bool]
+) -> tuple[bool, Inimigo]:
+    """Inicia e gerencia um loop de combate por turnos com a nova UI."""
+    log_combate = [f"Um {inimigo.nome} selvagem aparece!"]
 
-    Retorna True se o jogador vencer, False se perder ou fugir.
-    """
-    log_combate = [f"Um {inimigo['nome']} selvagem aparece!"]
-    inimigo["hp_max"] = inimigo["hp"]  # Armazena o HP máximo para a barra de status
-
-    while jogador["hp"] > 0 and inimigo["hp"] > 0:
+    while jogador.esta_vivo() and inimigo.esta_vivo():
         escolha = desenhar_tela_combate(jogador, inimigo, log_combate)
 
         if escolha == "1":
             # Turno do Jogador
-            dano_causado = calcular_dano(jogador["ataque"], inimigo["defesa"])
-            inimigo["hp"] -= dano_causado
-            log_combate.append(f"Você ataca o {inimigo['nome']} e causa {dano_causado} de dano!")
+            dano_causado = calcular_dano(jogador.ataque, inimigo.defesa)
+            inimigo.hp -= dano_causado
+            log_combate.append(f"Você ataca o {inimigo.nome} e causa {dano_causado} de dano!")
 
-            if inimigo["hp"] <= 0:
-                log_combate.append(f"Você derrotou o {inimigo['nome']}!")
-                break  # Sai do loop de combate
+            if not inimigo.esta_vivo():
+                log_combate.append(f"Você derrotou o {inimigo.nome}!")
+                break
 
             # Turno do Inimigo
-            dano_recebido = calcular_dano(inimigo["ataque"], jogador["defesa"])
-            jogador["hp"] -= dano_recebido
-            log_combate.append(
-                f"O {inimigo['nome']} ataca e causa {dano_recebido} de dano em você!"
-            )
+            dano_recebido = calcular_dano(inimigo.ataque, jogador.defesa)
+            jogador.hp -= dano_recebido
+            log_combate.append(f"O {inimigo.nome} ataca e causa {dano_recebido} de dano em você!")
 
-            if jogador["hp"] <= 0:
+            if not jogador.esta_vivo():
                 log_combate.append("Você foi derrotado...")
-                break  # Sai do loop de combate
+                break
 
         elif escolha == "2":
-            # Tenta usar uma poção
             if usar_item_callback(jogador):
                 log_combate.append("Você usou um item e recuperou vida!")
                 # Turno do Inimigo após usar item
-                dano_recebido = calcular_dano(inimigo["ataque"], jogador["defesa"])
-                jogador["hp"] -= dano_recebido
+                dano_recebido = calcular_dano(inimigo.ataque, jogador.defesa)
+                jogador.hp -= dano_recebido
                 mensagem_ataque = (
-                    f"O {inimigo['nome']} ataca enquanto você se curava e "
+                    f"O {inimigo.nome} ataca enquanto você se curava e "
                     f"causa {dano_recebido} de dano!"
                 )
                 log_combate.append(mensagem_ataque)
             else:
                 log_combate.append("Você não tem itens consumíveis ou decidiu não usar.")
-                continue  # Permite que o jogador escolha outra ação
+                continue
 
         elif escolha == "3":
-            # Tenta fugir
             chance_de_fuga = 0.5
             if random.random() < chance_de_fuga:
                 log_combate.append("Você conseguiu fugir!")
                 desenhar_tela_combate(jogador, inimigo, log_combate)
                 time.sleep(2)
-                return False, inimigo  # Retorna False e o inimigo com HP restante
+                return False, inimigo
             log_combate.append("Você tentou fugir, mas falhou!")
             # Turno do Inimigo após falha na fuga
-            dano_recebido = calcular_dano(inimigo["ataque"], jogador["defesa"])
-            jogador["hp"] -= dano_recebido
-            log_combate.append(f"O {inimigo['nome']} ataca e causa {dano_recebido} de dano!")
+            dano_recebido = calcular_dano(inimigo.ataque, jogador.defesa)
+            jogador.hp -= dano_recebido
+            log_combate.append(f"O {inimigo.nome} ataca e causa {dano_recebido} de dano!")
 
         else:
             log_combate.append("Opção inválida! Tente novamente.")
             time.sleep(1)
 
-    return jogador["hp"] > 0, inimigo  # Retorna o resultado final e o inimigo com HP restante
+    return jogador.esta_vivo(), inimigo

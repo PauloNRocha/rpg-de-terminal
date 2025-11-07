@@ -4,9 +4,9 @@ import random
 from pathlib import Path
 from typing import Any
 
-# Define um tipo para o inimigo para facilitar a anotação
-Inimigo = dict[str, Any]
-TemplatesInimigos = dict[str, Inimigo]
+from src.entidades import Inimigo
+
+TemplatesInimigos = dict[str, dict[str, Any]]
 
 # Carrega os templates de inimigos do arquivo JSON
 try:
@@ -19,10 +19,7 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 
 def gerar_inimigo(nivel: int, tipo_inimigo: str | None = None) -> Inimigo:
-    """Gera um inimigo com atributos escalados para um nível específico.
-
-    Se 'tipo_inimigo' for fornecido, gera esse tipo. Caso contrário, escolhe um aleatório.
-    """
+    """Gera um inimigo com atributos escalados para um nível específico."""
     if not INIMIGO_TEMPLATES:
         raise RuntimeError("Não foi possível carregar os templates de inimigos do arquivo JSON.")
 
@@ -47,15 +44,12 @@ def gerar_inimigo(nivel: int, tipo_inimigo: str | None = None) -> Inimigo:
     defesa = int(template["defesa_base"] * fator_escala)
     xp_recompensa = int(template["xp_base"] * fator_escala)
 
-    # Monta o dicionário final do inimigo
-    inimigo_gerado: Inimigo = {
-        "nome": f"{template['nome']} (Nível {nivel})",
-        "hp": hp,
-        "hp_max": hp,  # Adiciona hp_max para consistência
-        "ataque": ataque,
-        "defesa": defesa,
-        "xp_recompensa": xp_recompensa,
-        "drop_raridade": template["drop_raridade"],
-    }
-
-    return inimigo_gerado
+    return Inimigo(
+        nome=f"{template['nome']} (Nível {nivel})",
+        hp=hp,
+        hp_max=hp,
+        ataque=ataque,
+        defesa=defesa,
+        xp_recompensa=xp_recompensa,
+        drop_raridade=template["drop_raridade"],
+    )
