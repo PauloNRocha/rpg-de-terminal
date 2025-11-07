@@ -7,7 +7,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
-## [1.3.1] - 2025-11-06
+## [1.3.1] - 2025-11-07
 
 ### Corrigido
 
