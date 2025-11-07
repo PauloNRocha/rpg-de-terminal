@@ -7,6 +7,22 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-11-07
+
+### Adicionado
+
+-   **Refatoração Completa para Dataclasses:** Concluída a migração de todas as entidades do jogo (Personagem, Inimigo, Item) de dicionários para `dataclasses`.
+    -   Melhora significativa na segurança de tipos, legibilidade e manutenibilidade do código.
+    -   Atualização de todos os módulos (`jogo.py`, `src/combate.py`, `src/ui.py`, `src/armazenamento.py`, `src/gerador_inimigos.py`, `src/gerador_itens.py`, `src/personagem.py`) para interagir com as novas estruturas de dados.
+    -   Ajustes nos testes (`tests/test_jogo.py`) para criar e manipular instâncias de `dataclasses` corretamente.
+
+### Corrigido
+
+-   **Erros de Linting e Formatação:** Resolvidos todos os erros de linting (`F821`, `E501`, `D401`, `D205`) e formatação (`invalid-syntax`) identificados pelo `ruff` e `pre-commit`.
+    -   Garantida a conformidade com os padrões de código Python e docstrings.
+-   **Erros de Teste (`AttributeError`, `TypeError`):** Corrigidos os erros nos testes que surgiram devido à transição de dicionários para `dataclasses`.
+    -   Atualizadas as fixtures e a lógica dos testes para criar e manipular corretamente as instâncias de `Personagem` e `Item`.
+
 ## [1.4.0] - 2025-11-06
 
 ### Alterado
