@@ -135,3 +135,6 @@ random
 saves/
 .pre-commit-home/
 .gitconfig-local
+reviews/
+Roadmap
+
