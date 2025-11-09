@@ -1,4 +1,3 @@
-import os
 import random
 from typing import Any
 
@@ -19,7 +18,7 @@ ClassesConfig = dict[str, dict[str, Any]]
 
 def limpar_tela() -> None:
     """Limpa a tela do terminal."""
-    os.system("cls" if os.name == "nt" else "clear")
+    console.clear()
 
 
 def desenhar_caixa(titulo: str, conteudo: str, largura: int = 75) -> None:
@@ -171,13 +170,14 @@ def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> 
                 border_style="blue",
             )
         )
+        console.input("[bold yellow]Pressione Enter para voltar... [/]")
+        return "voltar"
 
+    texto_opcoes = (
+        f"Escolha um item (1-{len(itens_equipaveis)}) ou {len(itens_equipaveis) + 1} para Voltar."
+    )
     opcoes_panel = Panel(
-        Text(
-            f"Escolha um item (1-{len(itens_equipaveis)}) ou "
-            f"{len(itens_equipaveis) + 1}' para Voltar.",
-            justify="center",
-        ),
+        Text(texto_opcoes, justify="center"),
         width=75,
     )
     console.print(opcoes_panel)

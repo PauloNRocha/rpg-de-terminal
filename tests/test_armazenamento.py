@@ -53,3 +53,17 @@ def test_remover_save(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
     armazenamento.remover_save()
     assert not arquivo.exists()
+
+
+def test_validar_estado_detecta_mapa_invalido() -> None:
+    """_validar_estado deve recusar mapas fora do formato esperado."""
+    estado = {"jogador": {"nome": "Hero"}, "mapa": [{}], "nivel_masmorra": 1}
+    with pytest.raises(armazenamento.ErroCarregamento):
+        armazenamento._validar_estado(estado)
+
+
+def test_validar_estado_aceita_estrutura_minima() -> None:
+    """Estados bem formados são aceitos pela validação."""
+    mapa = [[{"tipo": "entrada"}]]
+    estado = {"jogador": {"nome": "Hero"}, "mapa": mapa, "nivel_masmorra": 1}
+    armazenamento._validar_estado(estado)

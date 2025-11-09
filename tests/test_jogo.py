@@ -1,8 +1,14 @@
 import pytest
 
 import jogo  # Importa o módulo todo para o monkeypatch
-from jogo import aplicar_bonus_equipamento, verificar_level_up
-from src.entidades import Item, Personagem
+from jogo import (
+    aplicar_bonus_equipamento,
+    aplicar_efeitos_consumiveis,
+    hidratar_mapa,
+    serializar_mapa,
+    verificar_level_up,
+)
+from src.entidades import Inimigo, Item, Personagem
 
 
 # Fixture para criar um jogador base para os testes
@@ -128,3 +134,38 @@ def test_remover_equipamento(jogador_base: Personagem, espada_curta: Item) -> No
     jogador_base.equipamento["arma"] = None
     aplicar_bonus_equipamento(jogador_base)
     assert jogador_base.ataque == 6  # Volta ao valor base
+
+
+def test_serializar_e_hidratar_mapa() -> None:
+    """Garante que inimigos ativos são serializados e reconstruídos corretamente."""
+    inimigo = Inimigo(
+        nome="Goblin",
+        hp=10,
+        hp_max=10,
+        ataque=3,
+        defesa=1,
+        xp_recompensa=5,
+        drop_raridade="comum",
+    )
+    mapa = [[{"tipo": "sala", "inimigo_atual": inimigo}]]
+    serializado = serializar_mapa(mapa)
+    assert isinstance(serializado[0][0]["inimigo_atual"], dict)
+
+    hidratado = hidratar_mapa(serializado)
+    assert isinstance(hidratado[0][0]["inimigo_atual"], Inimigo)
+
+
+def test_aplicar_efeitos_consumiveis_altera_atributos(jogador_base: Personagem) -> None:
+    """Consumíveis com múltiplos efeitos devem aplicar todos os handlers registrados."""
+    jogador_base.hp = 10
+    poção = Item(
+        nome="Poção Maior",
+        tipo="consumivel",
+        descricao="",
+        efeito={"hp": 10, "xp": 20},
+    )
+    mensagens = aplicar_efeitos_consumiveis(jogador_base, poção)
+    assert "recuperou" in mensagens[0]
+    assert "XP" in mensagens[1]
+    assert jogador_base.hp == 20
+    assert jogador_base.xp_atual == 20
