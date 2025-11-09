@@ -5,35 +5,58 @@ from pathlib import Path
 from typing import Any
 
 from src.entidades import Inimigo
+from src.erros import ErroDadosError
 
 TemplatesInimigos = dict[str, dict[str, Any]]
 
-# Carrega os templates de inimigos do arquivo JSON
-try:
+
+def carregar_templates() -> TemplatesInimigos:
+    """Carrega os templates de inimigos do arquivo JSON."""
     caminho_json: Path = Path(__file__).parent / "data" / "inimigos.json"
-    with open(caminho_json, encoding="utf-8") as f:
-        INIMIGO_TEMPLATES: TemplatesInimigos = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError):
-    # Fallback para o caso de o arquivo não ser encontrado ou for inválido
+    try:
+        with open(caminho_json, encoding="utf-8") as f:
+            dados = json.load(f)
+    except FileNotFoundError as erro:
+        raise ErroDadosError("Arquivo 'inimigos.json' não foi encontrado em src/data/.") from erro
+    except json.JSONDecodeError as erro:
+        raise ErroDadosError("Arquivo 'inimigos.json' está inválido (JSON malformado).") from erro
+    if not isinstance(dados, dict) or not dados:
+        raise ErroDadosError("Arquivo 'inimigos.json' está vazio ou com formato incorreto.")
+    return dados
+
+
+try:
+    INIMIGO_TEMPLATES: TemplatesInimigos = carregar_templates()
+    _ERRO_INIMIGOS: ErroDadosError | None = None
+except ErroDadosError as erro:
     INIMIGO_TEMPLATES = {}
+    _ERRO_INIMIGOS = erro
+
+
+def obter_templates() -> TemplatesInimigos:
+    """Expõe os templates carregados ou dispara um erro amigável."""
+    if _ERRO_INIMIGOS is not None:
+        raise _ERRO_INIMIGOS
+    if not INIMIGO_TEMPLATES:
+        raise ErroDadosError("Nenhum inimigo disponível em 'inimigos.json'.")
+    return INIMIGO_TEMPLATES
 
 
 def gerar_inimigo(nivel: int, tipo_inimigo: str | None = None) -> Inimigo:
     """Gera um inimigo com atributos escalados para um nível específico."""
-    if not INIMIGO_TEMPLATES:
-        raise RuntimeError("Não foi possível carregar os templates de inimigos do arquivo JSON.")
+    templates = obter_templates()
 
     # Escolhe um tipo de inimigo
-    if tipo_inimigo and tipo_inimigo in INIMIGO_TEMPLATES:
+    if tipo_inimigo and tipo_inimigo in templates:
         tipo_escolhido = tipo_inimigo
     else:
         # Exclui o chefe da geração aleatória normal
-        tipos_disponiveis: list[str] = [k for k in INIMIGO_TEMPLATES if k != "chefe_orc"]
+        tipos_disponiveis: list[str] = [k for k in templates if k != "chefe_orc"]
         if not tipos_disponiveis:
             raise ValueError("Nenhum inimigo (exceto chefe) disponível para geração aleatória.")
         tipo_escolhido = random.choice(tipos_disponiveis)
 
-    template = copy.deepcopy(INIMIGO_TEMPLATES[tipo_escolhido])
+    template = copy.deepcopy(templates[tipo_escolhido])
 
     # Fator de escala (aumenta 15% por nível, por exemplo)
     fator_escala = 1 + (nivel - 1) * 0.15

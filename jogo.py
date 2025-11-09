@@ -1,13 +1,15 @@
 import sys
+from collections.abc import Callable
 from typing import Any
 
 from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
 from src.combate import iniciar_combate
-from src.entidades import Personagem
+from src.entidades import Inimigo, Item, Personagem
+from src.erros import ErroDadosError
 from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio
 from src.gerador_mapa import gerar_mapa
-from src.personagem import CLASSES, criar_personagem
+from src.personagem import criar_personagem, obter_classes
 from src.ui import (
     desenhar_hud_exploracao,
     desenhar_menu_principal,
@@ -23,6 +25,78 @@ from src.ui import (
 from src.version import __version__
 
 Mapa = list[list[dict[str, Any]]]
+EffectHandler = Callable[[Personagem, int], str]
+
+
+def _efeito_hp(jogador: Personagem, valor: int) -> str:
+    cura = max(0, int(valor))
+    if cura <= 0:
+        return "Nenhuma cura aplicada."
+    hp_antes = jogador.hp
+    jogador.hp = min(jogador.hp_max, jogador.hp + cura)
+    ganho_real = jogador.hp - hp_antes
+    return f"Você recuperou {ganho_real} de HP."
+
+
+def _efeito_xp(jogador: Personagem, valor: int) -> str:
+    ganho = max(0, int(valor))
+    if ganho <= 0:
+        return "Nenhuma experiência foi concedida."
+    jogador.xp_atual += ganho
+    return f"Você ganhou {ganho} de XP."
+
+
+EFFECT_HANDLERS: dict[str, EffectHandler] = {
+    "hp": _efeito_hp,
+    "xp": _efeito_xp,
+}
+
+
+def aplicar_efeitos_consumiveis(jogador: Personagem, item: Item) -> list[str]:
+    """Aplica efeitos declarados no item e retorna mensagens ao jogador."""
+    mensagens: list[str] = []
+    efeitos = item.efeito or {}
+    for nome, valor in efeitos.items():
+        handler = EFFECT_HANDLERS.get(nome)
+        if handler:
+            mensagens.append(handler(jogador, int(valor)))
+        else:
+            mensagens.append(f"Efeito '{nome}' ainda não é suportado e foi ignorado.")
+    return mensagens
+
+
+def serializar_mapa(mapa: Mapa) -> Mapa:
+    """Cria uma cópia serializável do mapa, convertendo inimigos para dict."""
+    mapa_serializado: Mapa = []
+    for linha in mapa:
+        nova_linha: list[dict[str, Any]] = []
+        for sala in linha:
+            sala_copia = dict(sala)
+            inimigo_atual = sala_copia.get("inimigo_atual")
+            if isinstance(inimigo_atual, Inimigo):
+                sala_copia["inimigo_atual"] = inimigo_atual.to_dict()
+            elif not isinstance(inimigo_atual, dict):
+                sala_copia["inimigo_atual"] = None
+            nova_linha.append(sala_copia)
+        mapa_serializado.append(nova_linha)
+    return mapa_serializado
+
+
+def hidratar_mapa(mapa_serializado: Mapa) -> Mapa:
+    """Reconstrói instâncias de Inimigo presentes no mapa carregado."""
+    mapa_hidratado: Mapa = []
+    for linha in mapa_serializado:
+        nova_linha: list[dict[str, Any]] = []
+        for sala in linha:
+            sala_copia = dict(sala)
+            inimigo_atual = sala_copia.get("inimigo_atual")
+            if isinstance(inimigo_atual, dict):
+                sala_copia["inimigo_atual"] = Inimigo.from_dict(inimigo_atual)
+            elif not isinstance(inimigo_atual, Inimigo):
+                sala_copia["inimigo_atual"] = None
+            nova_linha.append(sala_copia)
+        mapa_hidratado.append(nova_linha)
+    return mapa_hidratado
 
 
 def verificar_level_up(jogador: Personagem) -> None:
@@ -111,13 +185,18 @@ def usar_item(jogador: Personagem) -> bool | None:
 
             item_escolhido = itens_consumiveis[escolha - 1]
 
-            if "hp" in item_escolhido.efeito:
-                cura = item_escolhido.efeito["hp"]
-                jogador.hp = min(jogador.hp_max, jogador.hp + cura)
-                mensagem = f"Você usou {item_escolhido.nome} e restaurou {cura} de HP."
-                desenhar_tela_evento("ITEM USADO", mensagem)
-                jogador.inventario.remove(item_escolhido)
-                return True
+            if not item_escolhido.efeito:
+                desenhar_tela_evento(
+                    "ITEM SEM EFEITO",
+                    "Este item não possui efeitos consumíveis configurados.",
+                )
+                continue
+
+            mensagens = aplicar_efeitos_consumiveis(jogador, item_escolhido)
+            jogador.inventario.remove(item_escolhido)
+            verificar_level_up(jogador)
+            desenhar_tela_evento("ITEM USADO", "\n".join(mensagens))
+            return True
         except (ValueError, IndexError):
             desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
     return None
@@ -130,6 +209,8 @@ def equipar_item(jogador: Personagem) -> None:
         escolha_str = desenhar_tela_equipar(jogador, itens_equipaveis)
 
         try:
+            if escolha_str == "voltar":
+                return
             if not escolha_str.isdigit():
                 raise ValueError
             escolha = int(escolha_str)
@@ -257,7 +338,7 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
             elif acao_escolhida == "Salvar jogo":
                 estado = {
                     "jogador": jogador.to_dict(),
-                    "mapa": mapa,
+                    "mapa": serializar_mapa(mapa),
                     "nivel_masmorra": nivel_masmorra,
                 }
                 try:
@@ -281,9 +362,10 @@ def processo_criacao_personagem() -> Personagem:
     while not nome:
         nome = desenhar_tela_input("CRIAÇÃO DE PERSONAGEM", "Qual é o nome do seu herói?")
     classe_escolhida = ""
-    classes_lista = list(CLASSES.keys())
+    classes_config = obter_classes()
+    classes_lista = list(classes_config.keys())
     while not classe_escolhida:
-        escolha = desenhar_tela_escolha_classe(CLASSES)
+        escolha = desenhar_tela_escolha_classe(classes_config)
         try:
             idx = int(escolha) - 1
             if 0 <= idx < len(classes_lista):
@@ -333,8 +415,13 @@ def main() -> None:
                     if not all([jogador_data, mapa_salvo, isinstance(nivel_masmorra, int)]):
                         raise ErroCarregamento("Arquivo de save inválido ou corrompido.")
                     jogador = Personagem.from_dict(jogador_data)
+                    mapa_recuperado = hidratar_mapa(mapa_salvo)
                     desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
-                    executar_campanha(jogador, nivel_masmorra=nivel_masmorra, mapa_atual=mapa_salvo)
+                    executar_campanha(
+                        jogador,
+                        nivel_masmorra=nivel_masmorra,
+                        mapa_atual=mapa_recuperado,
+                    )
                 except ErroCarregamento as erro:
                     desenhar_tela_evento("ERRO AO CARREGAR", str(erro))
             elif (tem_save and escolha == "3") or (not tem_save and escolha == "2"):
@@ -346,6 +433,9 @@ def main() -> None:
         mensagem_saida = "O jogo foi interrompido.\n\nEsperamos você para a próxima aventura!"
         desenhar_tela_saida("ATÉ LOGO!", mensagem_saida)
         sys.exit(0)
+    except ErroDadosError as erro:
+        desenhar_tela_saida("ERRO DE DADOS", str(erro))
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ Bem-vindo a "Aventura no Terminal", um RPG solo em modo texto que roda direto no
 ## Panorama do Projeto
 
 - **Gênero:** Roguelike leve por turnos.
-- **Versão atual:** `v1.4.0`.
+- **Versão atual:** `v1.4.1`.
 - **Plataforma:** Python 3.12+.
 - **UI:** Painéis, barras e entradas estilizadas com `rich` (nada de `print` cru!).
 

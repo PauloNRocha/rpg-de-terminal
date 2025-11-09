@@ -41,7 +41,7 @@ def salvar_jogo(estado: EstadoJogo) -> Path:
     }
 
     with caminho_save().open("w", encoding="utf-8") as arquivo:
-        json.dump(estado_serializavel, arquivo, ensure_ascii=False, indent=2)
+        json.dump(estado_serializavel, arquivo, ensure_ascii=False, separators=(",", ":"))
 
     return caminho_save()
 
@@ -69,7 +69,9 @@ def carregar_jogo() -> EstadoJogo:
             f"({__version__})."
         )
 
-    return conteudo["dados"]
+    dados = conteudo["dados"]
+    _validar_estado(dados)
+    return dados
 
 
 def remover_save() -> None:
@@ -77,3 +79,29 @@ def remover_save() -> None:
     caminho = caminho_save()
     if caminho.exists():
         caminho.unlink()
+
+
+def _validar_estado(estado: EstadoJogo) -> None:
+    """Valida minimamente o conteúdo do estado carregado."""
+    if not isinstance(estado, dict):
+        raise ErroCarregamento("O save não possui a estrutura esperada.")
+
+    jogador = estado.get("jogador")
+    mapa = estado.get("mapa")
+    nivel = estado.get("nivel_masmorra")
+
+    if not isinstance(jogador, dict) or "nome" not in jogador:
+        raise ErroCarregamento("Dados do jogador ausentes ou inválidos no save.")
+
+    if not isinstance(mapa, list) or not mapa:
+        raise ErroCarregamento("Mapa inválido no arquivo de save.")
+
+    for linha in mapa:
+        if not isinstance(linha, list):
+            raise ErroCarregamento("Mapa corrompido: linhas precisam ser listas.")
+        for sala in linha:
+            if not isinstance(sala, dict):
+                raise ErroCarregamento("Mapa corrompido: sala inválida encontrada.")
+
+    if not isinstance(nivel, int) or nivel < 1:
+        raise ErroCarregamento("Nível da masmorra inválido no save.")

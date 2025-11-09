@@ -7,6 +7,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.4.1] - 2025-11-09
+
+### Adicionado
+
+-   **Motor de Efeitos para Consumíveis:** novos handlers (`hp`, `xp`) aplicam múltiplos efeitos por item, exibindo mensagens detalhadas e acionando o `level up` quando necessário.
+-   **Testes extras:** cobertura para serialização/hidratação do mapa, efeitos de consumíveis e validação do arquivo de save.
+
+### Corrigido
+
+-   **Salvar após fugir do combate:** inimigos ativos agora são convertidos para `dict` antes do salvamento e reconstruídos ao carregar, eliminando o `TypeError` quando o mapa continha `dataclasses`.
+-   **Inventário/Equipar:** tela evita intervalos inválidos quando não há itens equipáveis e permite retornar imediatamente.
+
+### Alterado
+
+-   **Persistência mais leve e segura:** `save.json` passa a ser compactado e validado (jogador, mapa e nível), com mensagens amigáveis em casos de corrupção.
+-   **Carga resiliente de dados JSON:** falhas ao ler `classes.json`, `itens.json` ou `inimigos.json` resultam em erros guiados ao jogador em vez de tracebacks.
+-   **Limpeza de tela:** substituído `os.system` por `Console.clear()` do `rich`, garantindo comportamento uniforme em Windows/Linux.
+
 ## [1.4.0] - 2025-11-07
 
 ### Adicionado
