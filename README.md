@@ -61,6 +61,12 @@ pytest
 - **Inventário Inteligente:** telas dedicadas para visualizar, equipar e usar itens, com comparação lado a lado dos bônus (`jogo.py`, `src/ui.py`).
 - **Loot Procedural:** inimigos droparam itens gerados a partir de templates por raridade (`src/gerador_itens.py`, `src/data/itens.json`).
 - **Inimigos Escaláveis:** atributos escalam 15% por nível e tipos são carregados de JSON (`src/gerador_inimigos.py`, `src/data/inimigos.json`).
+
+## Créditos e IA
+
+- Este projeto é desenvolvido por Paulo N. Rocha, com apoio de IA (assistente de código e revisão técnica).
+- Desenvolvedores: Paulo N. Rocha e IA.
+- Notas: partes do design e refatorações foram planejadas e validadas com auxílio de ferramentas de IA, mantendo revisão humana e testes automatizados.
 - **Fluxo Polido de UI:** menus, prompts, eventos e game over cinematográfico via `rich.Panel`, `rich.Table` e `rich.Bar` (`src/ui.py`).
 - **Tratamento Seguro de Ctrl+C:** saída elegante com mensagem final (`jogo.py:348`).
 
