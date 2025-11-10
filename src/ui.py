@@ -79,12 +79,13 @@ def desenhar_hud_exploracao(
 
     texto_local = Text()
     texto_local.append(f"🗺️  Local: {sala_atual['nome']}\n", style="bold magenta")
-    texto_local.append(f"🌌 Andar da Masmorra: {nivel_masmorra}\n", style="bold cyan")
     texto_local.append(sala_atual["descricao"], style="white")
+
+    titulo_local = Text(f"Localização — Masmorra Nível {nivel_masmorra}", style="bold blue")
 
     hud_sala = Panel(
         texto_local,
-        title=Text("Localização", style="bold blue"),
+        title=titulo_local,
         border_style="blue",
         width=75,
     )
