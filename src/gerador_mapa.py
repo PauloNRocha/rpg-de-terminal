@@ -2,10 +2,8 @@
 
 import random
 
+from src import config
 from src.entidades import Sala
-
-LARGURA_MAPA = 10
-ALTURA_MAPA = 10
 
 Mapa = list[list[Sala]]
 
@@ -21,22 +19,22 @@ def gerar_mapa(nivel: int = 1) -> Mapa:
                 pode_ter_inimigo=False,
                 nivel_area=nivel,
             )
-            for _ in range(LARGURA_MAPA)
+            for _ in range(config.MAP_WIDTH)
         ]
-        for _ in range(ALTURA_MAPA)
+        for _ in range(config.MAP_HEIGHT)
     ]
 
-    x, y = random.randint(1, LARGURA_MAPA - 2), 0
+    x, y = random.randint(1, config.MAP_WIDTH - 2), 0
     caminho_principal: list[tuple[int, int]] = []
 
-    while y < ALTURA_MAPA - 1:
+    while y < config.MAP_HEIGHT - 1:
         mapa[y][x] = _criar_sala("caminho", nivel)
         caminho_principal.append((x, y))
 
         direcao = random.choice(["esquerda", "direita", "baixo", "baixo", "baixo"])
         if direcao == "esquerda" and x > 1:
             x -= 1
-        elif direcao == "direita" and x < LARGURA_MAPA - 2:
+        elif direcao == "direita" and x < config.MAP_WIDTH - 2:
             x += 1
         else:
             y += 1
@@ -50,14 +48,18 @@ def gerar_mapa(nivel: int = 1) -> Mapa:
     escada_x, escada_y = caminho_principal[-1]
     mapa[escada_y][escada_x] = _criar_sala("escada", nivel)
 
-    for _ in range(int(LARGURA_MAPA * ALTURA_MAPA / 4)):
+    for _ in range(int(config.MAP_WIDTH * config.MAP_HEIGHT * config.MAP_SIDE_ROOMS_RATIO)):
         px, py = random.choice(caminho_principal)
         direcoes = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         random.shuffle(direcoes)
 
         for dx, dy in direcoes:
             nx, ny = px + dx, py + dy
-            if 0 <= nx < LARGURA_MAPA and 0 <= ny < ALTURA_MAPA and mapa[ny][nx].tipo == "parede":
+            if (
+                0 <= nx < config.MAP_WIDTH
+                and 0 <= ny < config.MAP_HEIGHT
+                and mapa[ny][nx].tipo == "parede"
+            ):
                 mapa[ny][nx] = _criar_sala("secundaria", nivel)
                 break
 
@@ -122,6 +124,6 @@ def _criar_sala(tipo: str, nivel: int) -> Sala:
         tipo="sala",
         nome=random.choice(["Corredor Escuro", "Câmara Poeirenta", "Túnel Apertado"]),
         descricao=random.choice(descricoes),
-        pode_ter_inimigo=random.random() < 0.6,
+        pode_ter_inimigo=random.random() < config.MAP_ENEMY_PROBABILITY,
         nivel_area=nivel,
     )
