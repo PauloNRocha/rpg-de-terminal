@@ -1,7 +1,10 @@
 import sys
 from collections.abc import Callable
+from dataclasses import dataclass
+from enum import Enum, auto
 from typing import Any
 
+from src import config
 from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
 from src.combate import iniciar_combate
 from src.entidades import Item, Personagem, Sala
@@ -27,6 +30,94 @@ from src.version import __version__
 Mapa = list[list[Sala]]
 EffectHandler = Callable[[Personagem, int], str]
 TIPO_ORDENACAO = {"arma": 0, "escudo": 1}
+
+
+class Estado(Enum):
+    """Estados principais do loop do jogo."""
+
+    MENU = auto()
+    CRIACAO = auto()
+    EXPLORACAO = auto()
+    SAIR = auto()
+
+
+@dataclass
+class ContextoJogo:
+    """Armazena o estado corrente entre as transições."""
+
+    jogador: Personagem | None = None
+    mapa_atual: Mapa | None = None
+    nivel_masmorra: int = 1
+
+
+def executar_estado_menu(contexto: ContextoJogo) -> Estado:
+    """Renderiza o menu e decide o próximo estado."""
+    tem_save = existe_save()
+    escolha = desenhar_menu_principal(__version__, tem_save)
+    if escolha == "1":
+        return Estado.CRIACAO
+    if escolha == "2" and tem_save:
+        try:
+            estado_salvo = carregar_jogo()
+            jogador_data = estado_salvo.get("jogador")
+            mapa_salvo = estado_salvo.get("mapa")
+            nivel_masmorra = estado_salvo.get("nivel_masmorra")
+            if not all([jogador_data, mapa_salvo, isinstance(nivel_masmorra, int)]):
+                raise ErroCarregamento("Arquivo de save inválido ou corrompido.")
+            contexto.jogador = Personagem.from_dict(jogador_data)
+            contexto.mapa_atual = hidratar_mapa(mapa_salvo)
+            contexto.nivel_masmorra = nivel_masmorra
+            desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
+            return Estado.EXPLORACAO
+        except ErroCarregamento as erro:
+            desenhar_tela_evento("ERRO AO CARREGAR", str(erro))
+        return Estado.MENU
+    if (tem_save and escolha == "3") or (not tem_save and escolha == "2"):
+        return Estado.SAIR
+
+    desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
+    return Estado.MENU
+
+
+def executar_estado_criacao(contexto: ContextoJogo) -> Estado:
+    """Cria um personagem novo e segue para exploração."""
+    jogador = processo_criacao_personagem()
+    contexto.jogador = jogador
+    contexto.nivel_masmorra = 1
+    contexto.mapa_atual = None
+    return Estado.EXPLORACAO
+
+
+def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
+    """Executa a campanha/loop principal e retorna ao menu quando apropriado."""
+    jogador = contexto.jogador
+    if jogador is None:
+        return Estado.MENU
+
+    mapa_corrente = contexto.mapa_atual
+    nivel_masmorra = contexto.nivel_masmorra
+
+    while True:
+        if mapa_corrente is None:
+            mapa_corrente = gerar_mapa(nivel_masmorra)
+        contexto.mapa_atual = mapa_corrente
+        contexto.nivel_masmorra = nivel_masmorra
+        aventura_continua = iniciar_aventura(jogador, mapa_corrente, nivel_masmorra)
+        if aventura_continua:
+            nivel_masmorra += 1
+            mapa_corrente = None
+            hp_cura = int(jogador.hp_max * config.DESCENT_HEAL_PERCENT)
+            jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
+            mensagem_nivel = f"Você desce para o próximo nível.\\nVocê recuperou {hp_cura} de HP."
+            desenhar_tela_evento(f"NÍVEL {nivel_masmorra} ALCANÇADO!", mensagem_nivel)
+            contexto.nivel_masmorra = nivel_masmorra
+            continue
+
+        # A aventura terminou (morte ou saída). Limpa o contexto para recomeçar.
+        contexto.jogador = None
+        contexto.mapa_atual = None
+        contexto.nivel_masmorra = 1
+        return Estado.MENU
 
 
 def _efeito_hp(jogador: Personagem, valor: int) -> str:
@@ -129,9 +220,9 @@ def verificar_level_up(jogador: Personagem) -> None:
         jogador.xp_atual = xp_excedente
         jogador.xp_para_proximo_nivel = int(jogador.xp_para_proximo_nivel * 1.5)
 
-        hp_ganho = 10
-        ataque_ganho = 2
-        defesa_ganho = 1
+        hp_ganho = config.LEVEL_UP_HP_GAIN
+        ataque_ganho = config.LEVEL_UP_ATTACK_GAIN
+        defesa_ganho = config.LEVEL_UP_DEFENSE_GAIN
 
         jogador.hp_max += hp_ganho
         jogador.hp = jogador.hp_max
@@ -394,58 +485,21 @@ def processo_criacao_personagem() -> Personagem:
     return jogador
 
 
-def executar_campanha(
-    jogador: Personagem, nivel_masmorra: int, mapa_atual: Mapa | None = None
-) -> None:
-    """Executa o loop principal de exploração a partir de um estado inicial."""
-    mapa_corrente = mapa_atual
-    while True:
-        if mapa_corrente is None:
-            mapa_corrente = gerar_mapa(nivel_masmorra)
-        aventura_continua = iniciar_aventura(jogador, mapa_corrente, nivel_masmorra)
-        if aventura_continua:
-            nivel_masmorra += 1
-            mapa_corrente = None
-            hp_cura = int(jogador.hp_max * 0.25)
-            jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
-            mensagem_nivel = f"Você desce para o próximo nível.\nVocê recuperou {hp_cura} de HP."
-            desenhar_tela_evento(f"NÍVEL {nivel_masmorra} ALCANÇADO!", mensagem_nivel)
-        else:
-            break
-
-
 def main() -> None:
     """Função principal do jogo."""
+    contexto = ContextoJogo()
+    estado = Estado.MENU
     try:
         while True:
-            tem_save = existe_save()
-            escolha = desenhar_menu_principal(__version__, tem_save)
-            if escolha == "1":
-                jogador = processo_criacao_personagem()
-                executar_campanha(jogador, nivel_masmorra=1)
-            elif escolha == "2" and tem_save:
-                try:
-                    estado = carregar_jogo()
-                    jogador_data = estado.get("jogador")
-                    mapa_salvo = estado.get("mapa")
-                    nivel_masmorra = estado.get("nivel_masmorra")
-                    if not all([jogador_data, mapa_salvo, isinstance(nivel_masmorra, int)]):
-                        raise ErroCarregamento("Arquivo de save inválido ou corrompido.")
-                    jogador = Personagem.from_dict(jogador_data)
-                    mapa_recuperado = hidratar_mapa(mapa_salvo)
-                    desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
-                    executar_campanha(
-                        jogador,
-                        nivel_masmorra=nivel_masmorra,
-                        mapa_atual=mapa_recuperado,
-                    )
-                except ErroCarregamento as erro:
-                    desenhar_tela_evento("ERRO AO CARREGAR", str(erro))
-            elif (tem_save and escolha == "3") or (not tem_save and escolha == "2"):
-                desenhar_tela_evento("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
+            if estado == Estado.MENU:
+                estado = executar_estado_menu(contexto)
+            elif estado == Estado.CRIACAO:
+                estado = executar_estado_criacao(contexto)
+            elif estado == Estado.EXPLORACAO:
+                estado = executar_estado_exploracao(contexto)
+            elif estado == Estado.SAIR:
+                desenhar_tela_saida("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
                 break
-            else:
-                desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
     except KeyboardInterrupt:
         mensagem_saida = "O jogo foi interrompido.\n\nEsperamos você para a próxima aventura!"
         desenhar_tela_saida("ATÉ LOGO!", mensagem_saida)

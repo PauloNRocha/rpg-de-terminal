@@ -7,6 +7,14 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-11-10
+
+### Adicionado
+
+-   Máquina de estados simples (`Estado`, `ContextoJogo`) reorganizando `jogo.py` em blocos de Menu, Criação e Exploração, preparando o terreno para futuras telas dedicadas.
+-   Arquivo `src/config.py` concentra os “números mágicos” (dimensões do mapa, probabilidades, ganhos de level up), facilitando ajustes e modos de dificuldade.
+-   `pyproject.toml` agora descreve o projeto oficialmente e expõe o entry point `aventura-terminal` via `[project.scripts]`, permitindo `pip install -e .` e execução direta.
+
 ## [1.4.4] - 2025-11-10
 
 ### Alterado
