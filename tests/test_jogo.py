@@ -10,7 +10,7 @@ from jogo import (
     serializar_mapa,
     verificar_level_up,
 )
-from src.entidades import Inimigo, Item, Personagem
+from src.entidades import Inimigo, Item, Personagem, Sala
 
 
 # Fixture para criar um jogador base para os testes
@@ -149,12 +149,22 @@ def test_serializar_e_hidratar_mapa() -> None:
         xp_recompensa=5,
         drop_raridade="comum",
     )
-    mapa = [[{"tipo": "sala", "inimigo_atual": inimigo}]]
+    mapa = [
+        [
+            Sala(
+                tipo="sala",
+                nome="Sala Teste",
+                descricao="",
+                pode_ter_inimigo=True,
+                inimigo_atual=inimigo,
+            )
+        ]
+    ]
     serializado = serializar_mapa(mapa)
     assert isinstance(serializado[0][0]["inimigo_atual"], dict)
 
     hidratado = hidratar_mapa(serializado)
-    assert isinstance(hidratado[0][0]["inimigo_atual"], Inimigo)
+    assert isinstance(hidratado[0][0].inimigo_atual, Inimigo)
 
 
 def test_aplicar_efeitos_consumiveis_altera_atributos(jogador_base: Personagem) -> None:

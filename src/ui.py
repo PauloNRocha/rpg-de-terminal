@@ -8,11 +8,9 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from src.entidades import Inimigo, Personagem
+from src.entidades import Inimigo, Personagem, Sala
 
 console = Console()
-
-Sala = dict[str, Any]
 ClassesConfig = dict[str, dict[str, Any]]
 
 
@@ -78,8 +76,8 @@ def desenhar_hud_exploracao(
     )
 
     texto_local = Text()
-    texto_local.append(f"🗺️  Local: {sala_atual['nome']}\n", style="bold magenta")
-    texto_local.append(sala_atual["descricao"], style="white")
+    texto_local.append(f"🗺️  Local: {sala_atual.nome}\n", style="bold magenta")
+    texto_local.append(sala_atual.descricao, style="white")
 
     titulo_local = Text(f"Localização — Masmorra Nível {nivel_masmorra}", style="bold blue")
 
