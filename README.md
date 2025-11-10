@@ -91,13 +91,6 @@ pytest
 - `src/personagem.py` / `src/data/classes.json` – classes jogáveis e criação de personagem.
 - `tests/` – suíte de testes unitários com `pytest`.
 
-## Roadmap Sugerido
-
-- Sistema de salvamento e carregamento rápido.
-- Novos slots de equipamento (armadura, acessórios) e efeitos especiais de itens.
-- Balanceamento fino da curva de XP e raridade de drops via tabelas JSON.
-- Empacotamento com `console_scripts` para rodar via `aventura-terminal` após instalação.
-
 ## Contribuindo
 
 1. Crie um fork e uma branch descritiva.
