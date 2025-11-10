@@ -127,3 +127,41 @@ class Personagem(Entidade):
             equipamento=equipamento,
             **payload,
         )
+
+
+@dataclass
+class Sala:
+    """Representa uma sala do mapa."""
+
+    tipo: str
+    nome: str
+    descricao: str
+    pode_ter_inimigo: bool = False
+    visitada: bool = False
+    inimigo_derrotado: bool = False
+    inimigo_atual: Inimigo | None = None
+    chefe: bool = False
+    nivel_area: int = 1
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializa a sala para dicionário, convertendo inimigos se necessário."""
+        data = asdict(self)
+        if self.inimigo_atual:
+            data["inimigo_atual"] = self.inimigo_atual.to_dict()
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "Sala":
+        """Restaura uma sala a partir do dicionário serializado."""
+        payload = data.copy()
+        inimigo_raw = payload.get("inimigo_atual")
+        if isinstance(inimigo_raw, dict):
+            payload["inimigo_atual"] = Inimigo.from_dict(inimigo_raw)
+        else:
+            payload["inimigo_atual"] = None
+        payload.setdefault("visitada", False)
+        payload.setdefault("inimigo_derrotado", False)
+        payload.setdefault("pode_ter_inimigo", False)
+        payload.setdefault("chefe", False)
+        payload.setdefault("nivel_area", 1)
+        return cls(**payload)

@@ -7,6 +7,21 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.4.4] - 2025-11-10
+
+### Alterado
+
+-   `Sala` agora é uma dataclass (em `src/entidades.py`) com `to_dict/from_dict`, unificando o acesso ao mapa e preparando o terreno para futuras validações.
+-   O gerador de mapas (`src/gerador_mapa.py`), o loop principal (`jogo.py`) e a UI (`src/ui.py`) foram atualizados para usar atributos ao invés de dicionários, mantendo compatibilidade de saves via `serializar_mapa`/`hidratar_mapa`.
+-   Novos testes garantem o agrupamento/remoção de itens equipáveis e a serialização das salas.
+
+## [1.4.3] - 2025-11-10
+
+### Alterado
+
+-   Tela de equipar itens passou a agrupar itens idênticos (ex.: “Espada Afiada x3”), exibindo quantidades, ordenação por tipo e texto de seleção atualizado para listas longas.
+-   Adicionados utilitários de agrupamento no código (`agrupar_itens_equipaveis`, `remover_item_por_chave`) e testes cobrindo o novo comportamento.
+
 ## [1.4.2] - 2025-11-09
 
 ### Corrigido

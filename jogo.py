@@ -4,7 +4,7 @@ from typing import Any
 
 from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
 from src.combate import iniciar_combate
-from src.entidades import Inimigo, Item, Personagem
+from src.entidades import Item, Personagem, Sala
 from src.erros import ErroDadosError
 from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio
@@ -24,8 +24,9 @@ from src.ui import (
 )
 from src.version import __version__
 
-Mapa = list[list[dict[str, Any]]]
+Mapa = list[list[Sala]]
 EffectHandler = Callable[[Personagem, int], str]
+TIPO_ORDENACAO = {"arma": 0, "escudo": 1}
 
 
 def _efeito_hp(jogador: Personagem, valor: int) -> str:
@@ -52,6 +53,41 @@ EFFECT_HANDLERS: dict[str, EffectHandler] = {
 }
 
 
+def _chave_item(item: Item) -> tuple:
+    bonus = tuple(sorted(item.bonus.items()))
+    efeito = tuple(sorted(item.efeito.items()))
+    return (item.nome, item.tipo, bonus, efeito)
+
+
+def agrupar_itens_equipaveis(itens: list[Item]) -> list[dict[str, Any]]:
+    """Agrupa itens equipáveis iguais para deixar a lista mais compacta."""
+    grupos: dict[tuple, dict[str, Any]] = {}
+    for item in itens:
+        if item.tipo not in {"arma", "escudo"}:
+            continue
+        chave = _chave_item(item)
+        if chave not in grupos:
+            grupos[chave] = {"item": item, "quantidade": 0, "chave": chave}
+        grupos[chave]["quantidade"] += 1
+
+    grupos_ordenados = sorted(
+        grupos.values(),
+        key=lambda grupo: (
+            TIPO_ORDENACAO.get(grupo["item"].tipo, 99),
+            grupo["item"].nome,
+        ),
+    )
+    return grupos_ordenados
+
+
+def remover_item_por_chave(inventario: list[Item], chave: tuple) -> Item:
+    """Remove e retorna o primeiro item que corresponde à chave informada."""
+    for idx, item in enumerate(inventario):
+        if _chave_item(item) == chave:
+            return inventario.pop(idx)
+    raise ValueError("Item não encontrado no inventário para a chave informada.")
+
+
 def aplicar_efeitos_consumiveis(jogador: Personagem, item: Item) -> list[str]:
     """Aplica efeitos declarados no item e retorna mensagens ao jogador."""
     mensagens: list[str] = []
@@ -65,36 +101,20 @@ def aplicar_efeitos_consumiveis(jogador: Personagem, item: Item) -> list[str]:
     return mensagens
 
 
-def serializar_mapa(mapa: Mapa) -> Mapa:
-    """Cria uma cópia serializável do mapa, convertendo inimigos para dict."""
-    mapa_serializado: Mapa = []
+def serializar_mapa(mapa: Mapa) -> list[list[dict[str, Any]]]:
+    """Converta o mapa em uma estrutura serializável."""
+    mapa_serializado: list[list[dict[str, Any]]] = []
     for linha in mapa:
-        nova_linha: list[dict[str, Any]] = []
-        for sala in linha:
-            sala_copia = dict(sala)
-            inimigo_atual = sala_copia.get("inimigo_atual")
-            if isinstance(inimigo_atual, Inimigo):
-                sala_copia["inimigo_atual"] = inimigo_atual.to_dict()
-            elif not isinstance(inimigo_atual, dict):
-                sala_copia["inimigo_atual"] = None
-            nova_linha.append(sala_copia)
+        nova_linha = [sala.to_dict() for sala in linha]
         mapa_serializado.append(nova_linha)
     return mapa_serializado
 
 
-def hidratar_mapa(mapa_serializado: Mapa) -> Mapa:
-    """Reconstrói instâncias de Inimigo presentes no mapa carregado."""
+def hidratar_mapa(mapa_serializado: list[list[dict[str, Any]]]) -> Mapa:
+    """Reconstrói as salas do mapa a partir dos dicionários serializados."""
     mapa_hidratado: Mapa = []
     for linha in mapa_serializado:
-        nova_linha: list[dict[str, Any]] = []
-        for sala in linha:
-            sala_copia = dict(sala)
-            inimigo_atual = sala_copia.get("inimigo_atual")
-            if isinstance(inimigo_atual, dict):
-                sala_copia["inimigo_atual"] = Inimigo.from_dict(inimigo_atual)
-            elif not isinstance(inimigo_atual, Inimigo):
-                sala_copia["inimigo_atual"] = None
-            nova_linha.append(sala_copia)
+        nova_linha = [Sala.from_dict(sala) for sala in linha]
         mapa_hidratado.append(nova_linha)
     return mapa_hidratado
 
@@ -203,10 +223,10 @@ def usar_item(jogador: Personagem) -> bool | None:
 
 
 def equipar_item(jogador: Personagem) -> None:
-    """Gerencia a lógica de equipar um item."""
+    """Gerencia a lógica de equipar um item agrupando e ordenando a lista."""
     while True:
-        itens_equipaveis = [item for item in jogador.inventario if item.tipo in ["arma", "escudo"]]
-        escolha_str = desenhar_tela_equipar(jogador, itens_equipaveis)
+        grupos = agrupar_itens_equipaveis(jogador.inventario)
+        escolha_str = desenhar_tela_equipar(jogador, grupos)
 
         try:
             if escolha_str == "voltar":
@@ -214,12 +234,13 @@ def equipar_item(jogador: Personagem) -> None:
             if not escolha_str.isdigit():
                 raise ValueError
             escolha = int(escolha_str)
-            if escolha == len(itens_equipaveis) + 1:
+            if escolha == len(grupos) + 1:
                 return
-            if not (1 <= escolha <= len(itens_equipaveis)):
+            if not (1 <= escolha <= len(grupos)):
                 raise ValueError
 
-            item_escolhido = itens_equipaveis[escolha - 1]
+            grupo = grupos[escolha - 1]
+            item_escolhido = remover_item_por_chave(jogador.inventario, grupo["chave"])
             tipo_item = item_escolhido.tipo
 
             if jogador.equipamento[tipo_item]:
@@ -227,7 +248,6 @@ def equipar_item(jogador: Personagem) -> None:
                 jogador.inventario.append(item_desequipado)
 
             jogador.equipamento[tipo_item] = item_escolhido
-            jogador.inventario.remove(item_escolhido)
             aplicar_bonus_equipamento(jogador)
         except (ValueError, IndexError):
             desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
@@ -238,7 +258,7 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
     start_x, start_y = 0, 0
     for y_idx, linha in enumerate(mapa):
         for x_idx, sala in enumerate(linha):
-            if sala.get("tipo") == "entrada":
+            if sala.tipo == "entrada":
                 start_x, start_y = x_idx, y_idx
                 break
         else:
@@ -251,17 +271,17 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
     while True:
         sala_atual = mapa[jogador.y][jogador.x]
 
-        if sala_atual.get("pode_ter_inimigo") and not sala_atual.get("inimigo_derrotado"):
-            inimigo = sala_atual.get("inimigo_atual")
+        if sala_atual.pode_ter_inimigo and not sala_atual.inimigo_derrotado:
+            inimigo = sala_atual.inimigo_atual
             if inimigo is None:
-                nivel_inimigo = sala_atual.get("nivel_area", 1)
-                tipo = "chefe_orc" if sala_atual.get("chefe") else None
+                nivel_inimigo = sala_atual.nivel_area
+                tipo = "chefe_orc" if sala_atual.chefe else None
                 inimigo = gerar_inimigo(nivel_inimigo, tipo_inimigo=tipo)
-                sala_atual["inimigo_atual"] = inimigo
+                sala_atual.inimigo_atual = inimigo
 
             desenhar_tela_evento("ENCONTRO!", f"CUIDADO! Um {inimigo.nome} está na sala!")
             resultado_combate, inimigo_atualizado = iniciar_combate(jogador, inimigo, usar_item)
-            sala_atual["inimigo_atual"] = inimigo_atualizado
+            sala_atual.inimigo_atual = inimigo_atualizado
 
             if resultado_combate:
                 xp_ganho = inimigo_atualizado.xp_recompensa
@@ -276,8 +296,8 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
                         mensagem_drop = f"O inimigo dropou: {item_dropado.nome}!"
                         desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_drop)
 
-                sala_atual["inimigo_derrotado"] = True
-                sala_atual["inimigo_atual"] = None
+                sala_atual.inimigo_derrotado = True
+                sala_atual.inimigo_atual = None
                 verificar_level_up(jogador)
             else:
                 if not jogador.esta_vivo():
@@ -289,21 +309,18 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
                 continue
 
         opcoes = []
-        if jogador.y > 0 and mapa[jogador.y - 1][jogador.x].get("tipo") != "parede":
+        if jogador.y > 0 and mapa[jogador.y - 1][jogador.x].tipo != "parede":
             opcoes.append("Ir para o Norte")
-        if jogador.y < len(mapa) - 1 and mapa[jogador.y + 1][jogador.x].get("tipo") != "parede":
+        if jogador.y < len(mapa) - 1 and mapa[jogador.y + 1][jogador.x].tipo != "parede":
             opcoes.append("Ir para o Sul")
-        if jogador.x < len(mapa[0]) - 1 and mapa[jogador.y][jogador.x + 1].get("tipo") != "parede":
+        if jogador.x < len(mapa[0]) - 1 and mapa[jogador.y][jogador.x + 1].tipo != "parede":
             opcoes.append("Ir para o Leste")
-        if jogador.x > 0 and mapa[jogador.y][jogador.x - 1].get("tipo") != "parede":
+        if jogador.x > 0 and mapa[jogador.y][jogador.x - 1].tipo != "parede":
             opcoes.append("Ir para o Oeste")
 
-        if sala_atual.get("tipo") == "escada":
+        if sala_atual.tipo == "escada":
             chefe_derrotado = all(
-                sala.get("inimigo_derrotado")
-                for linha in mapa
-                for sala in linha
-                if sala.get("tipo") == "chefe"
+                sala.inimigo_derrotado for linha in mapa for sala in linha if sala.tipo == "chefe"
             )
             if chefe_derrotado:
                 opcoes.append("Descer para o próximo nível")
