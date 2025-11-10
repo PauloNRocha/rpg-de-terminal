@@ -6,9 +6,31 @@ from typing import Any
 
 from src import config
 from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
+from src.atualizador import AtualizacaoInfo, verificar_atualizacao
 from src.combate import iniciar_combate
 from src.entidades import Inimigo, Item, Personagem, Sala
 from src.erros import ErroDadosError
+from src.estados import (
+    agrupar_itens_equipaveis as agrupar_itens_equipaveis_estado,
+)
+from src.estados import (
+    aplicar_efeitos_consumiveis as aplicar_efeitos_consumiveis_estado,
+)
+from src.estados import (
+    equipar_item as equipar_item_estado,
+)
+from src.estados import (
+    executar_estado_combate as executar_estado_combate_mod,
+)
+from src.estados import (
+    gerenciar_inventario as gerenciar_inventario_estado,
+)
+from src.estados import (
+    remover_item_por_chave as remover_item_por_chave_estado,
+)
+from src.estados import (
+    usar_item as usar_item_estado,
+)
 from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio
 from src.gerador_mapa import gerar_mapa
@@ -16,20 +38,20 @@ from src.personagem import criar_personagem, obter_classes
 from src.ui import (
     desenhar_hud_exploracao,
     desenhar_menu_principal,
-    desenhar_tela_equipar,
     desenhar_tela_escolha_classe,
     desenhar_tela_evento,
     desenhar_tela_input,
-    desenhar_tela_inventario,
     desenhar_tela_resumo_personagem,
     desenhar_tela_saida,
-    tela_game_over,
 )
 from src.version import __version__
 
 Mapa = list[list[Sala]]
 EffectHandler = Callable[[Personagem, int], str]
-TIPO_ORDENACAO = {"arma": 0, "escudo": 1}
+
+# Retrocompatibilidade para os testes que importam direto de jogo.py
+agrupar_itens_equipaveis = agrupar_itens_equipaveis_estado
+remover_item_por_chave = remover_item_por_chave_estado
 
 
 class Estado(Enum):
@@ -53,6 +75,30 @@ class ContextoJogo:
     sala_em_combate: Sala | None = None
     inimigo_em_combate: Inimigo | None = None
     posicao_anterior: tuple[int, int] | None = None
+    atualizacao_notificada: bool = False
+    info_atualizacao: AtualizacaoInfo | None = None
+    alerta_atualizacao_exibido: bool = False
+
+    def limpar_combate(self) -> None:
+        """Remove referências ao combate atual."""
+        self.sala_em_combate = None
+        self.inimigo_em_combate = None
+
+    def restaurar_posicao_anterior(self) -> None:
+        """Reposiciona o jogador caso uma fuga tenha ocorrido."""
+        if self.posicao_anterior and self.jogador:
+            self.jogador.x, self.jogador.y = self.posicao_anterior
+        self.posicao_anterior = None
+
+    def resetar_jogo(self) -> None:
+        """Retorna o contexto ao estado inicial do jogo."""
+        self.jogador = None
+        self.mapa_atual = None
+        self.nivel_masmorra = 1
+        self.posicao_anterior = None
+        self.info_atualizacao = None
+        self.alerta_atualizacao_exibido = False
+        self.limpar_combate()
 
 
 def _posicionar_na_entrada(jogador: Personagem, mapa: Mapa) -> None:
@@ -66,8 +112,38 @@ def _posicionar_na_entrada(jogador: Personagem, mapa: Mapa) -> None:
 
 def executar_estado_menu(contexto: ContextoJogo) -> Estado:
     """Renderiza o menu e decide o próximo estado."""
+    if not contexto.atualizacao_notificada:
+        info = verificar_atualizacao()
+        if info:
+            contexto.info_atualizacao = info
+            contexto.atualizacao_notificada = True
+            if not contexto.alerta_atualizacao_exibido:
+                _mostrar_aviso_atualizacao(info)
+                contexto.alerta_atualizacao_exibido = True
     tem_save = existe_save()
-    escolha = desenhar_menu_principal(__version__, tem_save)
+    alerta = None
+    if contexto.info_atualizacao:
+        alerta = (
+            f"Nova versão disponível: v{contexto.info_atualizacao.versao_disponivel} "
+            f"(atual v{__version__}). Escolha '0' para saber como atualizar."
+        )
+    escolha = desenhar_menu_principal(__version__, tem_save, alerta_atualizacao=alerta)
+    escolha = escolha.strip()
+    if escolha == "0":
+        info_manual = verificar_atualizacao(forcar=True)
+        if info_manual:
+            contexto.info_atualizacao = info_manual
+            contexto.atualizacao_notificada = True
+            _mostrar_aviso_atualizacao(info_manual)
+            contexto.alerta_atualizacao_exibido = True
+        else:
+            contexto.info_atualizacao = None
+            contexto.alerta_atualizacao_exibido = False
+            desenhar_tela_evento(
+                "ATUALIZAÇÕES",
+                "Você já está na versão mais recente disponível.",
+            )
+        return Estado.MENU
     if escolha == "1":
         return Estado.CRIACAO
     if escolha == "2" and tem_save:
@@ -101,64 +177,6 @@ def executar_estado_criacao(contexto: ContextoJogo) -> Estado:
     contexto.nivel_masmorra = 1
     contexto.mapa_atual = None
     contexto.posicao_anterior = None
-    return Estado.EXPLORACAO
-
-
-def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
-    """Abre o inventário e retorna à exploração após o jogador encerrar."""
-    jogador = contexto.jogador
-    if jogador is None:
-        return Estado.MENU
-    gerenciar_inventario(jogador)
-    return Estado.EXPLORACAO
-
-
-def executar_estado_combate(contexto: ContextoJogo) -> Estado:
-    """Resolve o combate armazenado no contexto e decide o próximo estado."""
-    jogador = contexto.jogador
-    sala = contexto.sala_em_combate
-    inimigo = contexto.inimigo_em_combate
-    if jogador is None or sala is None or inimigo is None:
-        return Estado.EXPLORACAO
-
-    resultado, inimigo_atualizado = iniciar_combate(jogador, inimigo, usar_item)
-    sala.inimigo_atual = inimigo_atualizado
-
-    if resultado:
-        xp_ganho = inimigo_atualizado.xp_recompensa
-        mensagem_vitoria = f"Você derrotou o {inimigo.nome} e ganhou {xp_ganho} de XP!"
-        desenhar_tela_evento("VITÓRIA!", mensagem_vitoria)
-        jogador.xp_atual += xp_ganho
-
-        if inimigo_atualizado.drop_raridade:
-            item_dropado = gerar_item_aleatorio(inimigo_atualizado.drop_raridade)
-            if item_dropado:
-                jogador.inventario.append(item_dropado)
-                desenhar_tela_evento("ITEM ENCONTRADO!", f"O inimigo dropou: {item_dropado.nome}!")
-
-        sala.inimigo_derrotado = True
-        sala.inimigo_atual = None
-        contexto.sala_em_combate = None
-        contexto.inimigo_em_combate = None
-        verificar_level_up(jogador)
-        return Estado.EXPLORACAO
-
-    if not jogador.esta_vivo():
-        tela_game_over()
-        contexto.jogador = None
-        contexto.mapa_atual = None
-        contexto.nivel_masmorra = 1
-        contexto.posicao_anterior = None
-        contexto.sala_em_combate = None
-        contexto.inimigo_em_combate = None
-        return Estado.MENU
-
-    desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
-    if contexto.posicao_anterior:
-        jogador.x, jogador.y = contexto.posicao_anterior
-        contexto.posicao_anterior = None
-    contexto.sala_em_combate = None
-    contexto.inimigo_em_combate = None
     return Estado.EXPLORACAO
 
 
@@ -273,6 +291,41 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
     return Estado.EXPLORACAO
 
 
+def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
+    """Executa o estado de inventário usando o módulo especializado."""
+    jogador = contexto.jogador
+    if jogador is None:
+        return Estado.MENU
+
+    gerenciar_inventario_estado(
+        jogador,
+        usar_item_fn=_usar_item_com_feedback,
+        equipar_item_fn=_equipar_item_com_bonus,
+    )
+    return Estado.EXPLORACAO
+
+
+def executar_estado_combate(contexto: ContextoJogo) -> Estado:
+    """Repasse para o estado modular de combate."""
+    return executar_estado_combate_mod(
+        contexto,
+        iniciar_combate,
+        _usar_item_com_feedback,
+        gerar_item_aleatorio,
+        verificar_level_up,
+        Estado.MENU,
+        Estado.EXPLORACAO,
+    )
+
+
+def _mostrar_aviso_atualizacao(
+    info: AtualizacaoInfo, titulo: str = "ATUALIZAÇÃO DISPONÍVEL!"
+) -> None:
+    """Exibe um painel informando sobre uma nova versão do jogo."""
+    mensagem = info.instrucoes + "\n\nVocê pode ajustar as preferências em settings.json."
+    desenhar_tela_evento(titulo, mensagem)
+
+
 def _efeito_hp(jogador: Personagem, valor: int) -> str:
     cura = max(0, int(valor))
     if cura <= 0:
@@ -297,52 +350,23 @@ EFFECT_HANDLERS: dict[str, EffectHandler] = {
 }
 
 
-def _chave_item(item: Item) -> tuple:
-    bonus = tuple(sorted(item.bonus.items()))
-    efeito = tuple(sorted(item.efeito.items()))
-    return (item.nome, item.tipo, bonus, efeito)
-
-
-def agrupar_itens_equipaveis(itens: list[Item]) -> list[dict[str, Any]]:
-    """Agrupa itens equipáveis iguais para deixar a lista mais compacta."""
-    grupos: dict[tuple, dict[str, Any]] = {}
-    for item in itens:
-        if item.tipo not in {"arma", "escudo"}:
-            continue
-        chave = _chave_item(item)
-        if chave not in grupos:
-            grupos[chave] = {"item": item, "quantidade": 0, "chave": chave}
-        grupos[chave]["quantidade"] += 1
-
-    grupos_ordenados = sorted(
-        grupos.values(),
-        key=lambda grupo: (
-            TIPO_ORDENACAO.get(grupo["item"].tipo, 99),
-            grupo["item"].nome,
-        ),
-    )
-    return grupos_ordenados
-
-
-def remover_item_por_chave(inventario: list[Item], chave: tuple) -> Item:
-    """Remove e retorna o primeiro item que corresponde à chave informada."""
-    for idx, item in enumerate(inventario):
-        if _chave_item(item) == chave:
-            return inventario.pop(idx)
-    raise ValueError("Item não encontrado no inventário para a chave informada.")
-
-
 def aplicar_efeitos_consumiveis(jogador: Personagem, item: Item) -> list[str]:
-    """Aplica efeitos declarados no item e retorna mensagens ao jogador."""
-    mensagens: list[str] = []
-    efeitos = item.efeito or {}
-    for nome, valor in efeitos.items():
-        handler = EFFECT_HANDLERS.get(nome)
-        if handler:
-            mensagens.append(handler(jogador, int(valor)))
-        else:
-            mensagens.append(f"Efeito '{nome}' ainda não é suportado e foi ignorado.")
+    """Compatibiliza os testes reutilizando os handlers padrão do jogo."""
+    return aplicar_efeitos_consumiveis_estado(jogador, item, EFFECT_HANDLERS)
+
+
+def _usar_item_com_feedback(jogador: Personagem) -> bool | None:
+    mensagens = usar_item_estado(jogador, EFFECT_HANDLERS)
+    if mensagens:
+        desenhar_tela_evento("ITEM USADO", "\n".join(mensagens))
+        verificar_level_up(jogador)
+        return True
     return mensagens
+
+
+def _equipar_item_com_bonus(jogador: Personagem) -> None:
+    equipar_item_estado(jogador)
+    aplicar_bonus_equipamento(jogador)
 
 
 def serializar_mapa(mapa: Mapa) -> list[list[dict[str, Any]]]:
@@ -409,110 +433,26 @@ def aplicar_bonus_equipamento(jogador: Personagem) -> None:
         jogador.defesa += escudo.bonus.get("defesa", 0)
 
 
-def gerenciar_inventario(jogador: Personagem) -> None:
-    """Cria um loop para gerenciar as ações do inventário."""
-    while True:
-        escolha = desenhar_tela_inventario(jogador)
-        if escolha == "1":
-            usar_item(jogador)
-        elif escolha == "2":
-            equipar_item(jogador)
-        elif escolha == "3":
-            break
-        else:
-            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
-
-
-def usar_item(jogador: Personagem) -> bool | None:
-    """Gerencia a lógica de usar um item consumível."""
-    while True:
-        itens_consumiveis = [item for item in jogador.inventario if item.tipo == "consumivel"]
-
-        opcoes_itens = [
-            f"{i + 1}. {item.nome} ({item.descricao})" for i, item in enumerate(itens_consumiveis)
-        ]
-        opcoes_itens.append(f"{len(itens_consumiveis) + 1}. Voltar")
-
-        prompt = (
-            "Seus itens consumíveis:\n"
-            + "\n".join(opcoes_itens)
-            + "\n\nEscolha um item para usar ou 'Voltar': "
-        )
-        escolha_str = desenhar_tela_input("USAR ITEM", prompt)
-
-        try:
-            escolha = int(escolha_str)
-            if escolha == len(itens_consumiveis) + 1:
-                return False
-            if not (1 <= escolha <= len(itens_consumiveis)):
-                raise ValueError
-
-            item_escolhido = itens_consumiveis[escolha - 1]
-
-            if not item_escolhido.efeito:
-                desenhar_tela_evento(
-                    "ITEM SEM EFEITO",
-                    "Este item não possui efeitos consumíveis configurados.",
-                )
-                continue
-
-            mensagens = aplicar_efeitos_consumiveis(jogador, item_escolhido)
-            jogador.inventario.remove(item_escolhido)
-            verificar_level_up(jogador)
-            desenhar_tela_evento("ITEM USADO", "\n".join(mensagens))
-            return True
-        except (ValueError, IndexError):
-            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
-    return None
-
-
-def equipar_item(jogador: Personagem) -> None:
-    """Gerencia a lógica de equipar um item agrupando e ordenando a lista."""
-    while True:
-        grupos = agrupar_itens_equipaveis(jogador.inventario)
-        escolha_str = desenhar_tela_equipar(jogador, grupos)
-
-        try:
-            if escolha_str == "voltar":
-                return
-            if not escolha_str.isdigit():
-                raise ValueError
-            escolha = int(escolha_str)
-            if escolha == len(grupos) + 1:
-                return
-            if not (1 <= escolha <= len(grupos)):
-                raise ValueError
-
-            grupo = grupos[escolha - 1]
-            item_escolhido = remover_item_por_chave(jogador.inventario, grupo["chave"])
-            tipo_item = item_escolhido.tipo
-
-            if jogador.equipamento[tipo_item]:
-                item_desequipado = jogador.equipamento[tipo_item]
-                jogador.inventario.append(item_desequipado)
-
-            jogador.equipamento[tipo_item] = item_escolhido
-            aplicar_bonus_equipamento(jogador)
-        except (ValueError, IndexError):
-            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
-
-
 def processo_criacao_personagem() -> Personagem:
     """Orquestra o processo de criação de personagem."""
     nome = ""
     while not nome:
         nome = desenhar_tela_input("CRIAÇÃO DE PERSONAGEM", "Qual é o nome do seu herói?")
-    classe_escolhida = ""
     classes_config = obter_classes()
     classes_lista = list(classes_config.keys())
-    while not classe_escolhida:
+    while True:
         escolha = desenhar_tela_escolha_classe(classes_config)
+        if escolha in classes_config:
+            classe_escolhida = escolha
+            break
         try:
             idx = int(escolha) - 1
             if 0 <= idx < len(classes_lista):
                 classe_escolhida = classes_lista[idx]
+                break
         except (ValueError, IndexError):
-            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
+            pass
+        desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
     jogador = criar_personagem(nome, classe_escolhida)
     desenhar_tela_resumo_personagem(jogador)
     return jogador

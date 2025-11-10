@@ -14,12 +14,23 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Máquina de estados refinada: além de Menu/Criação/Exploração, agora Inventário e Combate são estados explícitos, permitindo suspender o loop principal e retomar exatamente de onde parou.
 -   `ContextoJogo` passou a carregar informações de combate (sala/inimigo) e a última posição válida, garantindo fluxos como fuga, inventário e save sem gambiarras.
 -   A exploração foi reescrita como “ticks” únicos: cada ação retorna o próximo estado, facilitando futuras telas separadas (Game Over cinematográfico, diálogo, eventos de sala).
+-   Tela de escolha de classe remodelada com cartões Rich, exibindo atributos base e permitindo selecionar por número, inicial ou nome completo.
+-   Nova classe **Ladino** adicionada aos dados (HP 18 / ATK 7 / DEF 3), equilibrando o grid e trazendo furtividade/crit para quem prefere um estilo ágil.
+-   Verificador automático/manual de atualizações (GitHub Releases), incluindo preferências em 'settings.json' (auto_check, frequência, pré-releases) e instruções por modo de instalação.
+-   Menu principal agora exibe alerta visual quando há nova versão e adiciona a opção `0. Verificar Atualizações`; a checagem automática mostra as instruções assim que detecta uma release.
+-   Inimigos podem trocar o drop padrão por consumíveis (chance configurável em `DROP_CONSUMIVEL_CHANCE`), permitindo que Poções de Cura voltem a aparecer em qualquer andar sem gerar itens duplicados.
 
 ### Alterado
 
 -   `executar_estado_exploracao` substitui o antigo `iniciar_aventura`, eliminando loops internos e permitindo que o menu principal realmente coordene o fluxo.
 -   `executar_estado_combate` reaproveita a tela clássica, mas agora registra XP/drop, limpa o contexto e trata fuga/morte de maneira centralizada.
 -   `pyproject.toml`, `README.md` e `src/version.py` foram atualizados para `v1.5.1`, refletindo a nova etapa da série 1.5.x.
+
+### Corrigido
+
+-   `jogo.py` agora delega inventário e combate exclusivamente aos módulos `src/estados/*`, eliminando código duplicado e garantindo que o loop de estados use uma única fonte de verdade.
+-   As funções utilizadas nos testes (`agrupar_itens_equipaveis`, `aplicar_efeitos_consumiveis`, `remover_item_por_chave`) continuam acessíveis via `jogo.py`, preservando compatibilidade após a modularização.
+-   Novos tipos/docstrings (`ContextoCombate`, métodos de `ContextoJogo`) e validações fizeram `ruff` e `pytest` passarem novamente dentro da venv, preparando o hook do `pre-commit`.
 
 ## [1.5.0] - 2025-11-10
 

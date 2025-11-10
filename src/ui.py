@@ -3,6 +3,7 @@ from typing import Any
 
 from rich import box
 from rich.bar import Bar
+from rich.columns import Columns
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -12,6 +13,20 @@ from src.entidades import Inimigo, Personagem, Sala
 
 console = Console()
 ClassesConfig = dict[str, dict[str, Any]]
+
+CLASSE_EMOJIS = {
+    "guerreiro": "⚔️",
+    "mago": "✨",
+    "arqueiro": "🏹",
+    "ladino": "🗡️",
+}
+
+CLASSE_CORES = {
+    "guerreiro": "red",
+    "mago": "magenta",
+    "arqueiro": "green",
+    "ladino": "yellow",
+}
 
 
 def limpar_tela() -> None:
@@ -197,10 +212,15 @@ def desenhar_tela_equipar(jogador: Personagem, grupos_itens: list[dict[str, Any]
     return console.input("[bold yellow]> [/]")
 
 
-def desenhar_menu_principal(versao: str, tem_save: bool) -> str:
+def desenhar_menu_principal(
+    versao: str,
+    tem_save: bool,
+    alerta_atualizacao: str | None = None,
+) -> str:
     """Desenha o menu principal do jogo."""
     limpar_tela()
     menu_texto = Text("", justify="center")
+    menu_texto.append("0. Verificar Atualizações\n", style="bold cyan")
     menu_texto.append("1. Iniciar Nova Aventura\n", style="bold green")
     if tem_save:
         menu_texto.append("2. Continuar Aventura (Carregar Save)\n", style="bold cyan")
@@ -218,6 +238,15 @@ def desenhar_menu_principal(versao: str, tem_save: bool) -> str:
         border_style="blue",
     )
     console.print(panel)
+    if alerta_atualizacao:
+        console.print(
+            Panel(
+                Text(alerta_atualizacao, justify="center", style="bold yellow"),
+                border_style="yellow",
+                title="Atualização disponível!",
+                width=75,
+            )
+        )
     return console.input("[bold yellow]Escolha uma opção: [/]")
 
 
@@ -236,21 +265,79 @@ def desenhar_tela_input(titulo: str, prompt: str) -> str:
 
 
 def desenhar_tela_escolha_classe(classes: ClassesConfig) -> str:
-    """Desenha a tela de escolha de classe."""
+    """Mostra cartões detalhados de cada classe e normaliza a escolha do jogador."""
     limpar_tela()
-    tabela_classes = Table(
-        title=Text("ESCOLHA SUA CLASSE", style="bold yellow"),
-        box=box.DOUBLE,
+
+    titulo = Panel(
+        Text(
+            "Escolha sua classe favorita para iniciar a aventura",
+            justify="center",
+            style="bold yellow",
+        ),
         border_style="blue",
-        header_style="bold cyan",
+        box=box.DOUBLE,
     )
-    tabela_classes.add_column("Opção", style="dim", width=5)
-    tabela_classes.add_column("Classe", style="green", width=15)
-    tabela_classes.add_column("Descrição", style="white", width=45)
-    for i, (nome_classe, detalhes) in enumerate(classes.items()):
-        tabela_classes.add_row(str(i + 1), nome_classe, detalhes["descricao"])
-    console.print(tabela_classes)
-    return console.input("[bold yellow]Escolha sua classe: [/]")
+    console.print(titulo)
+
+    mapas_escolha: dict[str, str] = {}
+    cartoes: list[Panel] = []
+
+    for indice, (nome, detalhes) in enumerate(classes.items(), start=1):
+        slug = nome.lower()
+        emoji = CLASSE_EMOJIS.get(slug, "✨")
+        cor = CLASSE_CORES.get(slug, "cyan")
+
+        corpo = Text(justify="left")
+        corpo.append(f"{detalhes['descricao']}\n\n", style="white")
+        corpo.append(f"❤️ HP Base: {detalhes['hp']}\n", style="red")
+        corpo.append(f"⚔️ Ataque Base: {detalhes['ataque']}\n", style="yellow")
+        corpo.append(f"🛡️ Defesa Base: {detalhes['defesa']}\n", style="cyan")
+
+        subtitle = f"[bold]{indice}[/bold] • [bold]{slug[0].upper()}[/bold] • {slug.title()}"
+        cartoes.append(
+            Panel(
+                corpo,
+                title=f"{emoji} {slug.title()}",
+                subtitle=subtitle,
+                border_style=cor,
+                padding=(1, 2),
+            )
+        )
+
+        mapas_escolha[str(indice)] = slug
+        mapas_escolha[slug] = slug
+        mapas_escolha[slug[0]] = slug
+
+    console.print(Columns(cartoes, equal=True, expand=True))
+
+    instrucoes = Panel(
+        Text(
+            "Digite o número, a inicial ou o nome completo da classe.\n"
+            "Exemplos: '1', 'g' ou 'guerreiro'.",
+            justify="center",
+            style="bold white",
+        ),
+        border_style="blue",
+        width=80,
+    )
+    console.print(instrucoes)
+
+    while True:
+        resposta = console.input("[bold yellow]Escolha sua classe: [/]").strip().lower()
+        if not resposta:
+            continue
+        escolha_normalizada = mapas_escolha.get(resposta)
+        if escolha_normalizada:
+            return escolha_normalizada
+        console.print(
+            Panel(
+                Text(
+                    "Opção inválida. Tente novamente usando o número, a inicial ou o nome.",
+                    justify="center",
+                ),
+                border_style="red",
+            )
+        )
 
 
 def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
