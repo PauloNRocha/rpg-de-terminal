@@ -26,6 +26,7 @@ from src.version import __version__
 
 Mapa = list[list[dict[str, Any]]]
 EffectHandler = Callable[[Personagem, int], str]
+TIPO_ORDENACAO = {"arma": 0, "escudo": 1}
 
 
 def _efeito_hp(jogador: Personagem, valor: int) -> str:
@@ -50,6 +51,41 @@ EFFECT_HANDLERS: dict[str, EffectHandler] = {
     "hp": _efeito_hp,
     "xp": _efeito_xp,
 }
+
+
+def _chave_item(item: Item) -> tuple:
+    bonus = tuple(sorted(item.bonus.items()))
+    efeito = tuple(sorted(item.efeito.items()))
+    return (item.nome, item.tipo, bonus, efeito)
+
+
+def agrupar_itens_equipaveis(itens: list[Item]) -> list[dict[str, Any]]:
+    """Agrupa itens equipáveis iguais para deixar a lista mais compacta."""
+    grupos: dict[tuple, dict[str, Any]] = {}
+    for item in itens:
+        if item.tipo not in {"arma", "escudo"}:
+            continue
+        chave = _chave_item(item)
+        if chave not in grupos:
+            grupos[chave] = {"item": item, "quantidade": 0, "chave": chave}
+        grupos[chave]["quantidade"] += 1
+
+    grupos_ordenados = sorted(
+        grupos.values(),
+        key=lambda grupo: (
+            TIPO_ORDENACAO.get(grupo["item"].tipo, 99),
+            grupo["item"].nome,
+        ),
+    )
+    return grupos_ordenados
+
+
+def remover_item_por_chave(inventario: list[Item], chave: tuple) -> Item:
+    """Remove e retorna o primeiro item que corresponde à chave informada."""
+    for idx, item in enumerate(inventario):
+        if _chave_item(item) == chave:
+            return inventario.pop(idx)
+    raise ValueError("Item não encontrado no inventário para a chave informada.")
 
 
 def aplicar_efeitos_consumiveis(jogador: Personagem, item: Item) -> list[str]:
@@ -203,10 +239,10 @@ def usar_item(jogador: Personagem) -> bool | None:
 
 
 def equipar_item(jogador: Personagem) -> None:
-    """Gerencia a lógica de equipar um item."""
+    """Gerencia a lógica de equipar um item agrupando e ordenando a lista."""
     while True:
-        itens_equipaveis = [item for item in jogador.inventario if item.tipo in ["arma", "escudo"]]
-        escolha_str = desenhar_tela_equipar(jogador, itens_equipaveis)
+        grupos = agrupar_itens_equipaveis(jogador.inventario)
+        escolha_str = desenhar_tela_equipar(jogador, grupos)
 
         try:
             if escolha_str == "voltar":
@@ -214,12 +250,13 @@ def equipar_item(jogador: Personagem) -> None:
             if not escolha_str.isdigit():
                 raise ValueError
             escolha = int(escolha_str)
-            if escolha == len(itens_equipaveis) + 1:
+            if escolha == len(grupos) + 1:
                 return
-            if not (1 <= escolha <= len(itens_equipaveis)):
+            if not (1 <= escolha <= len(grupos)):
                 raise ValueError
 
-            item_escolhido = itens_equipaveis[escolha - 1]
+            grupo = grupos[escolha - 1]
+            item_escolhido = remover_item_por_chave(jogador.inventario, grupo["chave"])
             tipo_item = item_escolhido.tipo
 
             if jogador.equipamento[tipo_item]:
@@ -227,7 +264,6 @@ def equipar_item(jogador: Personagem) -> None:
                 jogador.inventario.append(item_desequipado)
 
             jogador.equipamento[tipo_item] = item_escolhido
-            jogador.inventario.remove(item_escolhido)
             aplicar_bonus_equipamento(jogador)
         except (ValueError, IndexError):
             desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")

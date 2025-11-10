@@ -2,9 +2,11 @@ import pytest
 
 import jogo  # Importa o módulo todo para o monkeypatch
 from jogo import (
+    agrupar_itens_equipaveis,
     aplicar_bonus_equipamento,
     aplicar_efeitos_consumiveis,
     hidratar_mapa,
+    remover_item_por_chave,
     serializar_mapa,
     verificar_level_up,
 )
@@ -169,3 +171,33 @@ def test_aplicar_efeitos_consumiveis_altera_atributos(jogador_base: Personagem) 
     assert "XP" in mensagens[1]
     assert jogador_base.hp == 20
     assert jogador_base.xp_atual == 20
+
+
+def test_agrupar_itens_equipaveis(jogador_base: Personagem, espada_curta: Item) -> None:
+    """Itens iguais devem ser agrupados com quantidade correta."""
+    outra_espada = Item(nome="Espada Curta", tipo="arma", descricao="", bonus={"ataque": 3})
+    escudo = Item(nome="Escudo de Madeira", tipo="escudo", descricao="", bonus={"defesa": 2})
+    jogador_base.inventario = [espada_curta, escudo, outra_espada]
+
+    grupos = agrupar_itens_equipaveis(jogador_base.inventario)
+    assert len(grupos) == 2
+    assert grupos[0]["item"].nome == "Espada Curta"
+    assert grupos[0]["quantidade"] == 2
+    assert grupos[1]["item"].nome == "Escudo de Madeira"
+    assert grupos[1]["quantidade"] == 1
+
+
+def test_remover_item_por_chave(jogador_base: Personagem, espada_curta: Item) -> None:
+    """Remover item por chave deve retirar apenas uma instância do agrupamento."""
+    outra_espada = Item(nome="Espada Curta", tipo="arma", descricao="", bonus={"ataque": 3})
+    jogador_base.inventario = [espada_curta, outra_espada]
+    chave = (
+        espada_curta.nome,
+        espada_curta.tipo,
+        tuple(sorted(espada_curta.bonus.items())),
+        (),
+    )
+
+    removido = remover_item_por_chave(jogador_base.inventario, chave)
+    assert removido.nome == "Espada Curta"
+    assert len(jogador_base.inventario) == 1

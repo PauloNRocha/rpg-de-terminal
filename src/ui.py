@@ -8,7 +8,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from src.entidades import Inimigo, Item, Personagem
+from src.entidades import Inimigo, Personagem
 
 console = Console()
 
@@ -121,8 +121,8 @@ def desenhar_tela_saida(titulo: str, mensagem: str) -> None:
     desenhar_caixa(titulo, mensagem)
 
 
-def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> str:
-    """Desenha a tela de equipar itens, comparando com o equipamento atual."""
+def desenhar_tela_equipar(jogador: Personagem, grupos_itens: list[dict[str, Any]]) -> str:
+    """Desenha a tela de equipar itens, com agrupamento e resumo de quantidades."""
     limpar_tela()
 
     tabela_equipamento = Table(
@@ -152,7 +152,7 @@ def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> 
     )
     console.print(tabela_equipamento)
 
-    if itens_equipaveis:
+    if grupos_itens:
         tabela_disponiveis = Table(
             title=Text("ITENS DISPONÍVEIS", style="bold yellow"),
             box=box.DOUBLE,
@@ -163,10 +163,19 @@ def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> 
         tabela_disponiveis.add_column("Item", style="green", width=25)
         tabela_disponiveis.add_column("Tipo", style="magenta", width=10)
         tabela_disponiveis.add_column("Bônus", style="white", width=25)
+        tabela_disponiveis.add_column("Qtd", style="yellow", width=5)
 
-        for i, item in enumerate(itens_equipaveis):
-            bonus_str = ", ".join([f"{k}: {v}" for k, v in item.bonus.items()])
-            tabela_disponiveis.add_row(str(i + 1), item.nome, item.tipo, bonus_str)
+        for i, grupo in enumerate(grupos_itens):
+            item = grupo["item"]
+            bonus_str = ", ".join([f"{k}: {v}" for k, v in item.bonus.items()]) or "-"
+            quantidade = grupo["quantidade"]
+            tabela_disponiveis.add_row(
+                str(i + 1),
+                item.nome,
+                item.tipo,
+                bonus_str,
+                f"x{quantidade}",
+            )
         console.print(tabela_disponiveis)
     else:
         console.print(
@@ -180,7 +189,7 @@ def desenhar_tela_equipar(jogador: Personagem, itens_equipaveis: list[Item]) -> 
         return "voltar"
 
     texto_opcoes = (
-        f"Escolha um item (1-{len(itens_equipaveis)}) ou {len(itens_equipaveis) + 1} para Voltar."
+        f"Escolha um item (1-{len(grupos_itens)}) ou {len(grupos_itens) + 1} para Voltar."
     )
     opcoes_panel = Panel(
         Text(texto_opcoes, justify="center"),

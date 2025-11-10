@@ -7,6 +7,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.4.3] - 2025-11-10
+
+### Alterado
+
+-   Tela de equipar itens passou a agrupar itens idênticos (ex.: “Espada Afiada x3”), exibindo quantidades, ordenação por tipo e texto de seleção atualizado para listas longas.
+-   Adicionados utilitários de agrupamento no código (`agrupar_itens_equipaveis`, `remover_item_por_chave`) e testes cobrindo o novo comportamento.
+
 ## [1.4.2] - 2025-11-09
 
 ### Corrigido
