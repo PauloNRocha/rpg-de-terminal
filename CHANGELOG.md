@@ -7,6 +7,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.4.2] - 2025-11-09
+
+### Corrigido
+
+-   HUD de exploração agora exibe o andar atual da masmorra, evitando que o jogador perca a noção de profundidade ao descer níveis consecutivos.
+-   A sala de entrada dos níveis superiores ganhou nome/descrição próprios (escadaria), removendo o texto incorreto "Entrada da Masmorra" ao chegar em andares profundos.
+
 ## [1.4.1] - 2025-11-09
 
 ### Adicionado

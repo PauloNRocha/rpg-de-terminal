@@ -74,17 +74,31 @@ def _criar_sala(tipo: str, nivel: int) -> Sala:
         "nivel_area": nivel,
     }
     if tipo == "entrada":
-        sala.update(
-            {
-                "tipo": "entrada",
-                "nome": "Entrada da Masmorra",
-                "descricao": (
-                    "A luz da entrada desaparece atrás de você. O ar é úmido e "
-                    "cheira a poeira e morte."
-                ),
-                "pode_ter_inimigo": False,
-            }
-        )
+        if nivel <= 1:
+            sala.update(
+                {
+                    "tipo": "entrada",
+                    "nome": "Entrada da Masmorra",
+                    "descricao": (
+                        "A luz da entrada desaparece atrás de você. O ar é úmido e "
+                        "cheira a poeira e morte."
+                    ),
+                    "pode_ter_inimigo": False,
+                }
+            )
+        else:
+            sala.update(
+                {
+                    "tipo": "entrada",
+                    "nome": f"Escadaria do Andar {nivel}",
+                    "descricao": (
+                        "Você deixa para trás o andar anterior descendo uma escadaria "
+                        "íngreme. O ar fica mais pesado e sons distantes ecoam pelas "
+                        "paredes encharcadas."
+                    ),
+                    "pode_ter_inimigo": False,
+                }
+            )
     elif tipo == "chefe":
         sala.update(
             {

@@ -33,7 +33,9 @@ def desenhar_caixa(titulo: str, conteudo: str, largura: int = 75) -> None:
     console.print(panel)
 
 
-def desenhar_hud_exploracao(jogador: Personagem, sala_atual: Sala, opcoes: list[str]) -> str:
+def desenhar_hud_exploracao(
+    jogador: Personagem, sala_atual: Sala, opcoes: list[str], nivel_masmorra: int
+) -> str:
     """Desenha o HUD de exploração com informações do jogador, sala e opções."""
     limpar_tela()
 
@@ -75,11 +77,15 @@ def desenhar_hud_exploracao(jogador: Personagem, sala_atual: Sala, opcoes: list[
         grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=75
     )
 
+    texto_local = Text()
+    texto_local.append(f"🗺️  Local: {sala_atual['nome']}\n", style="bold magenta")
+    texto_local.append(sala_atual["descricao"], style="white")
+
+    titulo_local = Text(f"Localização — Masmorra Nível {nivel_masmorra}", style="bold blue")
+
     hud_sala = Panel(
-        Text(f"🗺️  Local: {sala_atual['nome']}", style="bold magenta")
-        + "\n"
-        + Text(sala_atual["descricao"], style="white"),
-        title=Text("Localização", style="bold blue"),
+        texto_local,
+        title=titulo_local,
         border_style="blue",
         width=75,
     )

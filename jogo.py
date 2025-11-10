@@ -313,7 +313,7 @@ def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bo
                 )
 
         opcoes.extend(["Ver Inventário", "Salvar jogo", "Sair da masmorra"])
-        escolha_str = desenhar_hud_exploracao(jogador, sala_atual, opcoes)
+        escolha_str = desenhar_hud_exploracao(jogador, sala_atual, opcoes, nivel_masmorra)
 
         try:
             escolha = int(escolha_str)
