@@ -7,6 +7,20 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.5.1] - 2025-11-10
+
+### Adicionado
+
+-   Máquina de estados refinada: além de Menu/Criação/Exploração, agora Inventário e Combate são estados explícitos, permitindo suspender o loop principal e retomar exatamente de onde parou.
+-   `ContextoJogo` passou a carregar informações de combate (sala/inimigo) e a última posição válida, garantindo fluxos como fuga, inventário e save sem gambiarras.
+-   A exploração foi reescrita como “ticks” únicos: cada ação retorna o próximo estado, facilitando futuras telas separadas (Game Over cinematográfico, diálogo, eventos de sala).
+
+### Alterado
+
+-   `executar_estado_exploracao` substitui o antigo `iniciar_aventura`, eliminando loops internos e permitindo que o menu principal realmente coordene o fluxo.
+-   `executar_estado_combate` reaproveita a tela clássica, mas agora registra XP/drop, limpa o contexto e trata fuga/morte de maneira centralizada.
+-   `pyproject.toml`, `README.md` e `src/version.py` foram atualizados para `v1.5.1`, refletindo a nova etapa da série 1.5.x.
+
 ## [1.5.0] - 2025-11-10
 
 ### Adicionado

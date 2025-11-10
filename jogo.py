@@ -7,7 +7,7 @@ from typing import Any
 from src import config
 from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
 from src.combate import iniciar_combate
-from src.entidades import Item, Personagem, Sala
+from src.entidades import Inimigo, Item, Personagem, Sala
 from src.erros import ErroDadosError
 from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio
@@ -38,6 +38,8 @@ class Estado(Enum):
     MENU = auto()
     CRIACAO = auto()
     EXPLORACAO = auto()
+    INVENTARIO = auto()
+    COMBATE = auto()
     SAIR = auto()
 
 
@@ -48,6 +50,18 @@ class ContextoJogo:
     jogador: Personagem | None = None
     mapa_atual: Mapa | None = None
     nivel_masmorra: int = 1
+    sala_em_combate: Sala | None = None
+    inimigo_em_combate: Inimigo | None = None
+    posicao_anterior: tuple[int, int] | None = None
+
+
+def _posicionar_na_entrada(jogador: Personagem, mapa: Mapa) -> None:
+    """Posiciona o jogador na entrada (usado ao gerar um mapa novo)."""
+    for y_idx, linha in enumerate(mapa):
+        for x_idx, sala in enumerate(linha):
+            if sala.tipo == "entrada":
+                jogador.x, jogador.y = x_idx, y_idx
+                return
 
 
 def executar_estado_menu(contexto: ContextoJogo) -> Estado:
@@ -67,6 +81,7 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             contexto.jogador = Personagem.from_dict(jogador_data)
             contexto.mapa_atual = hidratar_mapa(mapa_salvo)
             contexto.nivel_masmorra = nivel_masmorra
+            contexto.posicao_anterior = None
             desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
             return Estado.EXPLORACAO
         except ErroCarregamento as erro:
@@ -85,39 +100,177 @@ def executar_estado_criacao(contexto: ContextoJogo) -> Estado:
     contexto.jogador = jogador
     contexto.nivel_masmorra = 1
     contexto.mapa_atual = None
+    contexto.posicao_anterior = None
+    return Estado.EXPLORACAO
+
+
+def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
+    """Abre o inventário e retorna à exploração após o jogador encerrar."""
+    jogador = contexto.jogador
+    if jogador is None:
+        return Estado.MENU
+    gerenciar_inventario(jogador)
+    return Estado.EXPLORACAO
+
+
+def executar_estado_combate(contexto: ContextoJogo) -> Estado:
+    """Resolve o combate armazenado no contexto e decide o próximo estado."""
+    jogador = contexto.jogador
+    sala = contexto.sala_em_combate
+    inimigo = contexto.inimigo_em_combate
+    if jogador is None or sala is None or inimigo is None:
+        return Estado.EXPLORACAO
+
+    resultado, inimigo_atualizado = iniciar_combate(jogador, inimigo, usar_item)
+    sala.inimigo_atual = inimigo_atualizado
+
+    if resultado:
+        xp_ganho = inimigo_atualizado.xp_recompensa
+        mensagem_vitoria = f"Você derrotou o {inimigo.nome} e ganhou {xp_ganho} de XP!"
+        desenhar_tela_evento("VITÓRIA!", mensagem_vitoria)
+        jogador.xp_atual += xp_ganho
+
+        if inimigo_atualizado.drop_raridade:
+            item_dropado = gerar_item_aleatorio(inimigo_atualizado.drop_raridade)
+            if item_dropado:
+                jogador.inventario.append(item_dropado)
+                desenhar_tela_evento("ITEM ENCONTRADO!", f"O inimigo dropou: {item_dropado.nome}!")
+
+        sala.inimigo_derrotado = True
+        sala.inimigo_atual = None
+        contexto.sala_em_combate = None
+        contexto.inimigo_em_combate = None
+        verificar_level_up(jogador)
+        return Estado.EXPLORACAO
+
+    if not jogador.esta_vivo():
+        tela_game_over()
+        contexto.jogador = None
+        contexto.mapa_atual = None
+        contexto.nivel_masmorra = 1
+        contexto.posicao_anterior = None
+        contexto.sala_em_combate = None
+        contexto.inimigo_em_combate = None
+        return Estado.MENU
+
+    desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
+    if contexto.posicao_anterior:
+        jogador.x, jogador.y = contexto.posicao_anterior
+        contexto.posicao_anterior = None
+    contexto.sala_em_combate = None
+    contexto.inimigo_em_combate = None
     return Estado.EXPLORACAO
 
 
 def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
-    """Executa a campanha/loop principal e retorna ao menu quando apropriado."""
+    """Executa um ciclo de exploração e retorna o próximo estado."""
     jogador = contexto.jogador
     if jogador is None:
         return Estado.MENU
 
-    mapa_corrente = contexto.mapa_atual
-    nivel_masmorra = contexto.nivel_masmorra
+    if contexto.mapa_atual is None:
+        contexto.mapa_atual = gerar_mapa(contexto.nivel_masmorra)
+        _posicionar_na_entrada(jogador, contexto.mapa_atual)
 
-    while True:
-        if mapa_corrente is None:
-            mapa_corrente = gerar_mapa(nivel_masmorra)
-        contexto.mapa_atual = mapa_corrente
-        contexto.nivel_masmorra = nivel_masmorra
-        aventura_continua = iniciar_aventura(jogador, mapa_corrente, nivel_masmorra)
-        if aventura_continua:
-            nivel_masmorra += 1
-            mapa_corrente = None
+    mapa = contexto.mapa_atual
+    sala_atual = mapa[jogador.y][jogador.x]
+
+    if sala_atual.pode_ter_inimigo and not sala_atual.inimigo_derrotado:
+        inimigo = sala_atual.inimigo_atual
+        if inimigo is None:
+            tipo = "chefe_orc" if sala_atual.chefe else None
+            inimigo = gerar_inimigo(sala_atual.nivel_area, tipo_inimigo=tipo)
+            sala_atual.inimigo_atual = inimigo
+        contexto.sala_em_combate = sala_atual
+        contexto.inimigo_em_combate = inimigo
+        desenhar_tela_evento("ENCONTRO!", f"CUIDADO! Um {inimigo.nome} está na sala!")
+        return Estado.COMBATE
+
+    opcoes = []
+    if jogador.y > 0 and mapa[jogador.y - 1][jogador.x].tipo != "parede":
+        opcoes.append("Ir para o Norte")
+    if jogador.y < len(mapa) - 1 and mapa[jogador.y + 1][jogador.x].tipo != "parede":
+        opcoes.append("Ir para o Sul")
+    if jogador.x < len(mapa[0]) - 1 and mapa[jogador.y][jogador.x + 1].tipo != "parede":
+        opcoes.append("Ir para o Leste")
+    if jogador.x > 0 and mapa[jogador.y][jogador.x - 1].tipo != "parede":
+        opcoes.append("Ir para o Oeste")
+
+    if sala_atual.tipo == "escada":
+        chefe_derrotado = all(
+            sala.inimigo_derrotado for linha in mapa for sala in linha if sala.tipo == "chefe"
+        )
+        if chefe_derrotado:
+            opcoes.append("Descer para o próximo nível")
+        else:
+            desenhar_tela_evento(
+                "AVISO",
+                "A escada está bloqueada. Derrote o chefe para prosseguir.",
+            )
+
+    opcoes.extend(["Ver Inventário", "Salvar jogo", "Sair da masmorra"])
+    escolha_str = desenhar_hud_exploracao(jogador, sala_atual, opcoes, contexto.nivel_masmorra)
+
+    try:
+        escolha = int(escolha_str)
+        if not (1 <= escolha <= len(opcoes)):
+            raise ValueError
+        acao_escolhida = opcoes[escolha - 1]
+        posicao_atual = (jogador.x, jogador.y)
+
+        if acao_escolhida == "Ir para o Norte":
+            contexto.posicao_anterior = posicao_atual
+            jogador.y -= 1
+            return Estado.EXPLORACAO
+        if acao_escolhida == "Ir para o Sul":
+            contexto.posicao_anterior = posicao_atual
+            jogador.y += 1
+            return Estado.EXPLORACAO
+        if acao_escolhida == "Ir para o Leste":
+            contexto.posicao_anterior = posicao_atual
+            jogador.x += 1
+            return Estado.EXPLORACAO
+        if acao_escolhida == "Ir para o Oeste":
+            contexto.posicao_anterior = posicao_atual
+            jogador.x -= 1
+            return Estado.EXPLORACAO
+        if acao_escolhida == "Descer para o próximo nível":
+            contexto.nivel_masmorra += 1
+            contexto.mapa_atual = None
+            contexto.posicao_anterior = None
             hp_cura = int(jogador.hp_max * config.DESCENT_HEAL_PERCENT)
             jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
-            mensagem_nivel = f"Você desce para o próximo nível.\\nVocê recuperou {hp_cura} de HP."
-            desenhar_tela_evento(f"NÍVEL {nivel_masmorra} ALCANÇADO!", mensagem_nivel)
-            contexto.nivel_masmorra = nivel_masmorra
-            continue
+            mensagem_nivel = f"Você desce para o próximo nível.\nVocê recuperou {hp_cura} de HP."
+            desenhar_tela_evento(f"NÍVEL {contexto.nivel_masmorra} ALCANÇADO!", mensagem_nivel)
+            return Estado.EXPLORACAO
+        if acao_escolhida == "Ver Inventário":
+            return Estado.INVENTARIO
+        if acao_escolhida == "Salvar jogo":
+            estado = {
+                "jogador": jogador.to_dict(),
+                "mapa": serializar_mapa(mapa),
+                "nivel_masmorra": contexto.nivel_masmorra,
+            }
+            try:
+                caminho = salvar_jogo(estado)
+                desenhar_tela_evento("JOGO SALVO", f"Progresso salvo em {caminho}.")
+            except OSError as erro:
+                desenhar_tela_evento("ERRO AO SALVAR", f"Não foi possível salvar: {erro}.")
+            return Estado.EXPLORACAO
+        if acao_escolhida == "Sair da masmorra":
+            desenhar_tela_evento(
+                "FIM DE JOGO",
+                "Você saiu da masmorra.\n\nObrigado por jogar!",
+            )
+            contexto.jogador = None
+            contexto.mapa_atual = None
+            contexto.nivel_masmorra = 1
+            contexto.posicao_anterior = None
+            return Estado.MENU
+    except (ValueError, IndexError):
+        desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
-        # A aventura terminou (morte ou saída). Limpa o contexto para recomeçar.
-        contexto.jogador = None
-        contexto.mapa_atual = None
-        contexto.nivel_masmorra = 1
-        return Estado.MENU
+    return Estado.EXPLORACAO
 
 
 def _efeito_hp(jogador: Personagem, valor: int) -> str:
@@ -344,126 +497,6 @@ def equipar_item(jogador: Personagem) -> None:
             desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
 
-def iniciar_aventura(jogador: Personagem, mapa: Mapa, nivel_masmorra: int) -> bool | None:
-    """Loop principal da exploração."""
-    start_x, start_y = 0, 0
-    for y_idx, linha in enumerate(mapa):
-        for x_idx, sala in enumerate(linha):
-            if sala.tipo == "entrada":
-                start_x, start_y = x_idx, y_idx
-                break
-        else:
-            continue
-        break
-
-    jogador.x, jogador.y = start_x, start_y
-    posicao_anterior = None
-
-    while True:
-        sala_atual = mapa[jogador.y][jogador.x]
-
-        if sala_atual.pode_ter_inimigo and not sala_atual.inimigo_derrotado:
-            inimigo = sala_atual.inimigo_atual
-            if inimigo is None:
-                nivel_inimigo = sala_atual.nivel_area
-                tipo = "chefe_orc" if sala_atual.chefe else None
-                inimigo = gerar_inimigo(nivel_inimigo, tipo_inimigo=tipo)
-                sala_atual.inimigo_atual = inimigo
-
-            desenhar_tela_evento("ENCONTRO!", f"CUIDADO! Um {inimigo.nome} está na sala!")
-            resultado_combate, inimigo_atualizado = iniciar_combate(jogador, inimigo, usar_item)
-            sala_atual.inimigo_atual = inimigo_atualizado
-
-            if resultado_combate:
-                xp_ganho = inimigo_atualizado.xp_recompensa
-                mensagem_vitoria = f"Você derrotou o {inimigo.nome} e ganhou {xp_ganho} de XP!"
-                desenhar_tela_evento("VITÓRIA!", mensagem_vitoria)
-                jogador.xp_atual += xp_ganho
-
-                if inimigo_atualizado.drop_raridade:
-                    item_dropado = gerar_item_aleatorio(inimigo_atualizado.drop_raridade)
-                    if item_dropado:
-                        jogador.inventario.append(item_dropado)
-                        mensagem_drop = f"O inimigo dropou: {item_dropado.nome}!"
-                        desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_drop)
-
-                sala_atual.inimigo_derrotado = True
-                sala_atual.inimigo_atual = None
-                verificar_level_up(jogador)
-            else:
-                if not jogador.esta_vivo():
-                    tela_game_over()
-                    return False
-                desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
-                if posicao_anterior:
-                    jogador.x, jogador.y = posicao_anterior
-                continue
-
-        opcoes = []
-        if jogador.y > 0 and mapa[jogador.y - 1][jogador.x].tipo != "parede":
-            opcoes.append("Ir para o Norte")
-        if jogador.y < len(mapa) - 1 and mapa[jogador.y + 1][jogador.x].tipo != "parede":
-            opcoes.append("Ir para o Sul")
-        if jogador.x < len(mapa[0]) - 1 and mapa[jogador.y][jogador.x + 1].tipo != "parede":
-            opcoes.append("Ir para o Leste")
-        if jogador.x > 0 and mapa[jogador.y][jogador.x - 1].tipo != "parede":
-            opcoes.append("Ir para o Oeste")
-
-        if sala_atual.tipo == "escada":
-            chefe_derrotado = all(
-                sala.inimigo_derrotado for linha in mapa for sala in linha if sala.tipo == "chefe"
-            )
-            if chefe_derrotado:
-                opcoes.append("Descer para o próximo nível")
-            else:
-                desenhar_tela_evento(
-                    "AVISO", "A escada está bloqueada. Derrote o chefe para prosseguir."
-                )
-
-        opcoes.extend(["Ver Inventário", "Salvar jogo", "Sair da masmorra"])
-        escolha_str = desenhar_hud_exploracao(jogador, sala_atual, opcoes, nivel_masmorra)
-
-        try:
-            escolha = int(escolha_str)
-            if not (1 <= escolha <= len(opcoes)):
-                raise ValueError
-            acao_escolhida = opcoes[escolha - 1]
-            posicao_atual = (jogador.x, jogador.y)
-
-            if acao_escolhida == "Ir para o Norte":
-                jogador.y -= 1
-            elif acao_escolhida == "Ir para o Sul":
-                jogador.y += 1
-            elif acao_escolhida == "Ir para o Leste":
-                jogador.x += 1
-            elif acao_escolhida == "Ir para o Oeste":
-                jogador.x -= 1
-            elif acao_escolhida == "Descer para o próximo nível":
-                return True
-            elif acao_escolhida == "Ver Inventário":
-                gerenciar_inventario(jogador)
-                continue
-            elif acao_escolhida == "Salvar jogo":
-                estado = {
-                    "jogador": jogador.to_dict(),
-                    "mapa": serializar_mapa(mapa),
-                    "nivel_masmorra": nivel_masmorra,
-                }
-                try:
-                    caminho = salvar_jogo(estado)
-                    desenhar_tela_evento("JOGO SALVO", f"Progresso salvo em {caminho}.")
-                except OSError as erro:
-                    desenhar_tela_evento("ERRO AO SALVAR", f"Não foi possível salvar: {erro}.")
-                continue
-            elif acao_escolhida == "Sair da masmorra":
-                desenhar_tela_evento("FIM DE JOGO", "Você saiu da masmorra.\n\nObrigado por jogar!")
-                return False
-            posicao_anterior = posicao_atual
-        except (ValueError, IndexError):
-            desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
-    return None
-
-
 def processo_criacao_personagem() -> Personagem:
     """Orquestra o processo de criação de personagem."""
     nome = ""
@@ -497,6 +530,10 @@ def main() -> None:
                 estado = executar_estado_criacao(contexto)
             elif estado == Estado.EXPLORACAO:
                 estado = executar_estado_exploracao(contexto)
+            elif estado == Estado.INVENTARIO:
+                estado = executar_estado_inventario(contexto)
+            elif estado == Estado.COMBATE:
+                estado = executar_estado_combate(contexto)
             elif estado == Estado.SAIR:
                 desenhar_tela_saida("DESPEDIDA", "Obrigado por jogar!\n\nAté a próxima.")
                 break
