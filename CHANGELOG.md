@@ -7,6 +7,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+### Adicionado
+
+-   Economia básica: introdução da dataclass `Moeda`, carteira no `Personagem`, preços (`preco_bronze`) em `data/itens.json` e exibição do saldo no HUD/Resumo.
+
+
 ## [1.5.1] - 2025-11-10
 
 ### Adicionado

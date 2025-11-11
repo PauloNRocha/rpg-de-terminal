@@ -4,6 +4,55 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+BRONZE_POR_PRATA = 10
+BRONZE_POR_OURO = 100
+
+
+@dataclass
+class Moeda:
+    """Armazena valores em bronze e formata em Ouro/Prata/Bronze."""
+
+    valor_bronze: int = 0
+
+    @classmethod
+    def from_gp_sp_cp(cls, ouro: int = 0, prata: int = 0, bronze: int = 0) -> "Moeda":
+        """Cria uma moeda a partir de valores individuais de ouro/prata/bronze."""
+        total = ouro * BRONZE_POR_OURO + prata * BRONZE_POR_PRATA + bronze
+        return cls(total)
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any] | int | None) -> "Moeda":
+        """Reconstrói a moeda a partir do dicionário serializado."""
+        if isinstance(data, Mapping):
+            valor = int(data.get("valor_bronze", 0))
+        elif data is None:
+            valor = 0
+        else:
+            valor = int(data)
+        return cls(valor)
+
+    def to_dict(self) -> dict[str, int]:
+        """Serializa o valor em bronze."""
+        return {"valor_bronze": self.valor_bronze}
+
+    def formatar(self) -> str:
+        """Retorna o valor formatado como Ouro/Prata/Bronze legível."""
+        restante = max(0, self.valor_bronze)
+        ouro, restante = divmod(restante, BRONZE_POR_OURO)
+        prata, bronze = divmod(restante, BRONZE_POR_PRATA)
+        partes: list[str] = []
+        if ouro:
+            partes.append(f"{ouro} Ouro")
+        if prata:
+            partes.append(f"{prata} Prata")
+        if bronze or not partes:
+            partes.append(f"{bronze} Bronze")
+        return ", ".join(partes)
+
+    def adicionar(self, valor: int) -> None:
+        """Incrementa (ou decrementa) o valor em bronze, nunca abaixo de zero."""
+        self.valor_bronze = max(0, self.valor_bronze + valor)
+
 
 @dataclass
 class Item:
@@ -14,6 +63,7 @@ class Item:
     descricao: str
     bonus: dict[str, int] = field(default_factory=dict)  # {"ataque": 5}
     efeito: dict[str, int] = field(default_factory=dict)  # {"hp": 20}
+    preco_bronze: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância."""
@@ -26,6 +76,7 @@ class Item:
         payload.setdefault("descricao", "")
         payload.setdefault("bonus", {})
         payload.setdefault("efeito", {})
+        payload.setdefault("preco_bronze", 0)
         return cls(**payload)
 
 
@@ -77,6 +128,7 @@ class Personagem(Entidade):
     equipamento: dict[str, Item | None] = field(
         default_factory=lambda: {"arma": None, "escudo": None}
     )
+    carteira: Moeda = field(default_factory=Moeda)
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância.
@@ -91,6 +143,7 @@ class Personagem(Entidade):
             self.equipamento["escudo"].to_dict() if self.equipamento["escudo"] else None
         )
         data["inventario"] = [item.to_dict() for item in self.inventario]
+        data["carteira"] = self.carteira.to_dict()
         return data
 
     @classmethod
@@ -105,6 +158,7 @@ class Personagem(Entidade):
             return None
 
         payload = data.copy()
+        carteira_raw = payload.pop("carteira", {"valor_bronze": 0})
         inventario_raw = payload.pop("inventario", [])
         equipamento_raw = payload.pop("equipamento", {"arma": None, "escudo": None}) or {
             "arma": None,
@@ -125,6 +179,7 @@ class Personagem(Entidade):
         return cls(
             inventario=inventario,
             equipamento=equipamento,
+            carteira=Moeda.from_dict(carteira_raw),
             **payload,
         )
 

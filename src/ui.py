@@ -85,6 +85,7 @@ def desenhar_hud_exploracao(
     grid_jogador.add_row(
         Text(f"⚔️  Ataque: {jogador.ataque}   | 🛡️  Defesa: {jogador.defesa}", style="bold white")
     )
+    grid_jogador.add_row(Text(f"💰 Bolsa: {jogador.carteira.formatar()}", style="bold yellow"))
 
     hud_jogador = Panel(
         grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=75
@@ -350,6 +351,7 @@ def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
     resumo_texto.append(f"Ataque: {jogador.ataque}\n", style="cyan")
     resumo_texto.append(f"Defesa: {jogador.defesa}\n", style="blue")
     resumo_texto.append(f"Nível: {jogador.nivel}\n", style="magenta")
+    resumo_texto.append(f"Carteira: {jogador.carteira.formatar()}\n", style="bold yellow")
     panel = Panel(
         resumo_texto,
         title=Text("SEU PERSONAGEM", justify="center", style="bold white"),
