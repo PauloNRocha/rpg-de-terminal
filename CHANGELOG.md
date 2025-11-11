@@ -10,6 +10,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 ### Adicionado
 
 -   Economia básica: introdução da dataclass `Moeda`, carteira no `Personagem`, preços (`preco_bronze`) em `data/itens.json` e exibição do saldo no HUD/Resumo.
+-   Novo módulo `src/economia.py` centraliza formatação, serialização e operações (crédito/débito) com moedas.
+-   Vitórias em combate agora rendem moedas configuráveis e surgiram helpers `preco_item`/`pode_comprar`/`comprar_item` para preparar lojas e NPCs.
 
 
 ## [1.5.1] - 2025-11-10

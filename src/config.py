@@ -16,3 +16,13 @@ DROP_CONSUMIVEL_CHANCE = {
     "incomum": 0.25,
     "raro": 0.15,
 }
+
+# Faixas de moedas saqueadas por raridade (mínimo, máximo)
+COIN_DROP_FAIXAS = {
+    "comum": (5, 15),
+    "incomum": (15, 35),
+    "raro": (40, 80),
+    "default": (5, 10),
+}
+
+COIN_DROP_ESCALONAMENTO = 0.1  # 10% extra por nível acima do primeiro

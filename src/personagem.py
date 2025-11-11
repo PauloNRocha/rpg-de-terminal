@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from src.entidades import Moeda, Personagem
+from src.economia import Moeda
+from src.entidades import Personagem
 from src.erros import ErroDadosError
 
 ClassesConfig = dict[str, dict[str, Any]]

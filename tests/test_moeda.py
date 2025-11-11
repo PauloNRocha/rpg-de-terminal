@@ -1,4 +1,4 @@
-from src.entidades import Moeda
+from src.economia import Moeda
 
 
 def test_moeda_from_gp_sp_cp() -> None:
@@ -18,3 +18,15 @@ def test_moeda_to_from_dict() -> None:
     moeda = Moeda(57)
     restored = Moeda.from_dict(moeda.to_dict())
     assert restored.valor_bronze == 57
+
+
+def test_moeda_receber_gastar_tem() -> None:
+    """Receber, gastar e verificar saldo usam regras coerentes."""
+    bolsa = Moeda()
+    bolsa.receber(25)
+    assert bolsa.valor_bronze == 25
+    assert bolsa.tem(10)
+    assert bolsa.gastar(10) is True
+    assert bolsa.valor_bronze == 15
+    assert bolsa.gastar(30) is False
+    assert not bolsa.tem(40)

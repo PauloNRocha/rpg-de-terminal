@@ -22,6 +22,17 @@ def carregar_itens() -> ItensPorRaridade:
         raise ErroDadosError("Arquivo 'itens.json' está inválido (JSON malformado).") from erro
     if not isinstance(dados, dict) or not dados:
         raise ErroDadosError("Arquivo 'itens.json' está vazio ou com formato incorreto.")
+    for raridade, lista in dados.items():
+        if not isinstance(lista, list):
+            raise ErroDadosError(f"Itens da raridade '{raridade}' estão inválidos.")
+        for item in lista:
+            if "preco_bronze" not in item:
+                raise ErroDadosError(
+                    f"Item '{item.get('nome', 'desconhecido')}' está sem 'preco_bronze'."
+                )
+            preco = item["preco_bronze"]
+            if not isinstance(preco, int) or preco < 0:
+                raise ErroDadosError(f"Preço inválido para '{item.get('nome', 'desconhecido')}'.")
     return dados
 
 

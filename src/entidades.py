@@ -4,54 +4,7 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-BRONZE_POR_PRATA = 10
-BRONZE_POR_OURO = 100
-
-
-@dataclass
-class Moeda:
-    """Armazena valores em bronze e formata em Ouro/Prata/Bronze."""
-
-    valor_bronze: int = 0
-
-    @classmethod
-    def from_gp_sp_cp(cls, ouro: int = 0, prata: int = 0, bronze: int = 0) -> "Moeda":
-        """Cria uma moeda a partir de valores individuais de ouro/prata/bronze."""
-        total = ouro * BRONZE_POR_OURO + prata * BRONZE_POR_PRATA + bronze
-        return cls(total)
-
-    @classmethod
-    def from_dict(cls, data: Mapping[str, Any] | int | None) -> "Moeda":
-        """Reconstrói a moeda a partir do dicionário serializado."""
-        if isinstance(data, Mapping):
-            valor = int(data.get("valor_bronze", 0))
-        elif data is None:
-            valor = 0
-        else:
-            valor = int(data)
-        return cls(valor)
-
-    def to_dict(self) -> dict[str, int]:
-        """Serializa o valor em bronze."""
-        return {"valor_bronze": self.valor_bronze}
-
-    def formatar(self) -> str:
-        """Retorna o valor formatado como Ouro/Prata/Bronze legível."""
-        restante = max(0, self.valor_bronze)
-        ouro, restante = divmod(restante, BRONZE_POR_OURO)
-        prata, bronze = divmod(restante, BRONZE_POR_PRATA)
-        partes: list[str] = []
-        if ouro:
-            partes.append(f"{ouro} Ouro")
-        if prata:
-            partes.append(f"{prata} Prata")
-        if bronze or not partes:
-            partes.append(f"{bronze} Bronze")
-        return ", ".join(partes)
-
-    def adicionar(self, valor: int) -> None:
-        """Incrementa (ou decrementa) o valor em bronze, nunca abaixo de zero."""
-        self.valor_bronze = max(0, self.valor_bronze + valor)
+from src.economia import Moeda
 
 
 @dataclass

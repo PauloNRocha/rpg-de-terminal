@@ -10,7 +10,8 @@ from jogo import (
     serializar_mapa,
     verificar_level_up,
 )
-from src.entidades import Inimigo, Item, Moeda, Personagem, Sala
+from src.economia import Moeda
+from src.entidades import Inimigo, Item, Personagem, Sala
 
 
 # Fixture para criar um jogador base para os testes
