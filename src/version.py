@@ -1,3 +1,3 @@
 """Contém a versão do projeto como um único ponto de verdade."""
 
-__version__ = "1.5.2-dev"
+__version__ = "1.5.2"
