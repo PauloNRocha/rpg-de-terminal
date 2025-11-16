@@ -7,6 +7,10 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+(sem entradas)
+
+## [1.6.0] - 2025-11-16
+
 ### Adicionado
 
 -   Sistema de eventos ambientados: arquivo `src/data/eventos.json`, dataclass `Evento` e utilitários (`carregar_eventos`, `disparar_evento`) permitem definir armadilhas, santuários e tesouros totalmente via dados.
