@@ -16,5 +16,11 @@
         "ataque": 7,
         "defesa": 3,
         "descricao": "Especialista em ataques à distância, ágil e preciso."
+    },
+    "ladino": {
+        "hp": 18,
+        "ataque": 7,
+        "defesa": 3,
+        "descricao": "Especialista em furtividade, golpes críticos e armadilhas improvisadas."
     }
 }

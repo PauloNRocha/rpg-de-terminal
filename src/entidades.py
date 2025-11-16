@@ -4,6 +4,8 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from src.economia import Moeda
+
 
 @dataclass
 class Item:
@@ -14,6 +16,7 @@ class Item:
     descricao: str
     bonus: dict[str, int] = field(default_factory=dict)  # {"ataque": 5}
     efeito: dict[str, int] = field(default_factory=dict)  # {"hp": 20}
+    preco_bronze: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância."""
@@ -26,6 +29,7 @@ class Item:
         payload.setdefault("descricao", "")
         payload.setdefault("bonus", {})
         payload.setdefault("efeito", {})
+        payload.setdefault("preco_bronze", 0)
         return cls(**payload)
 
 
@@ -77,6 +81,7 @@ class Personagem(Entidade):
     equipamento: dict[str, Item | None] = field(
         default_factory=lambda: {"arma": None, "escudo": None}
     )
+    carteira: Moeda = field(default_factory=Moeda)
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância.
@@ -91,6 +96,7 @@ class Personagem(Entidade):
             self.equipamento["escudo"].to_dict() if self.equipamento["escudo"] else None
         )
         data["inventario"] = [item.to_dict() for item in self.inventario]
+        data["carteira"] = self.carteira.to_dict()
         return data
 
     @classmethod
@@ -105,6 +111,7 @@ class Personagem(Entidade):
             return None
 
         payload = data.copy()
+        carteira_raw = payload.pop("carteira", {"valor_bronze": 0})
         inventario_raw = payload.pop("inventario", [])
         equipamento_raw = payload.pop("equipamento", {"arma": None, "escudo": None}) or {
             "arma": None,
@@ -125,6 +132,7 @@ class Personagem(Entidade):
         return cls(
             inventario=inventario,
             equipamento=equipamento,
+            carteira=Moeda.from_dict(carteira_raw),
             **payload,
         )
 
@@ -142,6 +150,8 @@ class Sala:
     inimigo_atual: Inimigo | None = None
     chefe: bool = False
     nivel_area: int = 1
+    evento_id: str | None = None
+    evento_resolvido: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Serializa a sala para dicionário, convertendo inimigos se necessário."""
@@ -164,4 +174,6 @@ class Sala:
         payload.setdefault("pode_ter_inimigo", False)
         payload.setdefault("chefe", False)
         payload.setdefault("nivel_area", 1)
+        payload.setdefault("evento_id", None)
+        payload.setdefault("evento_resolvido", False)
         return cls(**payload)

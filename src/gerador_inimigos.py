@@ -4,6 +4,7 @@ import random
 from pathlib import Path
 from typing import Any
 
+from src import config
 from src.entidades import Inimigo
 from src.erros import ErroDadosError
 
@@ -42,7 +43,11 @@ def obter_templates() -> TemplatesInimigos:
     return INIMIGO_TEMPLATES
 
 
-def gerar_inimigo(nivel: int, tipo_inimigo: str | None = None) -> Inimigo:
+def gerar_inimigo(
+    nivel: int,
+    tipo_inimigo: str | None = None,
+    dificuldade: config.DificuldadePerfil | None = None,
+) -> Inimigo:
     """Gera um inimigo com atributos escalados para um nível específico."""
     templates = obter_templates()
 
@@ -66,6 +71,12 @@ def gerar_inimigo(nivel: int, tipo_inimigo: str | None = None) -> Inimigo:
     ataque = int(template["ataque_base"] * fator_escala)
     defesa = int(template["defesa_base"] * fator_escala)
     xp_recompensa = int(template["xp_base"] * fator_escala)
+
+    if dificuldade is not None:
+        hp = max(1, int(hp * dificuldade.inimigo_hp_mult))
+        ataque = max(1, int(ataque * dificuldade.inimigo_ataque_mult))
+        defesa = max(0, int(defesa * dificuldade.inimigo_defesa_mult))
+        xp_recompensa = max(1, int(xp_recompensa * dificuldade.xp_recompensa_mult))
 
     return Inimigo(
         nome=f"{template['nome']} (Nível {nivel})",

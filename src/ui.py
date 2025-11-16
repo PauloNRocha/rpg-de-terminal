@@ -1,17 +1,35 @@
 import random
+import unicodedata
+from collections.abc import Sequence
 from typing import Any
 
 from rich import box
 from rich.bar import Bar
+from rich.columns import Columns
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from src.config import DificuldadePerfil
 from src.entidades import Inimigo, Personagem, Sala
 
 console = Console()
 ClassesConfig = dict[str, dict[str, Any]]
+
+CLASSE_EMOJIS = {
+    "guerreiro": "⚔️",
+    "mago": "✨",
+    "arqueiro": "🏹",
+    "ladino": "🗡️",
+}
+
+CLASSE_CORES = {
+    "guerreiro": "red",
+    "mago": "magenta",
+    "arqueiro": "green",
+    "ladino": "yellow",
+}
 
 
 def limpar_tela() -> None:
@@ -32,7 +50,11 @@ def desenhar_caixa(titulo: str, conteudo: str, largura: int = 75) -> None:
 
 
 def desenhar_hud_exploracao(
-    jogador: Personagem, sala_atual: Sala, opcoes: list[str], nivel_masmorra: int
+    jogador: Personagem,
+    sala_atual: Sala,
+    opcoes: list[str],
+    nivel_masmorra: int,
+    dificuldade_nome: str,
 ) -> str:
     """Desenha o HUD de exploração com informações do jogador, sala e opções."""
     limpar_tela()
@@ -44,6 +66,7 @@ def desenhar_hud_exploracao(
     grid_jogador.add_column()
     grid_jogador.add_row(Text(f"👤 {jogador.nome}, o {jogador.classe}", style="bold green"))
     grid_jogador.add_row(Text(f"🌟 Nível: {jogador.nivel}", style="yellow"))
+    grid_jogador.add_row(Text(f"🔥 Dificuldade: {dificuldade_nome}", style="orange3"))
 
     hp_grid = Table.grid(expand=True, padding=0)
     hp_grid.add_column(width=7)
@@ -70,6 +93,7 @@ def desenhar_hud_exploracao(
     grid_jogador.add_row(
         Text(f"⚔️  Ataque: {jogador.ataque}   | 🛡️  Defesa: {jogador.defesa}", style="bold white")
     )
+    grid_jogador.add_row(Text(f"💰 Bolsa: {jogador.carteira.formatar()}", style="bold yellow"))
 
     hud_jogador = Panel(
         grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=75
@@ -197,10 +221,16 @@ def desenhar_tela_equipar(jogador: Personagem, grupos_itens: list[dict[str, Any]
     return console.input("[bold yellow]> [/]")
 
 
-def desenhar_menu_principal(versao: str, tem_save: bool) -> str:
+def desenhar_menu_principal(
+    versao: str,
+    tem_save: bool,
+    dificuldade_nome: str,
+    alerta_atualizacao: str | None = None,
+) -> str:
     """Desenha o menu principal do jogo."""
     limpar_tela()
     menu_texto = Text("", justify="center")
+    menu_texto.append("0. Verificar Atualizações\n", style="bold cyan")
     menu_texto.append("1. Iniciar Nova Aventura\n", style="bold green")
     if tem_save:
         menu_texto.append("2. Continuar Aventura (Carregar Save)\n", style="bold cyan")
@@ -209,6 +239,15 @@ def desenhar_menu_principal(versao: str, tem_save: bool) -> str:
         menu_texto.append("2. Sair\n", style="bold red")
 
     footer_text = f"v{versao} - Desenvolvido por Paulo N. Rocha"
+    destaque_dificuldade = Panel(
+        Text(
+            f"Dificuldade padrão para a próxima aventura: {dificuldade_nome}",
+            justify="center",
+            style="bold white",
+        ),
+        width=75,
+        border_style="cyan",
+    )
     panel = Panel(
         menu_texto,
         title=Text("AVENTURA NO TERMINAL", justify="center", style="bold yellow"),
@@ -218,6 +257,16 @@ def desenhar_menu_principal(versao: str, tem_save: bool) -> str:
         border_style="blue",
     )
     console.print(panel)
+    console.print(destaque_dificuldade)
+    if alerta_atualizacao:
+        console.print(
+            Panel(
+                Text(alerta_atualizacao, justify="center", style="bold yellow"),
+                border_style="yellow",
+                title="Atualização disponível!",
+                width=75,
+            )
+        )
     return console.input("[bold yellow]Escolha uma opção: [/]")
 
 
@@ -236,21 +285,195 @@ def desenhar_tela_input(titulo: str, prompt: str) -> str:
 
 
 def desenhar_tela_escolha_classe(classes: ClassesConfig) -> str:
-    """Desenha a tela de escolha de classe."""
+    """Mostra cartões detalhados de cada classe e normaliza a escolha do jogador."""
     limpar_tela()
-    tabela_classes = Table(
-        title=Text("ESCOLHA SUA CLASSE", style="bold yellow"),
-        box=box.DOUBLE,
+
+    titulo = Panel(
+        Text(
+            "Escolha sua classe favorita para iniciar a aventura",
+            justify="center",
+            style="bold yellow",
+        ),
         border_style="blue",
-        header_style="bold cyan",
+        box=box.DOUBLE,
     )
-    tabela_classes.add_column("Opção", style="dim", width=5)
-    tabela_classes.add_column("Classe", style="green", width=15)
-    tabela_classes.add_column("Descrição", style="white", width=45)
-    for i, (nome_classe, detalhes) in enumerate(classes.items()):
-        tabela_classes.add_row(str(i + 1), nome_classe, detalhes["descricao"])
-    console.print(tabela_classes)
-    return console.input("[bold yellow]Escolha sua classe: [/]")
+    console.print(titulo)
+
+    mapas_escolha: dict[str, str] = {}
+    cartoes: list[Panel] = []
+
+    for indice, (nome, detalhes) in enumerate(classes.items(), start=1):
+        slug = nome.lower()
+        emoji = CLASSE_EMOJIS.get(slug, "✨")
+        cor = CLASSE_CORES.get(slug, "cyan")
+
+        corpo = Text(justify="left")
+        corpo.append(f"{detalhes['descricao']}\n\n", style="white")
+        corpo.append(f"❤️ HP Base: {detalhes['hp']}\n", style="red")
+        corpo.append(f"⚔️ Ataque Base: {detalhes['ataque']}\n", style="yellow")
+        corpo.append(f"🛡️ Defesa Base: {detalhes['defesa']}\n", style="cyan")
+
+        subtitle = f"[bold]{indice}[/bold] • [bold]{slug[0].upper()}[/bold] • {slug.title()}"
+        cartoes.append(
+            Panel(
+                corpo,
+                title=f"{emoji} {slug.title()}",
+                subtitle=subtitle,
+                border_style=cor,
+                padding=(1, 2),
+            )
+        )
+
+        mapas_escolha[str(indice)] = slug
+        mapas_escolha[slug] = slug
+        mapas_escolha[slug[0]] = slug
+
+    console.print(Columns(cartoes, equal=True, expand=True))
+
+    instrucoes = Panel(
+        Text(
+            "Digite o número, a inicial ou o nome completo da classe.\n"
+            "Exemplos: '1', 'g' ou 'guerreiro'.",
+            justify="center",
+            style="bold white",
+        ),
+        border_style="blue",
+        width=80,
+    )
+    console.print(instrucoes)
+
+    while True:
+        resposta = console.input("[bold yellow]Escolha sua classe: [/]").strip().lower()
+        if not resposta:
+            continue
+        escolha_normalizada = mapas_escolha.get(resposta)
+        if escolha_normalizada:
+            return escolha_normalizada
+        console.print(
+            Panel(
+                Text(
+                    "Opção inválida. Tente novamente usando o número, a inicial ou o nome.",
+                    justify="center",
+                ),
+                border_style="red",
+            )
+        )
+
+
+def desenhar_tela_escolha_dificuldade(perfis: Sequence[DificuldadePerfil], selecionada: str) -> str:
+    """Exibe cartas de dificuldade e retorna a chave escolhida."""
+
+    def _normalizar(texto: str) -> str:
+        slug = unicodedata.normalize("NFKD", texto)
+        return "".join(ch for ch in slug if not unicodedata.combining(ch)).lower()
+
+    def _formatar_percentual(multiplicador: float) -> str:
+        variacao = round((multiplicador - 1) * 100)
+        sinal = "+" if variacao >= 0 else ""
+        return f"{sinal}{variacao}%"
+
+    limpar_tela()
+    console.print(
+        Panel(
+            Text(
+                "Escolha o modo de dificuldade que melhor combina com a sua aventura",
+                justify="center",
+                style="bold yellow",
+            ),
+            border_style="blue",
+            box=box.DOUBLE,
+        )
+    )
+
+    mapa_escolha: dict[str, str] = {}
+    cartoes: list[Panel] = []
+    selecionada_norm = _normalizar(selecionada)
+
+    for indice, perfil in enumerate(perfis, start=1):
+        slug = perfil.chave
+        atual = _normalizar(slug) == selecionada_norm
+        titulo = f"{indice}. {perfil.nome}"
+        corpo = Text(justify="left")
+        corpo.append(f"{perfil.descricao}\n\n", style="white")
+        corpo.append(
+            f"👹 Inimigos: HP {_formatar_percentual(perfil.inimigo_hp_mult)} | "
+            f"ATK {_formatar_percentual(perfil.inimigo_ataque_mult)} | "
+            f"DEF {_formatar_percentual(perfil.inimigo_defesa_mult)}\n",
+            style="yellow",
+        )
+        corpo.append(
+            f"⭐ XP ganhos: {_formatar_percentual(perfil.xp_recompensa_mult)}\n",
+            style="green",
+        )
+        corpo.append(
+            f"💰 Saques/Eventos: {_formatar_percentual(perfil.saque_moedas_mult)}\n",
+            style="bright_yellow",
+        )
+        corpo.append(
+            f"⚔️ Encontros: {_formatar_percentual(perfil.prob_inimigo_mult)}\n",
+            style="magenta",
+        )
+        if perfil.drop_consumivel_bonus:
+            corpo.append(
+                f"🧪 Consumíveis: {_formatar_percentual(1 + perfil.drop_consumivel_bonus)}\n",
+                style="cyan",
+            )
+
+        subtitle = f"{slug.title()} {'(Atual)' if atual else ''}"
+        cartoes.append(
+            Panel(
+                corpo,
+                title=titulo,
+                subtitle=subtitle,
+                border_style="green" if atual else "blue",
+                padding=(1, 2),
+            )
+        )
+
+        chaves_norm = {
+            str(indice),
+            slug,
+            slug[0],
+            _normalizar(perfil.nome),
+            _normalizar(slug),
+        }
+        for chave in chaves_norm:
+            mapa_escolha[chave] = slug
+
+    console.print(Columns(cartoes, equal=True, expand=True))
+    console.print(
+        Panel(
+            Text(
+                ("Digite o número, a inicial, o nome ou pressione Enter para manter a atual."),
+                justify="center",
+                style="bold white",
+            ),
+            border_style="blue",
+            width=85,
+        )
+    )
+
+    while True:
+        resposta = console.input("[bold yellow]Escolha a dificuldade: [/] ").strip()
+        if not resposta and selecionada:
+            return selecionada
+        chave_normalizada = _normalizar(resposta)
+        if chave_normalizada in mapa_escolha:
+            return mapa_escolha[chave_normalizada]
+        if resposta.lower() in mapa_escolha:
+            return mapa_escolha[resposta.lower()]
+        console.print(
+            Panel(
+                Text(
+                    (
+                        "Opção inválida. Digite o número, a inicial, o nome ou "
+                        "deixe em branco para manter."
+                    ),
+                    justify="center",
+                ),
+                border_style="red",
+            )
+        )
 
 
 def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
@@ -263,6 +486,7 @@ def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
     resumo_texto.append(f"Ataque: {jogador.ataque}\n", style="cyan")
     resumo_texto.append(f"Defesa: {jogador.defesa}\n", style="blue")
     resumo_texto.append(f"Nível: {jogador.nivel}\n", style="magenta")
+    resumo_texto.append(f"Carteira: {jogador.carteira.formatar()}\n", style="bold yellow")
     panel = Panel(
         resumo_texto,
         title=Text("SEU PERSONAGEM", justify="center", style="bold white"),

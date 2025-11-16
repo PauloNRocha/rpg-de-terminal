@@ -4,19 +4,22 @@
             "nome": "Adaga Enferrujada",
             "tipo": "arma",
             "bonus": { "ataque": 2 },
-            "descricao": "+2 Ataque"
+            "descricao": "+2 Ataque",
+            "preco_bronze": 25
         },
         {
             "nome": "Escudo de Madeira",
             "tipo": "escudo",
             "bonus": { "defesa": 2 },
-            "descricao": "+2 Defesa"
+            "descricao": "+2 Defesa",
+            "preco_bronze": 40
         },
         {
             "nome": "Espada Curta",
             "tipo": "arma",
             "bonus": { "ataque": 3 },
-            "descricao": "+3 Ataque"
+            "descricao": "+3 Ataque",
+            "preco_bronze": 55
         }
     ],
     "incomum": [
@@ -24,19 +27,22 @@
             "nome": "Espada Afiada",
             "tipo": "arma",
             "bonus": { "ataque": 5 },
-            "descricao": "+5 Ataque"
+            "descricao": "+5 Ataque",
+            "preco_bronze": 110
         },
         {
             "nome": "Escudo de Ferro Reforçado",
             "tipo": "escudo",
             "bonus": { "defesa": 4 },
-            "descricao": "+4 Defesa"
+            "descricao": "+4 Defesa",
+            "preco_bronze": 105
         },
         {
             "nome": "Machado de Batalha",
             "tipo": "arma",
             "bonus": { "ataque": 6 },
-            "descricao": "+6 Ataque"
+            "descricao": "+6 Ataque",
+            "preco_bronze": 125
         }
     ],
     "raro": [
@@ -44,13 +50,15 @@
             "nome": "Espada Mágica da Brutalidade",
             "tipo": "arma",
             "bonus": { "ataque": 8, "defesa": 1 },
-            "descricao": "+8 Ataque, +1 Defesa"
+            "descricao": "+8 Ataque, +1 Defesa",
+            "preco_bronze": 220
         },
         {
             "nome": "Escudo Mágico da Proteção",
             "tipo": "escudo",
             "bonus": { "defesa": 5, "ataque": 1 },
-            "descricao": "+5 Defesa, +1 Ataque"
+            "descricao": "+5 Defesa, +1 Ataque",
+            "preco_bronze": 215
         }
     ],
     "consumivel": [
@@ -58,7 +66,8 @@
             "nome": "Poção de Cura",
             "tipo": "consumivel",
             "efeito": { "hp": 15 },
-            "descricao": "Restaura 15 pontos de vida."
+            "descricao": "Restaura 15 pontos de vida.",
+            "preco_bronze": 60
         }
     ]
 }

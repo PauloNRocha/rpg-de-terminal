@@ -2,14 +2,19 @@
 
 import random
 
-from src import config
+from src import config, eventos
 from src.entidades import Sala
 
 Mapa = list[list[Sala]]
 
 
-def gerar_mapa(nivel: int = 1) -> Mapa:
+def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | None = None) -> Mapa:
     """Gera um novo mapa com um caminho principal garantido da entrada até a saída."""
+    prob_inimigo = config.MAP_ENEMY_PROBABILITY
+    if perfil_dificuldade is not None:
+        prob_inimigo *= perfil_dificuldade.prob_inimigo_mult
+    prob_inimigo = min(1.0, max(0.0, prob_inimigo))
+
     mapa: Mapa = [
         [
             Sala(
@@ -28,7 +33,7 @@ def gerar_mapa(nivel: int = 1) -> Mapa:
     caminho_principal: list[tuple[int, int]] = []
 
     while y < config.MAP_HEIGHT - 1:
-        mapa[y][x] = _criar_sala("caminho", nivel)
+        mapa[y][x] = _criar_sala("caminho", nivel, prob_inimigo)
         caminho_principal.append((x, y))
 
         direcao = random.choice(["esquerda", "direita", "baixo", "baixo", "baixo"])
@@ -60,13 +65,13 @@ def gerar_mapa(nivel: int = 1) -> Mapa:
                 and 0 <= ny < config.MAP_HEIGHT
                 and mapa[ny][nx].tipo == "parede"
             ):
-                mapa[ny][nx] = _criar_sala("secundaria", nivel)
+                mapa[ny][nx] = _criar_sala("secundaria", nivel, prob_inimigo)
                 break
 
     return mapa
 
 
-def _criar_sala(tipo: str, nivel: int) -> Sala:
+def _criar_sala(tipo: str, nivel: int, prob_inimigo: float | None = None) -> Sala:
     """Cria diferentes tipos de sala de acordo com o contexto."""
     if tipo == "entrada":
         if nivel <= 1:
@@ -120,10 +125,23 @@ def _criar_sala(tipo: str, nivel: int) -> Sala:
         "Uma sala com entalhes estranhos nas paredes de pedra.",
         "Um túnel estreito que parece ter sido cavado às pressas.",
     ]
-    return Sala(
+    chance_inimigo = prob_inimigo if prob_inimigo is not None else config.MAP_ENEMY_PROBABILITY
+    sala = Sala(
         tipo="sala",
         nome=random.choice(["Corredor Escuro", "Câmara Poeirenta", "Túnel Apertado"]),
         descricao=random.choice(descricoes),
-        pode_ter_inimigo=random.random() < config.MAP_ENEMY_PROBABILITY,
+        pode_ter_inimigo=random.random() < chance_inimigo,
         nivel_area=nivel,
     )
+    _atribuir_evento_randomico(sala)
+    return sala
+
+
+def _atribuir_evento_randomico(sala: Sala) -> None:
+    if sala.tipo != "sala":
+        return
+    if random.random() >= config.EVENTO_PROBABILIDADE:
+        return
+    evento_id = eventos.sortear_evento_id()
+    if evento_id:
+        sala.evento_id = evento_id

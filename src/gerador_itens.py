@@ -3,6 +3,7 @@ import random
 from pathlib import Path
 from typing import Any
 
+from src import config
 from src.entidades import Item
 from src.erros import ErroDadosError
 
@@ -21,6 +22,17 @@ def carregar_itens() -> ItensPorRaridade:
         raise ErroDadosError("Arquivo 'itens.json' está inválido (JSON malformado).") from erro
     if not isinstance(dados, dict) or not dados:
         raise ErroDadosError("Arquivo 'itens.json' está vazio ou com formato incorreto.")
+    for raridade, lista in dados.items():
+        if not isinstance(lista, list):
+            raise ErroDadosError(f"Itens da raridade '{raridade}' estão inválidos.")
+        for item in lista:
+            if "preco_bronze" not in item:
+                raise ErroDadosError(
+                    f"Item '{item.get('nome', 'desconhecido')}' está sem 'preco_bronze'."
+                )
+            preco = item["preco_bronze"]
+            if not isinstance(preco, int) or preco < 0:
+                raise ErroDadosError(f"Preço inválido para '{item.get('nome', 'desconhecido')}'.")
     return dados
 
 
@@ -41,14 +53,25 @@ def obter_itens_por_raridade() -> ItensPorRaridade:
     return ITENS_POR_RARIDADE
 
 
-def gerar_item_aleatorio(raridade: str = "comum") -> Item | None:
-    """Gera um item aleatório com base na raridade, retornando uma instância de Item."""
+def gerar_item_aleatorio(
+    raridade: str = "comum",
+    permitir_consumivel: bool = True,
+    bonus_consumivel: float = 0.0,
+) -> Item | None:
+    """Gera um item aleatório e pode trocar por consumíveis se configurado."""
     itens_por_raridade = obter_itens_por_raridade()
-    if raridade not in itens_por_raridade:
+    candidatos: list[dict[str, Any]] = list(itens_por_raridade.get(raridade, []))
+
+    if permitir_consumivel and "consumivel" in itens_por_raridade:
+        chance_base = config.DROP_CONSUMIVEL_CHANCE.get(raridade, 0.0)
+        chance = min(1.0, max(0.0, chance_base + bonus_consumivel))
+        if (candidatos and chance > 0 and random.random() < chance) or not candidatos:
+            candidatos = list(itens_por_raridade["consumivel"])
+
+    if not candidatos:
         return None
 
-    lista_itens_data: list[dict[str, Any]] = itens_por_raridade[raridade]
-    item_data: dict[str, Any] = random.choice(lista_itens_data)
+    item_data: dict[str, Any] = random.choice(candidatos).copy()
 
     # Garante que os campos opcionais existam antes de criar a instância
     item_data.setdefault("bonus", {})

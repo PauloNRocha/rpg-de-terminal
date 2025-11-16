@@ -10,6 +10,7 @@ from jogo import (
     serializar_mapa,
     verificar_level_up,
 )
+from src.economia import Moeda
 from src.entidades import Inimigo, Item, Personagem, Sala
 
 
@@ -33,6 +34,7 @@ def jogador_base() -> Personagem:
         nivel=1,
         xp_atual=0,
         xp_para_proximo_nivel=100,
+        carteira=Moeda.from_gp_sp_cp(),
     )
 
 

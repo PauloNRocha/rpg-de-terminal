@@ -1,0 +1,78 @@
+"""Estado responsável pelo combate."""
+
+from collections.abc import Callable
+from enum import Enum
+from typing import Protocol
+
+from src.entidades import Inimigo, Item, Personagem, Sala
+from src.ui import desenhar_tela_evento, tela_game_over
+
+
+class ContextoCombate(Protocol):
+    """Interface mínima esperada pelo estado de combate."""
+
+    jogador: Personagem | None
+    sala_em_combate: Sala | None
+    inimigo_em_combate: Inimigo | None
+
+    def limpar_combate(self) -> None:
+        """Remove referências ao combate atual."""
+        ...
+
+    def restaurar_posicao_anterior(self) -> None:
+        """Recoloca o jogador na sala anterior."""
+        ...
+
+    def resetar_jogo(self) -> None:
+        """Limpa todo o contexto da partida."""
+        ...
+
+
+def executar_estado_combate(
+    contexto: ContextoCombate,
+    iniciar_combate: Callable[
+        [Personagem, Inimigo, Callable[[Personagem], bool | None]],
+        tuple[bool, Inimigo],
+    ],
+    usar_item_fn: Callable[[Personagem], bool | None],
+    gerar_item_aleatorio: Callable[[str], Item | None],
+    verificar_level_up: Callable[[Personagem], None],
+    estado_menu: Enum,
+    estado_exploracao: Enum,
+) -> Enum:
+    """Resolve o combate e retorna o próximo estado do loop principal."""
+    jogador = contexto.jogador
+    sala = contexto.sala_em_combate
+    inimigo = contexto.inimigo_em_combate
+    if jogador is None or sala is None or inimigo is None:
+        return estado_exploracao
+
+    resultado, inimigo_atualizado = iniciar_combate(jogador, inimigo, usar_item_fn)
+    sala.inimigo_atual = inimigo_atualizado
+
+    if resultado:
+        xp_ganho = inimigo_atualizado.xp_recompensa
+        mensagem_vitoria = f"Você derrotou o {inimigo.nome} e ganhou {xp_ganho} de XP!"
+        desenhar_tela_evento("VITÓRIA!", mensagem_vitoria)
+        jogador.xp_atual += xp_ganho
+        if inimigo_atualizado.drop_raridade:
+            item_dropado = gerar_item_aleatorio(inimigo_atualizado.drop_raridade)
+            if item_dropado:
+                jogador.inventario.append(item_dropado)
+                mensagem_item = f"O inimigo dropou: {item_dropado.nome}!"
+                desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_item)
+        sala.inimigo_derrotado = True
+        sala.inimigo_atual = None
+        contexto.limpar_combate()
+        verificar_level_up(jogador)
+        return estado_exploracao
+
+    if not jogador.esta_vivo():
+        tela_game_over()
+        contexto.resetar_jogo()
+        return estado_menu
+
+    desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
+    contexto.restaurar_posicao_anterior()
+    contexto.limpar_combate()
+    return estado_exploracao

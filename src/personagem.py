@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from src.economia import Moeda
 from src.entidades import Personagem
 from src.erros import ErroDadosError
 
@@ -59,4 +60,5 @@ def criar_personagem(nome: str, classe_escolhida: str) -> Personagem:
         nivel=1,
         xp_atual=0,
         xp_para_proximo_nivel=100,
+        carteira=Moeda(),
     )
