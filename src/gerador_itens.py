@@ -53,13 +53,18 @@ def obter_itens_por_raridade() -> ItensPorRaridade:
     return ITENS_POR_RARIDADE
 
 
-def gerar_item_aleatorio(raridade: str = "comum", permitir_consumivel: bool = True) -> Item | None:
+def gerar_item_aleatorio(
+    raridade: str = "comum",
+    permitir_consumivel: bool = True,
+    bonus_consumivel: float = 0.0,
+) -> Item | None:
     """Gera um item aleatório e pode trocar por consumíveis se configurado."""
     itens_por_raridade = obter_itens_por_raridade()
     candidatos: list[dict[str, Any]] = list(itens_por_raridade.get(raridade, []))
 
     if permitir_consumivel and "consumivel" in itens_por_raridade:
-        chance = config.DROP_CONSUMIVEL_CHANCE.get(raridade, 0.0)
+        chance_base = config.DROP_CONSUMIVEL_CHANCE.get(raridade, 0.0)
+        chance = min(1.0, max(0.0, chance_base + bonus_consumivel))
         if (candidatos and chance > 0 and random.random() < chance) or not candidatos:
             candidatos = list(itens_por_raridade["consumivel"])
 

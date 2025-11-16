@@ -7,7 +7,20 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
-(sem entradas)
+### Adicionado
+
+-   Sistema de eventos ambientados: arquivo `src/data/eventos.json`, dataclass `Evento` e utilitários (`carregar_eventos`, `disparar_evento`) permitem definir armadilhas, santuários e tesouros totalmente via dados.
+-   Salas agora podem guardar `evento_id`/`evento_resolvido`; o gerador de mapa (`_atribuir_evento_randomico`) injeta eventos opcionais usando `EVENTO_PROBABILIDADE` configurável.
+-   A exploração dispara os eventos pendentes antes dos combates, renderizando um painel dedicado na UI e aplicando efeitos de cura/dano/moedas ao personagem.
+-   Testes automatizados (`tests/test_eventos.py`) cobrem cura e ganho de moedas para garantir que saves/data sigam comportando-se como esperado.
+-   Modos de dificuldade (Explorador, Aventureiro e Pesadelo) com multiplicadores em `config.py`: escolha feita antes da criação do personagem e registrada no save.
+-   Seleção visual de dificuldade com cartões Rich e destaque para a opção atual, além de HUD mostrando o modo ativo.
+-   Inimigos, encontros e drops agora respeitam o perfil ativo (HP/ATK/DEF, frequência de combates, chance de consumíveis e recompensa de moedas em eventos).
+-   Novos testes (`tests/test_dificuldade.py`, `tests/test_gerador_itens.py`) garantem que os multiplicadores realmente afetam inimigos e loot.
+
+### Corrigido
+
+-   `src/eventos.py` agora importa `Personagem` apenas para type checking, eliminando o erro `F821` apontado pelo ruff e garantindo que a função `disparar_evento` reconheça corretamente o tipo do jogador.
 
 ## [1.5.2] - 2025-11-11
 

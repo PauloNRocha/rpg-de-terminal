@@ -20,3 +20,12 @@ def test_gerar_item_equipo_quando_sem_consumivel(monkeypatch: pytest.MonkeyPatch
     item = gerador_itens.gerar_item_aleatorio("comum")
     assert item is not None
     assert item.tipo != "consumivel"
+
+
+def test_bonus_consumivel_incrementa_chance(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Bônus positivo força a troca para consumíveis mesmo com chance base zero."""
+    monkeypatch.setitem(gerador_itens.config.DROP_CONSUMIVEL_CHANCE, "comum", 0.0)
+    monkeypatch.setattr(gerador_itens.random, "random", lambda: 0.0)
+    item = gerador_itens.gerar_item_aleatorio("comum", bonus_consumivel=0.5)
+    assert item is not None
+    assert item.tipo == "consumivel"

@@ -150,6 +150,8 @@ class Sala:
     inimigo_atual: Inimigo | None = None
     chefe: bool = False
     nivel_area: int = 1
+    evento_id: str | None = None
+    evento_resolvido: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Serializa a sala para dicionário, convertendo inimigos se necessário."""
@@ -172,4 +174,6 @@ class Sala:
         payload.setdefault("pode_ter_inimigo", False)
         payload.setdefault("chefe", False)
         payload.setdefault("nivel_area", 1)
+        payload.setdefault("evento_id", None)
+        payload.setdefault("evento_resolvido", False)
         return cls(**payload)

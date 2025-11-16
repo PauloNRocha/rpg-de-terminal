@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from src import config
 from src.version import __version__
 
 DiretorioSalvamento = Path
@@ -89,6 +90,7 @@ def _validar_estado(estado: EstadoJogo) -> None:
     jogador = estado.get("jogador")
     mapa = estado.get("mapa")
     nivel = estado.get("nivel_masmorra")
+    dificuldade = estado.get("dificuldade")
 
     if not isinstance(jogador, dict) or "nome" not in jogador:
         raise ErroCarregamento("Dados do jogador ausentes ou inválidos no save.")
@@ -105,3 +107,5 @@ def _validar_estado(estado: EstadoJogo) -> None:
 
     if not isinstance(nivel, int) or nivel < 1:
         raise ErroCarregamento("Nível da masmorra inválido no save.")
+    if dificuldade is not None and dificuldade not in config.DIFICULDADES:
+        raise ErroCarregamento("Dificuldade inválida no arquivo de save.")

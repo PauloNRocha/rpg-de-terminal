@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any
 
-from src import config
+from src import config, eventos
 from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
 from src.atualizador import AtualizacaoInfo, verificar_atualizacao
 from src.combate import iniciar_combate
@@ -39,6 +39,7 @@ from src.ui import (
     desenhar_hud_exploracao,
     desenhar_menu_principal,
     desenhar_tela_escolha_classe,
+    desenhar_tela_escolha_dificuldade,
     desenhar_tela_evento,
     desenhar_tela_input,
     desenhar_tela_resumo_personagem,
@@ -78,6 +79,7 @@ class ContextoJogo:
     atualizacao_notificada: bool = False
     info_atualizacao: AtualizacaoInfo | None = None
     alerta_atualizacao_exibido: bool = False
+    dificuldade: str = config.DIFICULDADE_PADRAO
 
     def limpar_combate(self) -> None:
         """Remove referências ao combate atual."""
@@ -99,6 +101,38 @@ class ContextoJogo:
         self.info_atualizacao = None
         self.alerta_atualizacao_exibido = False
         self.limpar_combate()
+
+    def obter_perfil_dificuldade(self) -> config.DificuldadePerfil:
+        """Retorna a configuração completa da dificuldade atual."""
+        return config.DIFICULDADES.get(
+            self.dificuldade, config.DIFICULDADES[config.DIFICULDADE_PADRAO]
+        )
+
+    def definir_dificuldade(self, chave: str | None) -> None:
+        """Atualiza a dificuldade respeitando o catálogo disponível."""
+        if not chave:
+            self.dificuldade = config.DIFICULDADE_PADRAO
+            return
+        chave_normalizada = chave.lower()
+        if chave_normalizada not in config.DIFICULDADES:
+            chave_normalizada = config.DIFICULDADE_PADRAO
+        self.dificuldade = chave_normalizada
+
+
+def selecionar_dificuldade(contexto: ContextoJogo) -> None:
+    """Mostra a tela de dificuldade e aplica a escolha ao contexto."""
+    perfis = [
+        config.DIFICULDADES[chave]
+        for chave in config.DIFICULDADE_ORDEM
+        if chave in config.DIFICULDADES
+    ]
+    escolha = desenhar_tela_escolha_dificuldade(perfis, contexto.dificuldade)
+    contexto.definir_dificuldade(escolha)
+    perfil = contexto.obter_perfil_dificuldade()
+    desenhar_tela_evento(
+        "DIFICULDADE DEFINIDA",
+        f"Você jogará no modo {perfil.nome}.\n\n{perfil.descricao}",
+    )
 
 
 def _posicionar_na_entrada(jogador: Personagem, mapa: Mapa) -> None:
@@ -127,7 +161,12 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             f"Nova versão disponível: v{contexto.info_atualizacao.versao_disponivel} "
             f"(atual v{__version__}). Escolha '0' para saber como atualizar."
         )
-    escolha = desenhar_menu_principal(__version__, tem_save, alerta_atualizacao=alerta)
+    escolha = desenhar_menu_principal(
+        __version__,
+        tem_save,
+        contexto.obter_perfil_dificuldade().nome,
+        alerta_atualizacao=alerta,
+    )
     escolha = escolha.strip()
     if escolha == "0":
         info_manual = verificar_atualizacao(forcar=True)
@@ -154,6 +193,7 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             nivel_masmorra = estado_salvo.get("nivel_masmorra")
             if not all([jogador_data, mapa_salvo, isinstance(nivel_masmorra, int)]):
                 raise ErroCarregamento("Arquivo de save inválido ou corrompido.")
+            contexto.definir_dificuldade(estado_salvo.get("dificuldade", config.DIFICULDADE_PADRAO))
             contexto.jogador = Personagem.from_dict(jogador_data)
             contexto.mapa_atual = hidratar_mapa(mapa_salvo)
             contexto.nivel_masmorra = nivel_masmorra
@@ -172,6 +212,7 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
 
 def executar_estado_criacao(contexto: ContextoJogo) -> Estado:
     """Cria um personagem novo e segue para exploração."""
+    selecionar_dificuldade(contexto)
     jogador = processo_criacao_personagem()
     contexto.jogador = jogador
     contexto.nivel_masmorra = 1
@@ -187,17 +228,31 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
         return Estado.MENU
 
     if contexto.mapa_atual is None:
-        contexto.mapa_atual = gerar_mapa(contexto.nivel_masmorra)
+        contexto.mapa_atual = gerar_mapa(
+            contexto.nivel_masmorra, contexto.obter_perfil_dificuldade()
+        )
         _posicionar_na_entrada(jogador, contexto.mapa_atual)
 
     mapa = contexto.mapa_atual
     sala_atual = mapa[jogador.y][jogador.x]
 
+    if sala_atual.evento_id and not sala_atual.evento_resolvido:
+        perfil = contexto.obter_perfil_dificuldade()
+        titulo, mensagem = eventos.disparar_evento(
+            sala_atual.evento_id, jogador, perfil.saque_moedas_mult
+        )
+        desenhar_tela_evento(titulo, mensagem)
+        sala_atual.evento_resolvido = True
+
     if sala_atual.pode_ter_inimigo and not sala_atual.inimigo_derrotado:
         inimigo = sala_atual.inimigo_atual
         if inimigo is None:
             tipo = "chefe_orc" if sala_atual.chefe else None
-            inimigo = gerar_inimigo(sala_atual.nivel_area, tipo_inimigo=tipo)
+            inimigo = gerar_inimigo(
+                sala_atual.nivel_area,
+                tipo_inimigo=tipo,
+                dificuldade=contexto.obter_perfil_dificuldade(),
+            )
             sala_atual.inimigo_atual = inimigo
         contexto.sala_em_combate = sala_atual
         contexto.inimigo_em_combate = inimigo
@@ -227,7 +282,13 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             )
 
     opcoes.extend(["Ver Inventário", "Salvar jogo", "Sair da masmorra"])
-    escolha_str = desenhar_hud_exploracao(jogador, sala_atual, opcoes, contexto.nivel_masmorra)
+    escolha_str = desenhar_hud_exploracao(
+        jogador,
+        sala_atual,
+        opcoes,
+        contexto.nivel_masmorra,
+        contexto.obter_perfil_dificuldade().nome,
+    )
 
     try:
         escolha = int(escolha_str)
@@ -268,6 +329,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 "jogador": jogador.to_dict(),
                 "mapa": serializar_mapa(mapa),
                 "nivel_masmorra": contexto.nivel_masmorra,
+                "dificuldade": contexto.dificuldade,
             }
             try:
                 caminho = salvar_jogo(estado)
@@ -311,7 +373,7 @@ def executar_estado_combate(contexto: ContextoJogo) -> Estado:
         contexto,
         iniciar_combate,
         _usar_item_com_feedback,
-        gerar_item_aleatorio,
+        lambda raridade: _gerar_item_para_contexto(contexto, raridade),
         verificar_level_up,
         Estado.MENU,
         Estado.EXPLORACAO,
@@ -367,6 +429,11 @@ def _usar_item_com_feedback(jogador: Personagem) -> bool | None:
 def _equipar_item_com_bonus(jogador: Personagem) -> None:
     equipar_item_estado(jogador)
     aplicar_bonus_equipamento(jogador)
+
+
+def _gerar_item_para_contexto(contexto: ContextoJogo, raridade: str) -> Item | None:
+    bonus = contexto.obter_perfil_dificuldade().drop_consumivel_bonus
+    return gerar_item_aleatorio(raridade, bonus_consumivel=bonus)
 
 
 def serializar_mapa(mapa: Mapa) -> list[list[dict[str, Any]]]:

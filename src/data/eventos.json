@@ -1,0 +1,20 @@
+[
+  {
+    "id": "santuario_da_luz",
+    "nome": "Santuário da Luz",
+    "descricao": "Um brilho dourado envolve a sala, trazendo paz imediata.",
+    "efeitos": { "hp": 15 }
+  },
+  {
+    "id": "armadilha_de_espinhos",
+    "nome": "Armadilha de Espinhos",
+    "descricao": "O chão cede revelando espinhos enferrujados.",
+    "efeitos": { "hp": -12 }
+  },
+  {
+    "id": "cofre_esquecido",
+    "nome": "Cofre Esquecido",
+    "descricao": "Você encontra um pequeno cofre escondido sob pedras soltas.",
+    "efeitos": { "moedas": 35 }
+  }
+]

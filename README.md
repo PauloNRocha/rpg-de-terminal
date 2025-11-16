@@ -5,7 +5,7 @@ Bem-vindo a "Aventura no Terminal", um RPG solo em modo texto que roda direto no
 ## Panorama do Projeto
 
 - **Gênero:** Roguelike leve por turnos.
-- **Versão atual:** `v1.5.1`.
+- **Versão atual:** `v1.6.0-dev`.
 - **Plataforma:** Python 3.12+.
 - **UI:** Painéis, barras e entradas estilizadas com `rich` (nada de `print` cru!).
 
@@ -57,6 +57,7 @@ pytest
 - **Combate por Turnos Estilizado:** interface completa com barras de HP/XP, log de combate e opções de ação (`src/combate.py`, `src/ui.py`).
 - **Sistema de XP e Level Up:** múltiplos níveis por loop, atributos restaurados e bônus aplicados automaticamente (`jogo.py:29`).
 - **Salvar e Continuar:** grave o progresso com um clique no menu de exploração e retome pelo menu principal quando quiser.
+- **Modos de Dificuldade Dinâmicos:** escolha entre Explorador (Fácil), Aventureiro (Normal) e Pesadelo (Difícil), com multiplicadores claros para encontros, loot e força dos inimigos.
 - **Arquitetura com Dataclasses:** personagens, itens e inimigos usam `dataclasses`, garantindo serialização confiável, menos bugs e APIs mais claras para novas features.
 - **Inventário Inteligente:** telas dedicadas para visualizar, equipar e usar itens, com comparação lado a lado dos bônus (`jogo.py`, `src/ui.py`).
 - **Loot Procedural:** inimigos droparam itens gerados a partir de templates por raridade (`src/gerador_itens.py`, `src/data/itens.json`).
