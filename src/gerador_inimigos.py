@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from src import config
+from src.chefes import ChefeConfig
 from src.entidades import Inimigo
 from src.erros import ErroDadosError
 
@@ -43,34 +44,51 @@ def obter_templates() -> TemplatesInimigos:
     return INIMIGO_TEMPLATES
 
 
+def _aplicar_variacao(valor: int) -> int:
+    """Aplica um desvio aleatório controlado ao atributo informado."""
+    variacao = random.uniform(
+        -config.INIMIGO_VARIACAO_PERCENTUAL,
+        config.INIMIGO_VARIACAO_PERCENTUAL,
+    )
+    return max(1, int(valor * (1 + variacao)))
+
+
 def gerar_inimigo(
     nivel: int,
     tipo_inimigo: str | None = None,
     dificuldade: config.DificuldadePerfil | None = None,
+    chefe: bool = False,
+    perfil_chefe: ChefeConfig | None = None,
 ) -> Inimigo:
     """Gera um inimigo com atributos escalados para um nível específico."""
     templates = obter_templates()
 
     # Escolhe um tipo de inimigo
-    if tipo_inimigo and tipo_inimigo in templates:
+    if chefe and perfil_chefe is not None:
+        tipo_escolhido = perfil_chefe.tipo
+    elif tipo_inimigo and tipo_inimigo in templates:
         tipo_escolhido = tipo_inimigo
     else:
-        # Exclui o chefe da geração aleatória normal
-        tipos_disponiveis: list[str] = [k for k in templates if k != "chefe_orc"]
+        tipos_disponiveis: list[str] = [k for k in templates if not k.startswith("chefe_")]
         if not tipos_disponiveis:
             raise ValueError("Nenhum inimigo (exceto chefe) disponível para geração aleatória.")
         tipo_escolhido = random.choice(tipos_disponiveis)
 
     template = copy.deepcopy(templates[tipo_escolhido])
 
-    # Fator de escala (aumenta 15% por nível, por exemplo)
-    fator_escala = 1 + (nivel - 1) * 0.15
+    fator_escala = config.fator_inimigo_por_nivel(nivel)
 
     # Escala os atributos
-    hp = int(template["hp_base"] * fator_escala)
-    ataque = int(template["ataque_base"] * fator_escala)
-    defesa = int(template["defesa_base"] * fator_escala)
-    xp_recompensa = int(template["xp_base"] * fator_escala)
+    hp = _aplicar_variacao(int(template["hp_base"] * fator_escala))
+    ataque = _aplicar_variacao(int(template["ataque_base"] * fator_escala))
+    defesa = _aplicar_variacao(int(template["defesa_base"] * fator_escala))
+    xp_recompensa = max(1, int(template["xp_base"] * fator_escala))
+
+    if chefe:
+        hp = int(hp * (1 + config.CHEFE_HP_EXTRA_MULT))
+        ataque = int(ataque * (1 + config.CHEFE_ATAQUE_EXTRA_MULT))
+        defesa = int(defesa * (1 + config.CHEFE_DEFESA_EXTRA_MULT))
+        xp_recompensa = int(xp_recompensa * config.CHEFE_XP_MULT)
 
     if dificuldade is not None:
         hp = max(1, int(hp * dificuldade.inimigo_hp_mult))
@@ -78,8 +96,12 @@ def gerar_inimigo(
         defesa = max(0, int(defesa * dificuldade.inimigo_defesa_mult))
         xp_recompensa = max(1, int(xp_recompensa * dificuldade.xp_recompensa_mult))
 
+    nome_base = template["nome"]
+    if chefe and perfil_chefe is not None and perfil_chefe.nome:
+        nome_base = perfil_chefe.nome
+
     return Inimigo(
-        nome=f"{template['nome']} (Nível {nivel})",
+        nome=f"{nome_base} (Nível {nivel})",
         hp=hp,
         hp_max=hp,
         ataque=ataque,

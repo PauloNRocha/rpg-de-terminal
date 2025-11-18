@@ -149,6 +149,10 @@ class Sala:
     inimigo_derrotado: bool = False
     inimigo_atual: Inimigo | None = None
     chefe: bool = False
+    chefe_id: str | None = None
+    chefe_tipo: str | None = None
+    chefe_nome: str | None = None
+    chefe_descricao: str | None = None
     nivel_area: int = 1
     evento_id: str | None = None
     evento_resolvido: bool = False
@@ -173,6 +177,10 @@ class Sala:
         payload.setdefault("inimigo_derrotado", False)
         payload.setdefault("pode_ter_inimigo", False)
         payload.setdefault("chefe", False)
+        payload.setdefault("chefe_id", None)
+        payload.setdefault("chefe_tipo", None)
+        payload.setdefault("chefe_nome", None)
+        payload.setdefault("chefe_descricao", None)
         payload.setdefault("nivel_area", 1)
         payload.setdefault("evento_id", None)
         payload.setdefault("evento_resolvido", False)

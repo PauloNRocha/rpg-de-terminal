@@ -1,34 +1,98 @@
 {
     "goblin": {
         "nome": "Goblin",
-        "hp_base": 10,
-        "ataque_base": 4,
+        "hp_base": 12,
+        "ataque_base": 5,
         "defesa_base": 1,
-        "xp_base": 15,
+        "xp_base": 18,
         "drop_raridade": "comum"
     },
     "orc": {
         "nome": "Orc",
-        "hp_base": 20,
-        "ataque_base": 6,
+        "hp_base": 25,
+        "ataque_base": 7,
         "defesa_base": 3,
-        "xp_base": 30,
+        "xp_base": 35,
         "drop_raridade": "incomum"
     },
     "troll": {
         "nome": "Troll",
-        "hp_base": 35,
+        "hp_base": 40,
+        "ataque_base": 9,
+        "defesa_base": 3,
+        "xp_base": 55,
+        "drop_raridade": "incomum"
+    },
+    "espectro": {
+        "nome": "Espectro",
+        "hp_base": 20,
         "ataque_base": 8,
         "defesa_base": 2,
-        "xp_base": 50,
-        "drop_raridade": "incomum"
+        "xp_base": 45,
+        "drop_raridade": "raro"
     },
     "chefe_orc": {
         "nome": "Chefe Orc",
-        "hp_base": 50,
-        "ataque_base": 10,
+        "hp_base": 60,
+        "ataque_base": 12,
+        "defesa_base": 6,
+        "xp_base": 180,
+        "drop_raridade": "raro"
+    },
+    "chefe_nigromante": {
+        "nome": "Nigromante Sombrio",
+        "hp_base": 55,
+        "ataque_base": 14,
+        "defesa_base": 4,
+        "xp_base": 190,
+        "drop_raridade": "raro"
+    },
+    "chefe_hidra": {
+        "nome": "Hidra Cristalina",
+        "hp_base": 70,
+        "ataque_base": 11,
+        "defesa_base": 7,
+        "xp_base": 210,
+        "drop_raridade": "raro"
+    },
+    "chefe_golem": {
+        "nome": "Golem de Obsidiana",
+        "hp_base": 80,
+        "ataque_base": 13,
+        "defesa_base": 8,
+        "xp_base": 220,
+        "drop_raridade": "raro"
+    },
+    "chefe_dragao": {
+        "nome": "Dragão Abissal",
+        "hp_base": 90,
+        "ataque_base": 15,
+        "defesa_base": 10,
+        "xp_base": 250,
+        "drop_raridade": "raro"
+    },
+    "chefe_matriarca": {
+        "nome": "Matriarca Tecelã",
+        "hp_base": 65,
+        "ataque_base": 12,
         "defesa_base": 5,
-        "xp_base": 150,
+        "xp_base": 200,
+        "drop_raridade": "raro"
+    },
+    "chefe_tirano": {
+        "nome": "Tirano Flamígero",
+        "hp_base": 85,
+        "ataque_base": 14,
+        "defesa_base": 9,
+        "xp_base": 230,
+        "drop_raridade": "raro"
+    },
+    "chefe_pesadelo": {
+        "nome": "Pesadelo Abissal",
+        "hp_base": 100,
+        "ataque_base": 16,
+        "defesa_base": 11,
+        "xp_base": 270,
         "drop_raridade": "raro"
     }
 }

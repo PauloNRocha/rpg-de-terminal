@@ -5,7 +5,10 @@ from dataclasses import dataclass
 MAP_WIDTH = 10
 MAP_HEIGHT = 10
 MAP_SIDE_ROOMS_RATIO = 0.25
-MAP_ENEMY_PROBABILITY = 0.6
+MAP_ENEMY_PROBABILITY = 0.55
+MAP_ENEMY_PROBABILITY_ESCALONAMENTO = 0.07
+MAP_ENEMY_PROBABILITY_MIN = 0.35
+MAP_ENEMY_PROBABILITY_MAX = 0.95
 
 LEVEL_UP_HP_GAIN = 10
 LEVEL_UP_ATTACK_GAIN = 2
@@ -27,9 +30,15 @@ COIN_DROP_FAIXAS = {
     "default": (5, 10),
 }
 
-COIN_DROP_ESCALONAMENTO = 0.1  # 10% extra por nível acima do primeiro
+COIN_DROP_ESCALONAMENTO = 0.12  # 12% extra por nível acima do primeiro
 
 EVENTO_PROBABILIDADE = 0.2
+INIMIGO_ESCALONAMENTO_POR_NIVEL = 0.25
+INIMIGO_VARIACAO_PERCENTUAL = 0.12
+CHEFE_HP_EXTRA_MULT = 0.35
+CHEFE_ATAQUE_EXTRA_MULT = 0.25
+CHEFE_DEFESA_EXTRA_MULT = 0.25
+CHEFE_XP_MULT = 2.2
 
 
 @dataclass(frozen=True)
@@ -82,3 +91,17 @@ DIFICULDADES: dict[str, DificuldadePerfil] = {
 
 DIFICULDADE_ORDEM: tuple[str, ...] = ("facil", "normal", "dificil")
 DIFICULDADE_PADRAO = "normal"
+
+
+def probabilidade_inimigo_por_nivel(nivel: int, perfil: DificuldadePerfil | None = None) -> float:
+    """Escala a chance de salas terem inimigos conforme o andar/dificuldade."""
+    base = MAP_ENEMY_PROBABILITY + max(0, nivel - 1) * MAP_ENEMY_PROBABILITY_ESCALONAMENTO
+    base = max(MAP_ENEMY_PROBABILITY_MIN, min(MAP_ENEMY_PROBABILITY_MAX, base))
+    if perfil is not None:
+        base *= perfil.prob_inimigo_mult
+    return max(0.0, min(1.0, base))
+
+
+def fator_inimigo_por_nivel(nivel: int) -> float:
+    """Retorna o multiplicador base aplicado aos inimigos por andar."""
+    return 1 + max(0, nivel - 1) * INIMIGO_ESCALONAMENTO_POR_NIVEL

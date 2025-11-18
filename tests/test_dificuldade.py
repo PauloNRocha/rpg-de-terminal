@@ -13,6 +13,14 @@ def test_contexto_normaliza_dificuldade_invalida() -> None:
     assert contexto.dificuldade == config.DIFICULDADE_PADRAO
 
 
+def test_probabilidade_inimigo_escalona_com_andar() -> None:
+    """Andares mais profundos devem ter probabilidade maior."""
+    nivel_baixo = config.probabilidade_inimigo_por_nivel(1)
+    nivel_alto = config.probabilidade_inimigo_por_nivel(6)
+    assert nivel_alto > nivel_baixo
+    assert 0 <= nivel_alto <= 1
+
+
 def test_gerar_inimigo_respeita_perfis(monkeypatch: pytest.MonkeyPatch) -> None:
     """Diferença entre fácil e difícil deve alterar os atributos."""
     template = {
@@ -25,6 +33,7 @@ def test_gerar_inimigo_respeita_perfis(monkeypatch: pytest.MonkeyPatch) -> None:
     }
 
     monkeypatch.setattr(gerador_inimigos, "obter_templates", lambda: {"eco": template})
+    monkeypatch.setattr(gerador_inimigos.random, "uniform", lambda *_args, **_kwargs: 0.0)
 
     facil = gerador_inimigos.gerar_inimigo(
         1, tipo_inimigo="eco", dificuldade=config.DIFICULDADES["facil"]

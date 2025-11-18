@@ -3,6 +3,7 @@
 import random
 
 from src import config, eventos
+from src.chefes import ChefeConfig, sortear_chefe_para_andar
 from src.entidades import Sala
 
 Mapa = list[list[Sala]]
@@ -10,10 +11,7 @@ Mapa = list[list[Sala]]
 
 def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | None = None) -> Mapa:
     """Gera um novo mapa com um caminho principal garantido da entrada até a saída."""
-    prob_inimigo = config.MAP_ENEMY_PROBABILITY
-    if perfil_dificuldade is not None:
-        prob_inimigo *= perfil_dificuldade.prob_inimigo_mult
-    prob_inimigo = min(1.0, max(0.0, prob_inimigo))
+    prob_inimigo = config.probabilidade_inimigo_por_nivel(nivel, perfil_dificuldade)
 
     mapa: Mapa = [
         [
@@ -45,13 +43,15 @@ def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | No
             y += 1
 
     entrada_x, entrada_y = caminho_principal[0]
-    mapa[entrada_y][entrada_x] = _criar_sala("entrada", nivel)
+    mapa[entrada_y][entrada_x] = _criar_sala("entrada", nivel, prob_inimigo)
 
     chefe_x, chefe_y = caminho_principal[-2]
-    mapa[chefe_y][chefe_x] = _criar_sala("chefe", nivel)
+    chefe_config = sortear_chefe_para_andar(nivel)
+    sala_chefe = _criar_sala("chefe", nivel, prob_inimigo, chefe_config=chefe_config)
+    mapa[chefe_y][chefe_x] = sala_chefe
 
     escada_x, escada_y = caminho_principal[-1]
-    mapa[escada_y][escada_x] = _criar_sala("escada", nivel)
+    mapa[escada_y][escada_x] = _criar_sala("escada", nivel, prob_inimigo)
 
     for _ in range(int(config.MAP_WIDTH * config.MAP_HEIGHT * config.MAP_SIDE_ROOMS_RATIO)):
         px, py = random.choice(caminho_principal)
@@ -71,7 +71,12 @@ def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | No
     return mapa
 
 
-def _criar_sala(tipo: str, nivel: int, prob_inimigo: float | None = None) -> Sala:
+def _criar_sala(
+    tipo: str,
+    nivel: int,
+    prob_inimigo: float | None = None,
+    chefe_config: ChefeConfig | None = None,
+) -> Sala:
     """Cria diferentes tipos de sala de acordo com o contexto."""
     if tipo == "entrada":
         if nivel <= 1:
@@ -96,7 +101,7 @@ def _criar_sala(tipo: str, nivel: int, prob_inimigo: float | None = None) -> Sal
             nivel_area=nivel,
         )
     if tipo == "chefe":
-        return Sala(
+        sala = Sala(
             tipo="chefe",
             nome="Covil do Chefe",
             descricao=(
@@ -107,6 +112,14 @@ def _criar_sala(tipo: str, nivel: int, prob_inimigo: float | None = None) -> Sal
             chefe=True,
             nivel_area=nivel,
         )
+        if chefe_config:
+            sala.chefe_id = chefe_config.id
+            sala.chefe_tipo = chefe_config.tipo
+            sala.chefe_nome = chefe_config.nome
+            sala.chefe_descricao = chefe_config.descricao or sala.descricao
+            sala.nome = f"Covil de {chefe_config.nome}"
+            sala.descricao = sala.chefe_descricao
+        return sala
     if tipo == "escada":
         return Sala(
             tipo="escada",

@@ -12,7 +12,7 @@ from rich.table import Table
 from rich.text import Text
 
 from src.config import DificuldadePerfil
-from src.entidades import Inimigo, Personagem, Sala
+from src.entidades import Inimigo, Item, Personagem, Sala
 
 console = Console()
 ClassesConfig = dict[str, dict[str, Any]]
@@ -102,6 +102,19 @@ def desenhar_hud_exploracao(
     texto_local = Text()
     texto_local.append(f"🗺️  Local: {sala_atual.nome}\n", style="bold magenta")
     texto_local.append(sala_atual.descricao, style="white")
+    if sala_atual.chefe:
+        if sala_atual.inimigo_derrotado:
+            texto_local.append("\n✅ Chefe derrotado nesta sala.", style="bold green")
+        else:
+            nome_chefe = (
+                sala_atual.chefe_nome
+                or sala_atual.chefe_id
+                or sala_atual.nome
+                or "Chefe Desconhecido"
+            )
+            texto_local.append(f"\n⚠️  Presença do chefe: {nome_chefe}", style="bold red")
+            if sala_atual.chefe_descricao:
+                texto_local.append(f"\n{sala_atual.chefe_descricao}", style="red")
 
     titulo_local = Text(f"Localização — Masmorra Nível {nivel_masmorra}", style="bold blue")
 
@@ -238,7 +251,7 @@ def desenhar_menu_principal(
     else:
         menu_texto.append("2. Sair\n", style="bold red")
 
-    footer_text = f"v{versao} - Desenvolvido por Paulo N. Rocha"
+    footer_text = f"v{versao} - Desenvolvido por Paulo Rocha e IA"
     destaque_dificuldade = Panel(
         Text(
             f"Dificuldade padrão para a próxima aventura: {dificuldade_nome}",
@@ -498,9 +511,82 @@ def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
     console.input("[bold yellow]Pressione Enter para iniciar a aventura... [/]")
 
 
+def desenhar_tela_ficha_personagem(jogador: Personagem) -> None:
+    """Exibe uma ficha completa do personagem durante a aventura."""
+    limpar_tela()
+    status = Table.grid(padding=(0, 1))
+    status.add_column(justify="left")
+    status.add_column(justify="right")
+    status.add_row("👤 Nome", Text(jogador.nome, style="bold green"))
+    status.add_row("🏹 Classe", Text(jogador.classe, style="cyan"))
+    status.add_row("🌟 Nível", Text(str(jogador.nivel), style="yellow"))
+    status.add_row(
+        "⭐ XP",
+        Text(f"{jogador.xp_atual}/{jogador.xp_para_proximo_nivel}", style="bright_white"),
+    )
+    status.add_row("❤️ HP", Text(f"{jogador.hp}/{jogador.hp_max}", style="bold red"))
+    status.add_row("⚔️ Ataque Total", Text(str(jogador.ataque), style="magenta"))
+    status.add_row("🛡️ Defesa Total", Text(str(jogador.defesa), style="magenta"))
+    status.add_row("💰 Bolsa", Text(jogador.carteira.formatar(), style="bold yellow"))
+
+    panel_status = Panel(status, title="Status", border_style="blue")
+
+    atributos = Table.grid(padding=0)
+    atributos.add_column(justify="left")
+    atributos.add_column(justify="right")
+    atributos.add_row("Ataque Base", Text(str(jogador.ataque_base)))
+    atributos.add_row("Defesa Base", Text(str(jogador.defesa_base)))
+    atributos.add_row("Posição", Text(f"({jogador.x}, {jogador.y})", style="dim"))
+
+    equip = Table(
+        title="Equipamento",
+        box=box.ROUNDED,
+        header_style="bold cyan",
+        show_lines=True,
+    )
+    equip.add_column("Slot", justify="left", width=10)
+    equip.add_column("Item", justify="left")
+    equip.add_column("Bônus", justify="left", width=20)
+    arma = jogador.equipamento.get("arma")
+    escudo = jogador.equipamento.get("escudo")
+
+    def _bonus_str(item: Item | None) -> str:
+        if not item:
+            return "-"
+        dados = item.bonus or {}
+        return ", ".join(f"{k}: {v}" for k, v in dados.items()) or "-"
+
+    equip.add_row("Arma", arma.nome if arma else "Nenhuma", _bonus_str(arma))
+    equip.add_row("Escudo", escudo.nome if escudo else "Nenhum", _bonus_str(escudo))
+
+    painel_atributos = Panel(atributos, title="Atributos Base", border_style="green")
+    painel_equip = Panel(equip, border_style="green")
+
+    console.print(Columns([panel_status, painel_equip], expand=True))
+    console.print(painel_atributos)
+    console.input("[bold yellow]Pressione Enter para retornar... [/]")
+
+
 def desenhar_tela_inventario(jogador: Personagem) -> str:
     """Desenha a tela de inventário do jogador."""
     limpar_tela()
+
+    def _chave_item(item: Item) -> tuple:
+        bonus = tuple(sorted((item.bonus or {}).items()))
+        efeito = tuple(sorted((item.efeito or {}).items()))
+        return (item.nome, item.tipo, bonus, efeito)
+
+    def _agrupar_itens(itens: list[Item]) -> list[dict[str, Any]]:
+        grupos: dict[tuple, dict[str, Any]] = {}
+        for item in itens:
+            chave = _chave_item(item)
+            if chave not in grupos:
+                grupos[chave] = {"item": item, "quantidade": 0}
+            grupos[chave]["quantidade"] += 1
+        return sorted(grupos.values(), key=lambda g: (g["item"].tipo, g["item"].nome))
+
+    grupos_itens = _agrupar_itens(jogador.inventario)
+
     tabela_inventario = Table(
         title=Text("INVENTÁRIO", style="bold yellow"),
         box=box.DOUBLE,
@@ -510,9 +596,10 @@ def desenhar_tela_inventario(jogador: Personagem) -> str:
     tabela_inventario.add_column("Opção", style="dim", width=5)
     tabela_inventario.add_column("Item", style="green", width=25)
     tabela_inventario.add_column("Tipo", style="magenta", width=10)
+    tabela_inventario.add_column("Qtd", style="yellow", width=6)
     tabela_inventario.add_column("Efeito/Bônus", style="white", width=25)
 
-    if not jogador.inventario:
+    if not grupos_itens:
         console.print(
             Panel(
                 Text("Seu inventário está vazio.", justify="center"),
@@ -521,10 +608,18 @@ def desenhar_tela_inventario(jogador: Personagem) -> str:
             )
         )
     else:
-        for i, item in enumerate(jogador.inventario):
+        for i, grupo in enumerate(grupos_itens):
+            item = grupo["item"]
+            qtd = grupo["quantidade"]
             efeitos = item.efeito or item.bonus
             efeito_str = ", ".join(f"{k}: {v}" for k, v in efeitos.items()) if efeitos else "-"
-            tabela_inventario.add_row(str(i + 1), item.nome, item.tipo, efeito_str)
+            tabela_inventario.add_row(
+                str(i + 1),
+                item.nome,
+                item.tipo,
+                f"x{qtd}",
+                efeito_str,
+            )
         console.print(tabela_inventario)
 
     console.print(

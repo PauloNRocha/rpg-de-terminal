@@ -7,6 +7,7 @@ from typing import Any
 from src import config, eventos
 from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
 from src.atualizador import AtualizacaoInfo, verificar_atualizacao
+from src.chefes import obter_chefe_por_id
 from src.combate import iniciar_combate
 from src.entidades import Inimigo, Item, Personagem, Sala
 from src.erros import ErroDadosError
@@ -41,6 +42,7 @@ from src.ui import (
     desenhar_tela_escolha_classe,
     desenhar_tela_escolha_dificuldade,
     desenhar_tela_evento,
+    desenhar_tela_ficha_personagem,
     desenhar_tela_input,
     desenhar_tela_resumo_personagem,
     desenhar_tela_saida,
@@ -247,11 +249,20 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
     if sala_atual.pode_ter_inimigo and not sala_atual.inimigo_derrotado:
         inimigo = sala_atual.inimigo_atual
         if inimigo is None:
-            tipo = "chefe_orc" if sala_atual.chefe else None
+            perfil_dificuldade = contexto.obter_perfil_dificuldade()
+            perfil_chefe = obter_chefe_por_id(sala_atual.chefe_id)
+            tipo = None
+            if sala_atual.chefe:
+                if perfil_chefe:
+                    tipo = perfil_chefe.tipo
+                elif sala_atual.chefe_tipo:
+                    tipo = sala_atual.chefe_tipo
             inimigo = gerar_inimigo(
                 sala_atual.nivel_area,
                 tipo_inimigo=tipo,
-                dificuldade=contexto.obter_perfil_dificuldade(),
+                dificuldade=perfil_dificuldade,
+                chefe=sala_atual.chefe,
+                perfil_chefe=perfil_chefe,
             )
             sala_atual.inimigo_atual = inimigo
         contexto.sala_em_combate = sala_atual
@@ -281,7 +292,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 "A escada está bloqueada. Derrote o chefe para prosseguir.",
             )
 
-    opcoes.extend(["Ver Inventário", "Salvar jogo", "Sair da masmorra"])
+    opcoes.extend(["Ver Ficha do Personagem", "Ver Inventário", "Salvar jogo", "Sair da masmorra"])
     escolha_str = desenhar_hud_exploracao(
         jogador,
         sala_atual,
@@ -321,6 +332,9 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
             mensagem_nivel = f"Você desce para o próximo nível.\nVocê recuperou {hp_cura} de HP."
             desenhar_tela_evento(f"NÍVEL {contexto.nivel_masmorra} ALCANÇADO!", mensagem_nivel)
+            return Estado.EXPLORACAO
+        if acao_escolhida == "Ver Ficha do Personagem":
+            desenhar_tela_ficha_personagem(jogador)
             return Estado.EXPLORACAO
         if acao_escolhida == "Ver Inventário":
             return Estado.INVENTARIO

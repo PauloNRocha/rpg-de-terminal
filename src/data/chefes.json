@@ -1,0 +1,66 @@
+[
+  {
+    "id": "chefe_orc",
+    "nome": "Senhor dos Orcs",
+    "tipo": "chefe_orc",
+    "descricao": "Um orc colossal, líder das hordas subterrâneas.",
+    "andar_min": 1,
+    "andar_max": 2
+  },
+  {
+    "id": "chefe_nigromante",
+    "nome": "Nigromante Sombrio",
+    "tipo": "chefe_nigromante",
+    "descricao": "Um nigromante que convoca espectros para auxiliá-lo.",
+    "andar_min": 2,
+    "andar_max": 3
+  },
+  {
+    "id": "chefe_hidra",
+    "nome": "Hidra Cristalina",
+    "tipo": "chefe_hidra",
+    "descricao": "Uma hidra cristalina de múltiplas cabeças venenosa.",
+    "andar_min": 3,
+    "andar_max": 4
+  },
+  {
+    "id": "chefe_golem",
+    "nome": "Golem de Obsidiana",
+    "tipo": "chefe_golem",
+    "descricao": "Golem de obsidiana, praticamente impenetrável.",
+    "andar_min": 4,
+    "andar_max": 5
+  },
+  {
+    "id": "chefe_dragao",
+    "nome": "Dragão Abissal",
+    "tipo": "chefe_dragao",
+    "descricao": "Dragão abissal que cospe chamas púrpuras e corrompe o ar.",
+    "andar_min": 5,
+    "andar_max": 10
+  },
+  {
+    "id": "chefe_matriarca",
+    "nome": "Matriarca Tecelã",
+    "tipo": "chefe_matriarca",
+    "descricao": "Matriarca aracnídea que tece veneno e armadilhas mentais.",
+    "andar_min": 2,
+    "andar_max": 4
+  },
+  {
+    "id": "chefe_tirano",
+    "nome": "Tirano Flamígero",
+    "tipo": "chefe_tirano",
+    "descricao": "Tirano ancestral envolto em runas flamejantes.",
+    "andar_min": 4,
+    "andar_max": 6
+  },
+  {
+    "id": "chefe_pesadelo",
+    "nome": "Pesadelo Ancestral",
+    "tipo": "chefe_dragao",
+    "descricao": "Pesadelo ancestral",
+    "andar_min": 6,
+    "andar_max": 10
+  }
+]
