@@ -9,9 +9,9 @@
   },
   {
     "id": "chefe_nigromante",
-    "nome": "Nigromante Sombrio",
+    "nome": "Necromante Sombrio",
     "tipo": "chefe_nigromante",
-    "descricao": "Um nigromante que convoca espectros para auxiliá-lo.",
+    "descricao": "Um necromante que convoca espectros para auxiliá-lo.",
     "andar_min": 2,
     "andar_max": 3
   },

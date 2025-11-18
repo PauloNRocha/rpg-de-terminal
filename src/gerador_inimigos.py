@@ -85,10 +85,16 @@ def gerar_inimigo(
     xp_recompensa = max(1, int(template["xp_base"] * fator_escala))
 
     if chefe:
-        hp = int(hp * (1 + config.CHEFE_HP_EXTRA_MULT))
-        ataque = int(ataque * (1 + config.CHEFE_ATAQUE_EXTRA_MULT))
-        defesa = int(defesa * (1 + config.CHEFE_DEFESA_EXTRA_MULT))
-        xp_recompensa = int(xp_recompensa * config.CHEFE_XP_MULT)
+        (
+            bonus_hp,
+            bonus_ataque,
+            bonus_defesa,
+            bonus_xp,
+        ) = config.obter_bonus_chefe(nivel)
+        hp = int(hp * (1 + bonus_hp))
+        ataque = int(ataque * (1 + bonus_ataque))
+        defesa = int(defesa * (1 + bonus_defesa))
+        xp_recompensa = int(xp_recompensa * bonus_xp)
 
     if dificuldade is not None:
         hp = max(1, int(hp * dificuldade.inimigo_hp_mult))

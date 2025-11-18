@@ -35,10 +35,18 @@ COIN_DROP_ESCALONAMENTO = 0.12  # 12% extra por nível acima do primeiro
 EVENTO_PROBABILIDADE = 0.2
 INIMIGO_ESCALONAMENTO_POR_NIVEL = 0.25
 INIMIGO_VARIACAO_PERCENTUAL = 0.12
-CHEFE_HP_EXTRA_MULT = 0.35
-CHEFE_ATAQUE_EXTRA_MULT = 0.25
-CHEFE_DEFESA_EXTRA_MULT = 0.25
-CHEFE_XP_MULT = 2.2
+CHEFE_HP_EXTRA_MULT_BASE = 0.2
+CHEFE_HP_EXTRA_MULT_STEP = 0.03
+CHEFE_HP_EXTRA_MULT_MAX = 0.35
+CHEFE_ATAQUE_EXTRA_MULT_BASE = 0.12
+CHEFE_ATAQUE_EXTRA_MULT_STEP = 0.02
+CHEFE_ATAQUE_EXTRA_MULT_MAX = 0.25
+CHEFE_DEFESA_EXTRA_MULT_BASE = 0.12
+CHEFE_DEFESA_EXTRA_MULT_STEP = 0.02
+CHEFE_DEFESA_EXTRA_MULT_MAX = 0.25
+CHEFE_XP_MULT_BASE = 1.7
+CHEFE_XP_MULT_STEP = 0.1
+CHEFE_XP_MULT_MAX = 2.2
 
 
 @dataclass(frozen=True)
@@ -105,3 +113,28 @@ def probabilidade_inimigo_por_nivel(nivel: int, perfil: DificuldadePerfil | None
 def fator_inimigo_por_nivel(nivel: int) -> float:
     """Retorna o multiplicador base aplicado aos inimigos por andar."""
     return 1 + max(0, nivel - 1) * INIMIGO_ESCALONAMENTO_POR_NIVEL
+
+
+def _calcular_bonus_escalonado(base: float, passo: float, maximo: float, nivel: int) -> float:
+    return min(maximo, base + max(0, nivel - 1) * passo)
+
+
+def obter_bonus_chefe(nivel: int) -> tuple[float, float, float, float]:
+    """Retorna multiplicadores adicionais para chefes conforme o andar."""
+    hp_bonus = _calcular_bonus_escalonado(
+        CHEFE_HP_EXTRA_MULT_BASE, CHEFE_HP_EXTRA_MULT_STEP, CHEFE_HP_EXTRA_MULT_MAX, nivel
+    )
+    ataque_bonus = _calcular_bonus_escalonado(
+        CHEFE_ATAQUE_EXTRA_MULT_BASE,
+        CHEFE_ATAQUE_EXTRA_MULT_STEP,
+        CHEFE_ATAQUE_EXTRA_MULT_MAX,
+        nivel,
+    )
+    defesa_bonus = _calcular_bonus_escalonado(
+        CHEFE_DEFESA_EXTRA_MULT_BASE,
+        CHEFE_DEFESA_EXTRA_MULT_STEP,
+        CHEFE_DEFESA_EXTRA_MULT_MAX,
+        nivel,
+    )
+    xp_mult = min(CHEFE_XP_MULT_MAX, CHEFE_XP_MULT_BASE + max(0, nivel - 1) * CHEFE_XP_MULT_STEP)
+    return hp_bonus, ataque_bonus, defesa_bonus, xp_mult

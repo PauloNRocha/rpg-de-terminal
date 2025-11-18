@@ -7,12 +7,15 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.6.1] - 2025-11-18
+
 ### Adicionado
 
 -   Nova opção "Ver Ficha do Personagem" durante a exploração abre um painel Rich com atributos atuais, valores base, posição e equipamentos, permitindo consultar a ficha completa sem sair da run.
 -   Tela de inventário agora agrupa itens idênticos (ex.: “Poção de Cura x6”) e exibe a contagem em uma coluna dedicada, deixando listas longas muito mais legíveis.
 -   Catálogo data-driven de chefes (`src/data/chefes.json`) com nomes, descrições e faixas de andares, carregado por `src/chefes.py` e integrado ao gerador de mapas.
 -   HUD destaca automaticamente quando o jogador está diante de um chefe, mostrando o nome/descrição sorteados antes do combate.
+-   Novos itens raros (Lâmina Fantasmal e Broquel da Aurora) foram adicionados ao loot de alto nível para diversificar os drops dos espectros e demais inimigos raros.
 
 ### Alterado
 
@@ -23,11 +26,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Inimigos de chefe usam o template correspondente ao perfil sorteado (HP/ataque/defesa/xp e nome customizados), evitando encontros repetitivos como "Chefe Orc" em todos os andares.
 -   Probabilidade de encontrar inimigos agora escala por andar/dificuldade (`config.probabilidade_inimigo_por_nivel`), tornando os níveis profundos mais perigosos e recompensadores.
 -   Inimigos escalam com fator maior por andar e recebem uma leve variação aleatória nos atributos, deixando combates menos previsíveis sem quebrar o balanceamento geral.
+-   Chefes passaram a usar bônus escalonados por nível (HP/ATK/DEF/XP), deixando o Chefe Orc acessível no início da campanha e aumentando gradualmente o desafio nos andares seguintes.
 
 ### Corrigido
 
 -   O verificador automático de updates (`src/atualizador.py`) só grava `last_check_iso` quando a chamada à API é bem-sucedida, marcando falhas em `ultima_falha_iso`; assim, o jogo re-tenta automaticamente na próxima abertura mesmo que o intervalo configurado ainda não tenha passado.
 -   A HUD de exploração passa a sinalizar chefes apenas enquanto estiverem vivos e confirma quando já foram derrotados, eliminando o alerta permanente de “Chefe Desconhecido” após a vitória.
+-   “Nigromante Sombrio” foi renomeado para “Necromante Sombrio” em todos os dados, mantendo consistência com o vocabulário de fantasia utilizado no restante do jogo.
 
 ## [1.6.0] - 2025-11-16
 

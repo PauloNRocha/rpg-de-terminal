@@ -59,6 +59,20 @@
             "bonus": { "defesa": 5, "ataque": 1 },
             "descricao": "+5 Defesa, +1 Ataque",
             "preco_bronze": 215
+        },
+        {
+            "nome": "Lâmina Fantasmal",
+            "tipo": "arma",
+            "bonus": { "ataque": 7, "defesa": 2 },
+            "descricao": "+7 Ataque, +2 Defesa",
+            "preco_bronze": 230
+        },
+        {
+            "nome": "Broquel da Aurora",
+            "tipo": "escudo",
+            "bonus": { "defesa": 4, "ataque": 2 },
+            "descricao": "+4 Defesa, +2 Ataque",
+            "preco_bronze": 225
         }
     ],
     "consumivel": [
