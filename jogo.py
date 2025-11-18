@@ -1,6 +1,6 @@
 import sys
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
@@ -36,6 +36,7 @@ from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio
 from src.gerador_mapa import gerar_mapa
 from src.personagem import criar_personagem, obter_classes
+from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temporarios
 from src.ui import (
     desenhar_hud_exploracao,
     desenhar_menu_principal,
@@ -44,8 +45,10 @@ from src.ui import (
     desenhar_tela_evento,
     desenhar_tela_ficha_personagem,
     desenhar_tela_input,
+    desenhar_tela_resumo_andar,
     desenhar_tela_resumo_personagem,
     desenhar_tela_saida,
+    tela_game_over,
 )
 from src.version import __version__
 
@@ -68,6 +71,16 @@ class Estado(Enum):
     SAIR = auto()
 
 
+def _nova_estatistica_andar() -> dict[str, int]:
+    """Cria uma estrutura vazia de estatísticas por andar."""
+    return {
+        "inimigos_derrotados": 0,
+        "itens_obtidos": 0,
+        "moedas_ganhas": 0,
+        "eventos_disparados": 0,
+    }
+
+
 @dataclass
 class ContextoJogo:
     """Armazena o estado corrente entre as transições."""
@@ -82,6 +95,7 @@ class ContextoJogo:
     info_atualizacao: AtualizacaoInfo | None = None
     alerta_atualizacao_exibido: bool = False
     dificuldade: str = config.DIFICULDADE_PADRAO
+    estatisticas_andar: dict[str, int] = field(default_factory=_nova_estatistica_andar)
 
     def limpar_combate(self) -> None:
         """Remove referências ao combate atual."""
@@ -103,6 +117,7 @@ class ContextoJogo:
         self.info_atualizacao = None
         self.alerta_atualizacao_exibido = False
         self.limpar_combate()
+        self.resetar_estatisticas()
 
     def obter_perfil_dificuldade(self) -> config.DificuldadePerfil:
         """Retorna a configuração completa da dificuldade atual."""
@@ -119,6 +134,27 @@ class ContextoJogo:
         if chave_normalizada not in config.DIFICULDADES:
             chave_normalizada = config.DIFICULDADE_PADRAO
         self.dificuldade = chave_normalizada
+
+    def resetar_estatisticas(self) -> None:
+        """Limpa as estatísticas acumuladas do andar atual."""
+        self.estatisticas_andar = _nova_estatistica_andar()
+
+    def registrar_inimigo_derrotado(self) -> None:
+        """Incrementa o contador de inimigos derrotados no andar atual."""
+        self.estatisticas_andar["inimigos_derrotados"] += 1
+
+    def registrar_item_obtido(self, quantidade: int = 1) -> None:
+        """Soma itens coletados (drops, recompensas) ao resumo do andar."""
+        self.estatisticas_andar["itens_obtidos"] += max(0, quantidade)
+
+    def registrar_moedas(self, valor: int) -> None:
+        """Acumula moedas obtidas durante o andar."""
+        if valor > 0:
+            self.estatisticas_andar["moedas_ganhas"] += valor
+
+    def registrar_evento(self) -> None:
+        """Marca que um evento de sala foi disparado no andar atual."""
+        self.estatisticas_andar["eventos_disparados"] += 1
 
 
 def selecionar_dificuldade(contexto: ContextoJogo) -> None:
@@ -230,6 +266,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
         return Estado.MENU
 
     if contexto.mapa_atual is None:
+        contexto.resetar_estatisticas()
         contexto.mapa_atual = gerar_mapa(
             contexto.nivel_masmorra, contexto.obter_perfil_dificuldade()
         )
@@ -240,11 +277,19 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
 
     if sala_atual.evento_id and not sala_atual.evento_resolvido:
         perfil = contexto.obter_perfil_dificuldade()
+        contexto.registrar_evento()
+        moedas_antes = jogador.carteira.valor_bronze
         titulo, mensagem = eventos.disparar_evento(
             sala_atual.evento_id, jogador, perfil.saque_moedas_mult
         )
         desenhar_tela_evento(titulo, mensagem)
+        ganho_moedas = jogador.carteira.valor_bronze - moedas_antes
+        contexto.registrar_moedas(max(0, ganho_moedas))
         sala_atual.evento_resolvido = True
+        if jogador.hp <= 0:
+            tela_game_over()
+            contexto.resetar_jogo()
+            return Estado.MENU
 
     if sala_atual.pode_ter_inimigo and not sala_atual.inimigo_derrotado:
         inimigo = sala_atual.inimigo_atual
@@ -325,13 +370,15 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             jogador.x -= 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Descer para o próximo nível":
+            nivel_atual = contexto.nivel_masmorra
+            resumo = contexto.estatisticas_andar.copy()
+            hp_cura = int(jogador.hp_max * config.DESCENT_HEAL_PERCENT)
+            jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
+            desenhar_tela_resumo_andar(nivel_atual, resumo, hp_cura)
             contexto.nivel_masmorra += 1
             contexto.mapa_atual = None
             contexto.posicao_anterior = None
-            hp_cura = int(jogador.hp_max * config.DESCENT_HEAL_PERCENT)
-            jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
-            mensagem_nivel = f"Você desce para o próximo nível.\nVocê recuperou {hp_cura} de HP."
-            desenhar_tela_evento(f"NÍVEL {contexto.nivel_masmorra} ALCANÇADO!", mensagem_nivel)
+            contexto.resetar_estatisticas()
             return Estado.EXPLORACAO
         if acao_escolhida == "Ver Ficha do Personagem":
             desenhar_tela_ficha_personagem(jogador)
@@ -389,6 +436,7 @@ def executar_estado_combate(contexto: ContextoJogo) -> Estado:
         _usar_item_com_feedback,
         lambda raridade: _gerar_item_para_contexto(contexto, raridade),
         verificar_level_up,
+        consumir_status_temporarios,
         Estado.MENU,
         Estado.EXPLORACAO,
     )
@@ -498,20 +546,6 @@ def verificar_level_up(jogador: Personagem) -> None:
 
     if subiu_de_nivel:
         aplicar_bonus_equipamento(jogador)
-
-
-def aplicar_bonus_equipamento(jogador: Personagem) -> None:
-    """Aplica os bônus de ataque e defesa dos itens equipados."""
-    jogador.ataque = jogador.ataque_base
-    jogador.defesa = jogador.defesa_base
-
-    arma = jogador.equipamento.get("arma")
-    if arma:
-        jogador.ataque += arma.bonus.get("ataque", 0)
-
-    escudo = jogador.equipamento.get("escudo")
-    if escudo:
-        jogador.defesa += escudo.bonus.get("defesa", 0)
 
 
 def processo_criacao_personagem() -> Personagem:

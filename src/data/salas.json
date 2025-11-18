@@ -1,0 +1,54 @@
+{
+    "caminho": [
+        {
+            "nome": "Corredor Esculpido",
+            "descricao": "Paredes com relevos antigos contam batalhas esquecidas; o eco dos passos ressoa como cânticos indígenas."
+        },
+        {
+            "nome": "Galeria Musgosa",
+            "descricao": "Raízes e musgos tomam conta do teto, pingando água fria sobre pedras lisas e escorregadias."
+        },
+        {
+            "nome": "Passagem das Chamas Frias",
+            "descricao": "Brasas azuladas flutuam no ar, iluminando símbolos rúnicos corroídos pelo tempo."
+        },
+        {
+            "nome": "Corredor dos Sussurros",
+            "descricao": "Cada passo acorda murmúrios que parecem sair das paredes rachadas."
+        },
+        {
+            "nome": "Galeria de Ossos",
+            "descricao": "Colunas feitas de ossos polidos sustentam o teto baixo desta passagem claustrofóbica."
+        },
+        {
+            "nome": "Passadiço Espectral",
+            "descricao": "Uma névoa leitosa cobre o chão e formas translúcidas se movem na visão periférica."
+        }
+    ],
+    "secundaria": [
+        {
+            "nome": "Câmara do Alquimista",
+            "descricao": "Mesas quebradas exibem frascos espatifados e um cheiro adocicado impregna o ar."
+        },
+        {
+            "nome": "Dormitório Abandonado",
+            "descricao": "Beliches carcomidos e baús abertos sugerem que os antigos moradores fugiram às pressas."
+        },
+        {
+            "nome": "Estufa Subterrânea",
+            "descricao": "Lanternas de cristal aquecem plantas retorcidas que reagem ao menor toque."
+        },
+        {
+            "nome": "Refúgio Esquecido",
+            "descricao": "Um altar pequeno com velas derretidas permanece aceso graças a uma chama eterna."
+        },
+        {
+            "nome": "Arsenal Improvisado",
+            "descricao": "Armas enferrujadas pendem da parede e tapetes gastos abafam os passos."
+        },
+        {
+            "nome": "Biblioteca Ruída",
+            "descricao": "Prateleiras tombadas e livros encharcados exalam cheiro de pergaminho queimado."
+        }
+    ]
+}

@@ -31,6 +31,33 @@
         "xp_base": 45,
         "drop_raridade": "raro"
     },
+    "guardiao_espectral": {
+        "nome": "Guardião Espectral",
+        "hp_base": 30,
+        "ataque_base": 9,
+        "defesa_base": 3,
+        "xp_base": 70,
+        "drop_raridade": "raro",
+        "drop_item_nome": "Lâmina Fantasmal"
+    },
+    "sentinela_runica": {
+        "nome": "Sentinela Rúnica",
+        "hp_base": 45,
+        "ataque_base": 8,
+        "defesa_base": 6,
+        "xp_base": 90,
+        "drop_raridade": "raro",
+        "drop_item_nome": "Broquel da Aurora"
+    },
+    "arqueiro_de_obsidiana": {
+        "nome": "Arqueiro de Obsidiana",
+        "hp_base": 28,
+        "ataque_base": 10,
+        "defesa_base": 2,
+        "xp_base": 65,
+        "drop_raridade": "incomum",
+        "drop_item_nome": "Arco da Ventania"
+    },
     "chefe_orc": {
         "nome": "Chefe Orc",
         "hp_base": 60,

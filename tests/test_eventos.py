@@ -49,3 +49,26 @@ def test_disparar_evento_com_multiplicador_afeta_recompensa() -> None:
         "cofre_esquecido", personagem, multiplicador_moedas=0.5
     )
     assert personagem.carteira.valor_bronze == 18
+
+
+def test_evento_buff_temporario_aplicado(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Eventos com buffs adicionam status temporários."""
+    personagem = personagem_stub()
+    assert not personagem.status_temporarios
+    titulo, mensagem = eventos.disparar_evento("bencao_do_guardiao", personagem)
+    assert "BÊNÇÃO" in titulo
+    assert "ataque" in mensagem.lower()
+    assert personagem.status_temporarios
+    status = personagem.status_temporarios[0]
+    assert status.valor == 3
+    assert status.combates_restantes == 2
+
+
+def test_evento_maldicao_registra_penalidade() -> None:
+    """Maldições aplicam penalidades temporárias."""
+    personagem = personagem_stub()
+    eventos.disparar_evento("maldicao_dos_sussurros", personagem)
+    assert personagem.status_temporarios
+    status = personagem.status_temporarios[0]
+    assert status.valor == -2
+    assert status.atributo == "defesa"

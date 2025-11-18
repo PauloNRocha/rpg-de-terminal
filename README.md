@@ -5,7 +5,7 @@ Bem-vindo a "Aventura no Terminal", um RPG solo em modo texto que roda direto no
 ## Panorama do Projeto
 
 - **Gênero:** Roguelike leve por turnos.
-- **Versão atual:** `v1.6.0`.
+- **Versão atual:** `v1.6.2`.
 - **Plataforma:** Python 3.12+.
 - **UI:** Painéis, barras e entradas estilizadas com `rich` (nada de `print` cru!).
 
@@ -60,8 +60,9 @@ pytest
 - **Modos de Dificuldade Dinâmicos:** escolha entre Explorador (Fácil), Aventureiro (Normal) e Pesadelo (Difícil), com multiplicadores claros para encontros, loot e força dos inimigos.
 - **Arquitetura com Dataclasses:** personagens, itens e inimigos usam `dataclasses`, garantindo serialização confiável, menos bugs e APIs mais claras para novas features.
 - **Inventário Inteligente:** telas dedicadas para visualizar, equipar e usar itens, com comparação lado a lado dos bônus (`jogo.py`, `src/ui.py`).
-- **Loot Procedural:** inimigos droparam itens gerados a partir de templates por raridade (`src/gerador_itens.py`, `src/data/itens.json`).
+- **Loot Procedural:** inimigos droparam itens gerados a partir de templates por raridade (`src/gerador_itens.py`, `src/data/itens.json`), incluindo drops exclusivos definidos por inimigo.
 - **Inimigos Escaláveis:** atributos escalam 15% por nível e tipos são carregados de JSON (`src/gerador_inimigos.py`, `src/data/inimigos.json`).
+- **Resumo Pós-Andar:** ao descer a escada, um painel mostra inimigos derrotados, itens, moedas e HP recuperado antes do próximo nível.
 
 ## Créditos e IA
 
@@ -79,8 +80,42 @@ pytest
 4. **Salvar Progresso:** escolha a opção "Salvar jogo" a qualquer momento da exploração para gravar o estado atual. O menu principal exibirá "Continuar Aventura" quando houver um save.
 5. **Combate:** enfrente inimigos por turnos; use itens, ataque ou tente fugir. Vitória concede XP e loot.
 6. **Level Up:** ao acumular XP suficiente, suba de nível, restaure o HP e receba melhorias automáticas.
-7. **Chefe e Escada:** derrote o Chefe Orc para liberar a escada e avançar para níveis mais profundos (com cura parcial ao descer).
+7. **Chefe e Escada:** derrote o chefe do andar para liberar a escada. Ao descer, você cura parte do HP e vê um resumo da run antes de continuar.
 8. **Fim de Jogo:** morrendo, fugindo ou saindo voluntariamente, receba uma despedida estilizada.
+
+## Conteúdo Data-Driven (JSON)
+
+Grande parte do jogo é configurável via arquivos em `src/data/`:
+
+| Arquivo | O que define | Dica para editar |
+| --- | --- | --- |
+| `classes.json` | classes iniciais do jogador (HP/ATK/DEF/base) | Basta adicionar um novo objeto seguindo o padrão existente. |
+| `itens.json` | catálogo de itens por raridade (com preços) | Novos itens podem ser referenciados nos drops (`drop_item_nome`). |
+| `inimigos.json` | inimigos padrão + chefes (stats base) | Suporta `drop_item_nome` opcional para garantir loot específico. |
+| `eventos.json` | eventos de sala (cura, armadilhas, buffs) | O campo `buffs` aceita objetos `{atributo, valor, duracao_combates, mensagem}`. |
+| `salas.json` | nomes/descrições de salas por categoria | O gerador embaralha e evita repetir nomes no mesmo andar. |
+
+Exemplo de evento com buff temporário:
+
+```json
+{
+  "id": "bencao_do_guardiao",
+  "nome": "Bênção do Guardião",
+  "descricao": "Uma figura etérea toca sua arma.",
+  "efeitos": {
+    "buffs": [
+      {
+        "atributo": "ataque",
+        "valor": 3,
+        "duracao_combates": 2,
+        "mensagem": "Seu ataque aumenta em +3 pelos próximos 2 combates."
+      }
+    ]
+  }
+}
+```
+
+Para ver rapidamente o impacto de novas salas/eventos/itens durante o desenvolvimento, rode `pytest` (há testes cobrindo carregamento e sorteio dos dados).
 
 ## Estrutura do Código
 
@@ -89,7 +124,10 @@ pytest
 - `src/gerador_mapa.py` – geração procedural do mapa.
 - `src/gerador_inimigos.py` / `src/data/inimigos.json` – templates e escala de inimigos.
 - `src/gerador_itens.py` / `src/data/itens.json` – catálogo de itens e raridades.
+- `src/salas.py` / `src/data/salas.json` – nomes e descrições das salas, sorteadas sem repetição.
 - `src/personagem.py` / `src/data/classes.json` – classes jogáveis e criação de personagem.
+- `src/eventos.py` / `src/data/eventos.json` – sistema de eventos, incluindo buffs/maldições temporários.
+- `src/personagem_utils.py` – helpers para aplicar/consumir status temporários e recalcular atributos.
 - `tests/` – suíte de testes unitários com `pytest`.
 
 ## Contribuindo

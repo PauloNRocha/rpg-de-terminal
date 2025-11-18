@@ -7,6 +7,27 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+_(Sem entradas por enquanto.)_
+
+## [1.6.2] - 2025-11-18
+
+### Adicionado
+
+-   Salas de percurso e salas secundárias agora são carregadas de `src/data/salas.json`, com um baralho que evita repetir nomes/descrições dentro do mesmo andar e facilita a criação de novos biomas narrativos.
+-   Sistema de eventos recebeu novos tipos: bênçãos e maldições que aplicam bônus/penalidades temporárias (`buffs` com duração em combates) e encontros sociais como o Mercador Fantasma; o schema foi ampliado em `eventos.json` e suportado por `status_temporarios` no `Personagem`.
+-   Arsenal expandido: novas armas/escudos incomuns e raros (Arco da Ventania, Cota de Malha Reforçada, Lança Solar, Couraça Rúnica, etc.) e bestiário com Guardião Espectral, Sentinela Rúnica e Arqueiro de Obsidiana — alguns com drops exclusivos definidos em `drop_item_nome`.
+-   Resumo pós-andar: ao descer a escadaria, o jogo exibe um painel Rich com inimigos derrotados, itens coletados, moedas e eventos do andar, além de indicar o HP recuperado antes de gerar o próximo mapa.
+
+### Alterado
+
+-   `Personagem` passou a armazenar `status_temporarios`; o módulo `personagem_utils.py` centraliza o recálculo dos atributos e o consumo dos buffs/maldições após cada combate.
+-   A tela de combate e o estado de loot agora suportam drops exclusivos (`drop_item_nome`) antes de recorrer à raridade; `gerador_itens.obter_item_por_nome` facilita buscar itens específicos definidos nos dados.
+-   Estatísticas de cada andar (inimigos, itens, moedas, eventos) são acumuladas no `ContextoJogo` para alimentar o painel de resumo ao descer a escada.
+
+### Corrigido
+
+-   Eventos que reduzem o HP a zero interrompem imediatamente a run (tela de Game Over), evitando que o jogador receba primeiro a mensagem de encontro com inimigo antes da derrota.
+
 ## [1.6.1] - 2025-11-18
 
 ### Adicionado

@@ -1,10 +1,12 @@
 # src/gerador_mapa.py
 
 import random
+from collections import defaultdict
 
 from src import config, eventos
 from src.chefes import ChefeConfig, sortear_chefe_para_andar
 from src.entidades import Sala
+from src.salas import sortear_sala_template
 
 Mapa = list[list[Sala]]
 
@@ -12,6 +14,7 @@ Mapa = list[list[Sala]]
 def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | None = None) -> Mapa:
     """Gera um novo mapa com um caminho principal garantido da entrada até a saída."""
     prob_inimigo = config.probabilidade_inimigo_por_nivel(nivel, perfil_dificuldade)
+    templates_usados: dict[str, set[str]] = defaultdict(set)
 
     mapa: Mapa = [
         [
@@ -31,7 +34,7 @@ def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | No
     caminho_principal: list[tuple[int, int]] = []
 
     while y < config.MAP_HEIGHT - 1:
-        mapa[y][x] = _criar_sala("caminho", nivel, prob_inimigo)
+        mapa[y][x] = _criar_sala("caminho", nivel, prob_inimigo, templates_usados)
         caminho_principal.append((x, y))
 
         direcao = random.choice(["esquerda", "direita", "baixo", "baixo", "baixo"])
@@ -43,15 +46,17 @@ def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | No
             y += 1
 
     entrada_x, entrada_y = caminho_principal[0]
-    mapa[entrada_y][entrada_x] = _criar_sala("entrada", nivel, prob_inimigo)
+    mapa[entrada_y][entrada_x] = _criar_sala("entrada", nivel, prob_inimigo, templates_usados)
 
     chefe_x, chefe_y = caminho_principal[-2]
     chefe_config = sortear_chefe_para_andar(nivel)
-    sala_chefe = _criar_sala("chefe", nivel, prob_inimigo, chefe_config=chefe_config)
+    sala_chefe = _criar_sala(
+        "chefe", nivel, prob_inimigo, templates_usados, chefe_config=chefe_config
+    )
     mapa[chefe_y][chefe_x] = sala_chefe
 
     escada_x, escada_y = caminho_principal[-1]
-    mapa[escada_y][escada_x] = _criar_sala("escada", nivel, prob_inimigo)
+    mapa[escada_y][escada_x] = _criar_sala("escada", nivel, prob_inimigo, templates_usados)
 
     for _ in range(int(config.MAP_WIDTH * config.MAP_HEIGHT * config.MAP_SIDE_ROOMS_RATIO)):
         px, py = random.choice(caminho_principal)
@@ -65,7 +70,7 @@ def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | No
                 and 0 <= ny < config.MAP_HEIGHT
                 and mapa[ny][nx].tipo == "parede"
             ):
-                mapa[ny][nx] = _criar_sala("secundaria", nivel, prob_inimigo)
+                mapa[ny][nx] = _criar_sala("secundaria", nivel, prob_inimigo, templates_usados)
                 break
 
     return mapa
@@ -75,6 +80,7 @@ def _criar_sala(
     tipo: str,
     nivel: int,
     prob_inimigo: float | None = None,
+    templates_usados: dict[str, set[str]] | None = None,
     chefe_config: ChefeConfig | None = None,
 ) -> Sala:
     """Cria diferentes tipos de sala de acordo com o contexto."""
@@ -132,17 +138,13 @@ def _criar_sala(
             nivel_area=nivel,
         )
 
-    descricoes = [
-        "Um corredor escuro e úmido. O som de gotas de água ecoa ao longe.",
-        "Uma pequena câmara com teias de aranha cobrindo as paredes.",
-        "Uma sala com entalhes estranhos nas paredes de pedra.",
-        "Um túnel estreito que parece ter sido cavado às pressas.",
-    ]
     chance_inimigo = prob_inimigo if prob_inimigo is not None else config.MAP_ENEMY_PROBABILITY
+    categoria = tipo if tipo in {"caminho", "secundaria"} else "caminho"
+    template = sortear_sala_template(categoria, templates_usados or defaultdict(set))
     sala = Sala(
         tipo="sala",
-        nome=random.choice(["Corredor Escuro", "Câmara Poeirenta", "Túnel Apertado"]),
-        descricao=random.choice(descricoes),
+        nome=template.nome,
+        descricao=template.descricao,
         pode_ter_inimigo=random.random() < chance_inimigo,
         nivel_area=nivel,
     )

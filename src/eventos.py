@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from src.economia import formatar_preco
 from src.erros import ErroDadosError
+from src.personagem_utils import adicionar_status_temporario
 
 if TYPE_CHECKING:
     from src.entidades import Personagem
@@ -87,4 +88,22 @@ def disparar_evento(
     if moedas:
         jogador.carteira.receber(moedas)
         mensagens.append(f"Você recebeu {formatar_preco(moedas)}.")
+    buffs = efeitos.get("buffs", [])
+    for buff in buffs:
+        atributo = str(buff.get("atributo", "")).lower()
+        valor = int(buff.get("valor", 0))
+        duracao = int(buff.get("duracao_combates", 0))
+        descricao = buff.get("descricao")
+        status = adicionar_status_temporario(jogador, atributo, valor, duracao, descricao)
+        if status:
+            if valor > 0:
+                mensagens.append(
+                    buff.get("mensagem")
+                    or f"Você recebeu +{valor} de {atributo} por {duracao} combates."
+                )
+            else:
+                mensagens.append(
+                    buff.get("mensagem")
+                    or f"Você sofreu {valor} em {atributo} por {duracao} combates."
+                )
     return evento.nome.upper(), "\n".join(mensagens)

@@ -3,7 +3,6 @@ import pytest
 import jogo  # Importa o módulo todo para o monkeypatch
 from jogo import (
     agrupar_itens_equipaveis,
-    aplicar_bonus_equipamento,
     aplicar_efeitos_consumiveis,
     hidratar_mapa,
     remover_item_por_chave,
@@ -12,6 +11,11 @@ from jogo import (
 )
 from src.economia import Moeda
 from src.entidades import Inimigo, Item, Personagem, Sala
+from src.personagem_utils import (
+    adicionar_status_temporario,
+    aplicar_bonus_equipamento,
+    consumir_status_temporarios,
+)
 
 
 # Fixture para criar um jogador base para os testes
@@ -138,6 +142,42 @@ def test_remover_equipamento(jogador_base: Personagem, espada_curta: Item) -> No
     jogador_base.equipamento["arma"] = None
     aplicar_bonus_equipamento(jogador_base)
     assert jogador_base.ataque == 6  # Volta ao valor base
+
+
+def test_status_temporario_e_consumo(jogador_base: Personagem) -> None:
+    """Status temporários modificam e retornam os atributos após expirar."""
+    adicionar_status_temporario(jogador_base, "ataque", 2, 1, "Benção teste")
+    assert jogador_base.ataque == jogador_base.ataque_base + 2
+    assert len(jogador_base.status_temporarios) == 1
+    consumir_status_temporarios(jogador_base)
+    assert not jogador_base.status_temporarios
+    assert jogador_base.ataque == jogador_base.ataque_base
+
+
+def test_evento_mortal_interrompe_exploracao(
+    jogador_base: Personagem, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Eventos que matam o jogador devem encerrar a run antes de novos encontros."""
+    monkeypatch.setattr(jogo, "desenhar_tela_evento", lambda *args, **kwargs: None)
+    monkeypatch.setattr(jogo, "tela_game_over", lambda: None)
+    contexto = jogo.ContextoJogo()
+    contexto.jogador = jogador_base
+    jogador_base.hp = 6
+    jogador_base.hp_max = 20
+    jogador_base.x = jogador_base.y = 0
+    sala = Sala(
+        tipo="sala",
+        nome="Sala Mortal",
+        descricao="",
+        pode_ter_inimigo=True,
+        nivel_area=1,
+        evento_id="armadilha_de_espinhos",
+    )
+    contexto.mapa_atual = [[sala]]
+
+    estado = jogo.executar_estado_exploracao(contexto)
+    assert estado == jogo.Estado.MENU
+    assert contexto.jogador is None
 
 
 def test_serializar_e_hidratar_mapa() -> None:

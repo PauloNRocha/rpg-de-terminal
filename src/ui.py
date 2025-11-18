@@ -12,6 +12,7 @@ from rich.table import Table
 from rich.text import Text
 
 from src.config import DificuldadePerfil
+from src.economia import formatar_preco
 from src.entidades import Inimigo, Item, Personagem, Sala
 
 console = Console()
@@ -565,6 +566,38 @@ def desenhar_tela_ficha_personagem(jogador: Personagem) -> None:
     console.print(Columns([panel_status, painel_equip], expand=True))
     console.print(painel_atributos)
     console.input("[bold yellow]Pressione Enter para retornar... [/]")
+
+
+def desenhar_tela_resumo_andar(
+    nivel: int, estatisticas: dict[str, int], hp_recuperado: int
+) -> None:
+    """Mostra um painel com o resumo do andar após descer a escadaria."""
+    limpar_tela()
+    tabela = Table(box=box.DOUBLE, border_style="blue", width=75)
+    tabela.add_column("Estatística", style="bold cyan")
+    tabela.add_column("Valor", style="bold white", justify="right")
+    tabela.add_row("Inimigos derrotados", str(estatisticas.get("inimigos_derrotados", 0)))
+    tabela.add_row("Itens obtidos", str(estatisticas.get("itens_obtidos", 0)))
+    tabela.add_row(
+        "Moedas coletadas",
+        formatar_preco(estatisticas.get("moedas_ganhas", 0)),
+    )
+    tabela.add_row("Eventos ativados", str(estatisticas.get("eventos_disparados", 0)))
+    tabela.add_row("HP recuperado", f"+{hp_recuperado}")
+
+    painel = Panel(
+        tabela,
+        title=Text(
+            f"Resumo do Andar {nivel}",
+            justify="center",
+            style="bold yellow",
+        ),
+        subtitle="Prepare-se para o próximo desafio!",
+        border_style="blue",
+        width=80,
+    )
+    console.print(painel)
+    console.input("[bold yellow]Pressione Enter para continuar... [/]")
 
 
 def desenhar_tela_inventario(jogador: Personagem) -> str:

@@ -54,6 +54,7 @@ class Inimigo(Entidade):
 
     xp_recompensa: int
     drop_raridade: str
+    drop_item_nome: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância."""
@@ -62,7 +63,19 @@ class Inimigo(Entidade):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Inimigo":
         """Cria uma instância de Inimigo a partir de um dicionário."""
-        return cls(**data)
+        payload = data.copy()
+        payload.setdefault("drop_item_nome", None)
+        return cls(**payload)
+
+
+@dataclass
+class StatusTemporario:
+    """Bônus ou penalidade que dura um número limitado de combates."""
+
+    atributo: str
+    valor: int
+    combates_restantes: int
+    descricao: str = ""
 
 
 @dataclass
@@ -82,6 +95,7 @@ class Personagem(Entidade):
         default_factory=lambda: {"arma": None, "escudo": None}
     )
     carteira: Moeda = field(default_factory=Moeda)
+    status_temporarios: list[StatusTemporario] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância.
@@ -117,6 +131,7 @@ class Personagem(Entidade):
             "arma": None,
             "escudo": None,
         }
+        status_raw = payload.pop("status_temporarios", [])
 
         inventario: list[Item] = []
         for item_data in inventario_raw:
@@ -128,11 +143,26 @@ class Personagem(Entidade):
             "arma": _hidratar_item(equipamento_raw.get("arma")),
             "escudo": _hidratar_item(equipamento_raw.get("escudo")),
         }
+        status_temporarios: list[StatusTemporario] = []
+        for status in status_raw:
+            if isinstance(status, Mapping):
+                try:
+                    status_temporarios.append(
+                        StatusTemporario(
+                            atributo=str(status.get("atributo", "")).lower(),
+                            valor=int(status.get("valor", 0)),
+                            combates_restantes=int(status.get("combates_restantes", 0)),
+                            descricao=str(status.get("descricao", "")),
+                        )
+                    )
+                except ValueError:
+                    continue
 
         return cls(
             inventario=inventario,
             equipamento=equipamento,
             carteira=Moeda.from_dict(carteira_raw),
+            status_temporarios=status_temporarios,
             **payload,
         )
 

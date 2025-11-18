@@ -78,3 +78,19 @@ def gerar_item_aleatorio(
     item_data.setdefault("efeito", {})
 
     return Item.from_dict(item_data)
+
+
+def obter_item_por_nome(nome: str) -> Item | None:
+    """Busca um item pelo nome em qualquer raridade."""
+    if not nome:
+        return None
+    catalogo = obter_itens_por_raridade()
+    nome_normalizado = nome.strip().lower()
+    for lista in catalogo.values():
+        for item in lista:
+            if item.get("nome", "").strip().lower() == nome_normalizado:
+                item_data = item.copy()
+                item_data.setdefault("bonus", {})
+                item_data.setdefault("efeito", {})
+                return Item.from_dict(item_data)
+    return None

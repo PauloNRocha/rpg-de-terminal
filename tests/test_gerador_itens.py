@@ -29,3 +29,15 @@ def test_bonus_consumivel_incrementa_chance(monkeypatch: pytest.MonkeyPatch) -> 
     item = gerador_itens.gerar_item_aleatorio("comum", bonus_consumivel=0.5)
     assert item is not None
     assert item.tipo == "consumivel"
+
+
+def test_obter_item_por_nome_encontra_independente_de_maisculas() -> None:
+    """Busca por nome deve ignorar caixa e espaços extras."""
+    item = gerador_itens.obter_item_por_nome("  lâmina fantasmal ")
+    assert item is not None
+    assert item.nome == "Lâmina Fantasmal"
+
+
+def test_obter_item_por_nome_inexistente() -> None:
+    """Quando não encontra, retorna None."""
+    assert gerador_itens.obter_item_por_nome("Item Inventado") is None

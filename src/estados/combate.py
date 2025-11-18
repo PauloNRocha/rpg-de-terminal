@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Protocol
 
 from src.entidades import Inimigo, Item, Personagem, Sala
+from src.gerador_itens import obter_item_por_nome
 from src.ui import desenhar_tela_evento, tela_game_over
 
 
@@ -37,6 +38,7 @@ def executar_estado_combate(
     usar_item_fn: Callable[[Personagem], bool | None],
     gerar_item_aleatorio: Callable[[str], Item | None],
     verificar_level_up: Callable[[Personagem], None],
+    atualizar_status_temporarios: Callable[[Personagem], None],
     estado_menu: Enum,
     estado_exploracao: Enum,
 ) -> Enum:
@@ -55,16 +57,22 @@ def executar_estado_combate(
         mensagem_vitoria = f"Você derrotou o {inimigo.nome} e ganhou {xp_ganho} de XP!"
         desenhar_tela_evento("VITÓRIA!", mensagem_vitoria)
         jogador.xp_atual += xp_ganho
-        if inimigo_atualizado.drop_raridade:
+        contexto.registrar_inimigo_derrotado()
+        item_dropado: Item | None = None
+        if getattr(inimigo_atualizado, "drop_item_nome", None):
+            item_dropado = obter_item_por_nome(inimigo_atualizado.drop_item_nome or "")
+        if item_dropado is None and inimigo_atualizado.drop_raridade:
             item_dropado = gerar_item_aleatorio(inimigo_atualizado.drop_raridade)
-            if item_dropado:
-                jogador.inventario.append(item_dropado)
-                mensagem_item = f"O inimigo dropou: {item_dropado.nome}!"
-                desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_item)
+        if item_dropado:
+            jogador.inventario.append(item_dropado)
+            mensagem_item = f"O inimigo dropou: {item_dropado.nome}!"
+            desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_item)
+            contexto.registrar_item_obtido()
         sala.inimigo_derrotado = True
         sala.inimigo_atual = None
         contexto.limpar_combate()
         verificar_level_up(jogador)
+        atualizar_status_temporarios(jogador)
         return estado_exploracao
 
     if not jogador.esta_vivo():
@@ -75,4 +83,5 @@ def executar_estado_combate(
     desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
     contexto.restaurar_posicao_anterior()
     contexto.limpar_combate()
+    atualizar_status_temporarios(jogador)
     return estado_exploracao
