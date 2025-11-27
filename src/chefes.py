@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from src.erros import ErroDadosError
@@ -24,6 +24,7 @@ class ChefeConfig:
     andar_min: int
     andar_max: int
     nome: str
+    historias_por_classe: dict[str, dict[str, str]] = field(default_factory=dict)
 
 
 _CACHE: list[ChefeConfig] | None = None
@@ -51,6 +52,9 @@ def carregar_chefes() -> list[ChefeConfig]:
     for item in dados:
         if not all(chave in item for chave in ("id", "tipo", "andar_min", "andar_max")):
             raise ErroDadosError("Entrada de chefe incompleta em 'chefes.json'.")
+        historias_cls = item.get("historias_por_classe") or {}
+        if not isinstance(historias_cls, dict):
+            historias_cls = {}
         chefes.append(
             ChefeConfig(
                 id=item["id"],
@@ -61,6 +65,7 @@ def carregar_chefes() -> list[ChefeConfig]:
                 andar_min=int(item["andar_min"]),
                 andar_max=int(item["andar_max"]),
                 nome=item.get("nome") or _normalizar_nome(item["id"]),
+                historias_por_classe={str(k).lower(): v for k, v in historias_cls.items()},
             )
         )
     _CACHE = chefes

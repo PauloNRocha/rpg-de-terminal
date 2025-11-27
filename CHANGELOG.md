@@ -11,6 +11,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Ajuste de combate: ataques com dano calculado menor ou igual a zero, mas com ataque positivo, agora causam pelo menos 1 de dano, evitando combates intermináveis quando a defesa do alvo é muito alta.
 -   UX de combate: o log exibido é limitado às últimas mensagens, com indicador de quantas entradas anteriores foram ocultadas, evitando telas gigantes durante lutas longas.
 -   Tecla `L` no combate abre um painel com o log completo, mantendo a HUD compacta sem perder o histórico para quem quiser consultar.
+-   Motivações do personagem passaram a ser múltiplas por classe, carregadas de `historias_personagem.json`, e são exibidas na criação, HUD e ficha (cada nova run começa com um motivo diferente para estar na masmorra).
+-   Chefes ganharam histórias específicas por classe (`historias_por_classe` em `chefes.json`); a cena pré-chefe exibe um título e narrativa adaptados à classe escolhida, aumentando a imersão.
 
 ## [1.6.2] - 2025-11-18
 

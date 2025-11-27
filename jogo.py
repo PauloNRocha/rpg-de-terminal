@@ -312,10 +312,16 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             )
             sala_atual.inimigo_atual = inimigo
         if sala_atual.chefe and not sala_atual.chefe_intro_exibida:
-            escolha_chefe = desenhar_tela_pre_chefe(
-                sala_atual.chefe_titulo or sala_atual.nome,
-                sala_atual.chefe_historia or sala_atual.descricao,
-            )
+            chefe_config = obter_chefe_por_id(sala_atual.chefe_id)
+            titulo_pre = sala_atual.nome
+            historia_pre = sala_atual.descricao
+            if chefe_config and contexto.jogador:
+                classe = contexto.jogador.classe.lower()
+                historias_cls = chefe_config.historias_por_classe or {}
+                entrada = historias_cls.get(classe) or historias_cls.get("default", {})
+                titulo_pre = entrada.get("titulo") or chefe_config.titulo or titulo_pre
+                historia_pre = entrada.get("historia") or chefe_config.historia or historia_pre
+            escolha_chefe = desenhar_tela_pre_chefe(titulo_pre, historia_pre)
             if escolha_chefe == "enfrentar":
                 sala_atual.chefe_intro_exibida = True
             elif escolha_chefe == "inventario":
