@@ -69,6 +69,19 @@ class Inimigo(Entidade):
 
 
 @dataclass
+class Motivacao:
+    """Motivação narrativa do personagem."""
+
+    id: str
+    titulo: str
+    descricao: str
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializa a motivação."""
+        return asdict(self)
+
+
+@dataclass
 class StatusTemporario:
     """Bônus ou penalidade que dura um número limitado de combates."""
 
@@ -96,6 +109,7 @@ class Personagem(Entidade):
     )
     carteira: Moeda = field(default_factory=Moeda)
     status_temporarios: list[StatusTemporario] = field(default_factory=list)
+    motivacao: Motivacao | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância.
@@ -111,6 +125,17 @@ class Personagem(Entidade):
         )
         data["inventario"] = [item.to_dict() for item in self.inventario]
         data["carteira"] = self.carteira.to_dict()
+        data["status_temporarios"] = [
+            {
+                "atributo": s.atributo,
+                "valor": s.valor,
+                "combates_restantes": s.combates_restantes,
+                "descricao": s.descricao,
+            }
+            for s in self.status_temporarios
+        ]
+        if self.motivacao:
+            data["motivacao"] = self.motivacao.to_dict()
         return data
 
     @classmethod
@@ -132,6 +157,7 @@ class Personagem(Entidade):
             "escudo": None,
         }
         status_raw = payload.pop("status_temporarios", [])
+        motivacao_raw = payload.pop("motivacao", None)
 
         inventario: list[Item] = []
         for item_data in inventario_raw:
@@ -157,12 +183,23 @@ class Personagem(Entidade):
                     )
                 except ValueError:
                     continue
+        motivacao_obj = None
+        if isinstance(motivacao_raw, Mapping):
+            try:
+                motivacao_obj = Motivacao(
+                    id=str(motivacao_raw.get("id", "")),
+                    titulo=str(motivacao_raw.get("titulo", "")),
+                    descricao=str(motivacao_raw.get("descricao", "")),
+                )
+            except ValueError:
+                motivacao_obj = None
 
         return cls(
             inventario=inventario,
             equipamento=equipamento,
             carteira=Moeda.from_dict(carteira_raw),
             status_temporarios=status_temporarios,
+            motivacao=motivacao_obj,
             **payload,
         )
 

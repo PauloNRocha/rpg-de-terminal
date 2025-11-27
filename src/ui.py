@@ -76,6 +76,8 @@ def desenhar_hud_exploracao(
     grid_jogador.add_row(Text(f"👤 {jogador.nome}, o {jogador.classe}", style="bold green"))
     grid_jogador.add_row(Text(f"🌟 Nível: {jogador.nivel}", style="yellow"))
     grid_jogador.add_row(Text(f"🔥 Dificuldade: {dificuldade_nome}", style="orange3"))
+    if jogador.motivacao:
+        grid_jogador.add_row(Text(f"🎯 Motivação: {jogador.motivacao.titulo}", style="cyan"))
 
     hp_grid = Table.grid(expand=True, padding=0)
     hp_grid.add_column(width=7)
@@ -509,6 +511,11 @@ def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
     resumo_texto.append(f"Defesa: {jogador.defesa}\n", style="blue")
     resumo_texto.append(f"Nível: {jogador.nivel}\n", style="magenta")
     resumo_texto.append(f"Carteira: {jogador.carteira.formatar()}\n", style="bold yellow")
+    if jogador.motivacao:
+        resumo_texto.append(
+            f"Motivação: {jogador.motivacao.titulo}\n{jogador.motivacao.descricao}\n",
+            style="italic white",
+        )
     panel = Panel(
         resumo_texto,
         title=Text("SEU PERSONAGEM", justify="center", style="bold white"),
@@ -571,8 +578,24 @@ def desenhar_tela_ficha_personagem(jogador: Personagem) -> None:
     painel_atributos = Panel(atributos, title="Atributos Base", border_style="green")
     painel_equip = Panel(equip, border_style="green")
 
-    console.print(Columns([panel_status, painel_equip], expand=True))
-    console.print(painel_atributos)
+    if jogador.motivacao:
+        painel_motivacao = Panel(
+            Text(
+                f"{jogador.motivacao.titulo}\n\n{jogador.motivacao.descricao}",
+                style="white",
+                justify="left",
+            ),
+            title="🎯 Motivação",
+            border_style="cyan",
+            width=80,
+        )
+        console.print(Columns([panel_status, painel_equip], expand=True))
+        console.print(painel_atributos)
+        console.print(painel_motivacao)
+    else:
+        console.print(Columns([panel_status, painel_equip], expand=True))
+        console.print(painel_atributos)
+
     console.input("[bold yellow]Pressione Enter para retornar... [/]")
 
 

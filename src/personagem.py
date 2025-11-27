@@ -5,6 +5,7 @@ from typing import Any
 from src.economia import Moeda
 from src.entidades import Personagem
 from src.erros import ErroDadosError
+from src.historias import sortear_motivacao
 
 ClassesConfig = dict[str, dict[str, Any]]
 
@@ -61,4 +62,5 @@ def criar_personagem(nome: str, classe_escolhida: str) -> Personagem:
         xp_atual=0,
         xp_para_proximo_nivel=100,
         carteira=Moeda(),
+        motivacao=sortear_motivacao(classe_escolhida),
     )
