@@ -1,0 +1,167 @@
+[
+  {
+    "id": "guerreiro_vinganca_mentor",
+    "classes": ["guerreiro"],
+    "titulo": "Vingança pelo Mentor",
+    "descricao": "Seu mestre caiu diante de um chefe desta masmorra. Você entrou sozinho, jurando que nenhum andar ficará de pé quando o sangue dele for vingado.",
+    "tom": "tragédia"
+  },
+  {
+    "id": "guerreiro_condenado",
+    "classes": ["guerreiro"],
+    "titulo": "O Condenado das Arenas",
+    "descricao": "Condenado a morrer nas arenas da cidade, você aceitou um acordo sombrio: limpar esta masmorra em troca da liberdade. Recuar não é opção.",
+    "tom": "honra"
+  },
+  {
+    "id": "guerreiro_guarda_falho",
+    "classes": ["guerreiro"],
+    "titulo": "O Guarda que Falhou",
+    "descricao": "Você jurava proteger um vilarejo próximo. Quando a masmorra despertou, monstros escaparam e ninguém sobreviveu. Agora você desce os andares em busca de redenção.",
+    "tom": "culpa"
+  },
+  {
+    "id": "guerreiro_campeao",
+    "classes": ["guerreiro"],
+    "titulo": "Campeão da Guilda",
+    "descricao": "Como campeão da guilda de mercenários, você foi enviado para matar o maior chefe desta masmorra. Cada andar conquistado é uma aposta na sua própria lenda.",
+    "tom": "gloria"
+  },
+  {
+    "id": "guerreiro_promessa",
+    "classes": ["guerreiro"],
+    "titulo": "Promessa ao Moribundo",
+    "descricao": "No leito de morte, um velho herói te pediu para terminar o que ele começou: levar luz até o último salão desta masmorra. Sua jornada começa na mesma entrada que um dia foi dele.",
+    "tom": "promessa"
+  },
+
+  {
+    "id": "mago_grimorio_perdido",
+    "classes": ["mago"],
+    "titulo": "O Grimório Perdido",
+    "descricao": "Fragmentos de visões mostram um grimório primordial lacrado no andar mais profundo. Sem ele, sua magia jamais ultrapassará o domínio dos truques. A masmorra é a única chave.",
+    "tom": "ambição"
+  },
+  {
+    "id": "mago_experimento_falho",
+    "classes": ["mago"],
+    "titulo": "Experimento Imprudente",
+    "descricao": "Um ritual que saiu do controle abriu um rasgo até esta masmorra, engolindo seu laboratório e parte da cidade. Você desce para fechar aquilo que começou.",
+    "tom": "culpa"
+  },
+  {
+    "id": "mago_exilado",
+    "classes": ["mago"],
+    "titulo": "Exilado do Círculo",
+    "descricao": "Expulso do círculo arcano, você descobriu que os antigos mestres alimentam um pacto com os chefes da masmorra. Entrar aqui é a única forma de expor o segredo deles.",
+    "tom": "rebeldia"
+  },
+  {
+    "id": "mago_chamado_dos_espiritos",
+    "classes": ["mago"],
+    "titulo": "Chamado dos Espíritos",
+    "descricao": "Vozes de antigos magos sussurram nos seus sonhos, apontando para esta masmorra. Eles prometem conhecimento proibido em troca de que você alcance o coração do labirinto.",
+    "tom": "misticismo"
+  },
+  {
+    "id": "mago_profecia",
+    "classes": ["mago"],
+    "titulo": "Portador da Profecia",
+    "descricao": "Os oráculos falaram de um único mago que atravessaria a masmorra e fecharia um ciclo de eras. Você entrou pela entrada antiga sabendo que todas as visões apontam para você.",
+    "tom": "destino"
+  },
+
+  {
+    "id": "arqueiro_cacador_monstros",
+    "classes": ["arqueiro"],
+    "titulo": "Caçador de Monstros",
+    "descricao": "Você foi treinado desde criança para rastrear criaturas impossíveis. A maior delas se esconde nos últimos andares desta masmorra. A caçada começa logo na entrada.",
+    "tom": "caçada"
+  },
+  {
+    "id": "arqueiro_guardiao_floresta",
+    "classes": ["arqueiro"],
+    "titulo": "Guardião da Floresta",
+    "descricao": "A masmorra envenena as raízes da floresta que você jurou proteger. Vilezas já brotam na superfície. Descer é arrancar o mal pela raiz.",
+    "tom": "proteção"
+  },
+  {
+    "id": "arqueiro_desonrado",
+    "classes": ["arqueiro"],
+    "titulo": "O Desonrado",
+    "descricao": "Você falhou em defender um alvo importante de um ataque vindo da masmorra. Agora, só atravessando todos os andares poderá recuperar o respeito do seu clã.",
+    "tom": "honra"
+  },
+  {
+    "id": "arqueiro_aposta",
+    "classes": ["arqueiro"],
+    "titulo": "Aposta Imprudente",
+    "descricao": "Em uma taverna lotada, você apostou que retornaria com o troféu de um chefe desta masmorra. A risada dos bêbados ainda ecoa na sua mente enquanto você dá o primeiro passo.",
+    "tom": "orgulho"
+  },
+  {
+    "id": "arqueiro_mensageiro",
+    "classes": ["arqueiro"],
+    "titulo": "Mensageiro dos Reinos",
+    "descricao": "Você carrega uma mensagem selada destinada a alguém que se esconde dentro da masmorra. O selo proíbe leitura, mas a urgência te obriga a seguir em frente.",
+    "tom": "dever"
+  },
+
+  {
+    "id": "ladino_divida_sangue",
+    "classes": ["ladino"],
+    "titulo": "Dívida de Sangue",
+    "descricao": "A guilda colocou um preço pela sua cabeça. O único pagamento aceito é um artefato guardado pelos chefes desta masmorra. Você entrou antes que os cobradores o encontrassem.",
+    "tom": "urgência"
+  },
+  {
+    "id": "ladino_golpe_falho",
+    "classes": ["ladino"],
+    "titulo": "Golpe Fracassado",
+    "descricao": "Um roubo mal calculado despertou as defesas da masmorra e prendeu você do lado de dentro. Agora, o único caminho de fuga é descer.",
+    "tom": "sobrevivência"
+  },
+  {
+    "id": "ladino_contrato",
+    "classes": ["ladino"],
+    "titulo": "Contrato Sombrio",
+    "descricao": "Um contratante misterioso deixou um mapa e um adiantamento pesado em ouro. O trabalho é simples no papel: descer, eliminar um chefe específico e voltar vivo.",
+    "tom": "ganância"
+  },
+  {
+    "id": "ladino_passado_oculto",
+    "classes": ["ladino"],
+    "titulo": "Passado nas Sombras",
+    "descricao": "Você reconheceu marcas da sua antiga vida criminosa nas paredes da entrada. Alguém que você conheceu muito bem está usando a masmorra como esconderijo.",
+    "tom": "mistério"
+  },
+  {
+    "id": "ladino_redencao",
+    "classes": ["ladino"],
+    "titulo": "Redenção Improvável",
+    "descricao": "Cansado de trapacear inocentes, você decidiu roubar algo que realmente merece ser roubado: o coração corrompido desta masmorra. Se sobreviver, talvez finalmente durma em paz.",
+    "tom": "redenção"
+  },
+
+  {
+    "id": "generico_salvar_parente",
+    "classes": [],
+    "titulo": "Resgate Desesperado",
+    "descricao": "Um parente foi levado para dentro da masmorra e ninguém mais teve coragem de entrar. Você atravessa a entrada sabendo que talvez seja tarde demais, mas vai tentar mesmo assim.",
+    "tom": "esperança"
+  },
+  {
+    "id": "generico_chamado_sonhos",
+    "classes": [],
+    "titulo": "Chamado nos Sonhos",
+    "descricao": "Noite após noite, você sonha com a mesma porta de pedra e um sussurro que pede ajuda. Hoje, essa porta estava diante de você, na entrada da masmorra.",
+    "tom": "misticismo"
+  },
+  {
+    "id": "generico_desequilibrio",
+    "classes": [],
+    "titulo": "Desequilíbrio do Mundo",
+    "descricao": "Desde que a masmorra despertou, o clima enlouqueceu, colheitas murcharam e animais sumiram. Você entrou porque alguém precisava restaurar o equilíbrio, e ninguém mais se mexeu.",
+    "tom": "equilíbrio"
+  }
+]
