@@ -764,6 +764,31 @@ def desenhar_log_completo(log: list[str]) -> None:
     console.input("[bold yellow]Pressione Enter para voltar ao combate... [/]")
 
 
+def desenhar_tela_pre_chefe(titulo: str, historia: str) -> str:
+    """Mostra a cena narrativa antes do chefe e retorna a escolha do jogador."""
+    limpar_tela()
+    corpo = Text(historia or "", style="white", justify="left")
+    panel = Panel(
+        corpo,
+        title=Text(titulo, style="bold yellow"),
+        border_style="red",
+        width=90,
+    )
+    console.print(panel)
+    opcoes = Text(
+        "1. Enfrentar agora\n2. Recuar para se preparar\n3. Abrir Inventário",
+        style="bold white",
+        justify="center",
+    )
+    console.print(Panel(opcoes, border_style="blue", width=60))
+    escolha = console.input("[bold yellow]Escolha (1/2/3): [/]").strip()
+    if escolha == "1":
+        return "enfrentar"
+    if escolha == "3":
+        return "inventario"
+    return "recuar"
+
+
 def tela_game_over() -> None:
     """Desenha uma tela de Game Over épica com mensagens aleatórias."""
     limpar_tela()

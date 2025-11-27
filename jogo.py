@@ -45,6 +45,7 @@ from src.ui import (
     desenhar_tela_evento,
     desenhar_tela_ficha_personagem,
     desenhar_tela_input,
+    desenhar_tela_pre_chefe,
     desenhar_tela_resumo_andar,
     desenhar_tela_resumo_personagem,
     desenhar_tela_saida,
@@ -310,6 +311,19 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 perfil_chefe=perfil_chefe,
             )
             sala_atual.inimigo_atual = inimigo
+        if sala_atual.chefe and not sala_atual.chefe_intro_exibida:
+            escolha_chefe = desenhar_tela_pre_chefe(
+                sala_atual.chefe_titulo or sala_atual.nome,
+                sala_atual.chefe_historia or sala_atual.descricao,
+            )
+            if escolha_chefe == "enfrentar":
+                sala_atual.chefe_intro_exibida = True
+            elif escolha_chefe == "inventario":
+                return Estado.INVENTARIO
+            else:  # recuar
+                contexto.restaurar_posicao_anterior()
+                sala_atual.inimigo_atual = None
+                return Estado.EXPLORACAO
         contexto.sala_em_combate = sala_atual
         contexto.inimigo_em_combate = inimigo
         desenhar_tela_evento("ENCONTRO!", f"CUIDADO! Um {inimigo.nome} está na sala!")

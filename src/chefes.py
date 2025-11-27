@@ -19,6 +19,8 @@ class ChefeConfig:
     id: str
     tipo: str
     descricao: str
+    titulo: str
+    historia: str
     andar_min: int
     andar_max: int
     nome: str
@@ -54,6 +56,8 @@ def carregar_chefes() -> list[ChefeConfig]:
                 id=item["id"],
                 tipo=item["tipo"],
                 descricao=item.get("descricao", ""),
+                titulo=item.get("titulo", item.get("nome", item["id"].title())),
+                historia=item.get("historia", ""),
                 andar_min=int(item["andar_min"]),
                 andar_max=int(item["andar_max"]),
                 nome=item.get("nome") or _normalizar_nome(item["id"]),

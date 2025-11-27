@@ -4,6 +4,8 @@
     "nome": "Senhor dos Orcs",
     "tipo": "chefe_orc",
     "descricao": "Um orc colossal, líder das hordas subterrâneas.",
+    "titulo": "Chefe Orc - Senhor das Forjas",
+    "historia": "As forjas retumbam atrás do Senhor dos Orcs. Dizem que cada cicatriz dele foi marcada a ferro enquanto dominava clãs rivais.",
     "andar_min": 1,
     "andar_max": 2
   },
@@ -12,6 +14,8 @@
     "nome": "Necromante Sombrio",
     "tipo": "chefe_nigromante",
     "descricao": "Um necromante que convoca espectros para auxiliá-lo.",
+    "titulo": "Necromante Sombrio - Voz dos Mortos",
+    "historia": "Velas negras flutuam ao redor do necromante. Sussurros dos mortos fazem o ar gelar enquanto ele ergue o cajado.",
     "andar_min": 2,
     "andar_max": 3
   },
@@ -20,6 +24,8 @@
     "nome": "Hidra Cristalina",
     "tipo": "chefe_hidra",
     "descricao": "Uma hidra cristalina de múltiplas cabeças venenosa.",
+    "titulo": "Hidra Cristalina - Eco das Profundezas",
+    "historia": "Cada cabeça reflete a luz em prismas cortantes. O chão está coberto de veneno seco que já devorou aventureiros desavisados.",
     "andar_min": 3,
     "andar_max": 4
   },
@@ -28,6 +34,8 @@
     "nome": "Golem de Obsidiana",
     "tipo": "chefe_golem",
     "descricao": "Golem de obsidiana, praticamente impenetrável.",
+    "titulo": "Golem de Obsidiana - Guardião Silente",
+    "historia": "Runas brilhantes pulsarem no peito do golem. O silêncio pesa, como se a própria masmorra segurasse o fôlego.",
     "andar_min": 4,
     "andar_max": 5
   },
@@ -36,6 +44,8 @@
     "nome": "Dragão Abissal",
     "tipo": "chefe_dragao",
     "descricao": "Dragão abissal que cospe chamas púrpuras e corrompe o ar.",
+    "titulo": "Dragão Abissal - Fogo do Vácuo",
+    "historia": "As chamas púrpuras distorcem o ar. Cada batida de asa escurece as paredes como tinta viva.",
     "andar_min": 5,
     "andar_max": 10
   },
@@ -44,6 +54,8 @@
     "nome": "Matriarca Tecelã",
     "tipo": "chefe_matriarca",
     "descricao": "Matriarca aracnídea que tece veneno e armadilhas mentais.",
+    "titulo": "Matriarca Tecelã - Rainha das Tramas",
+    "historia": "Fios prateados cruzam a sala formando armadilhas mentais. Seus olhos múltiplos acompanham cada movimento.",
     "andar_min": 2,
     "andar_max": 4
   },
@@ -52,6 +64,8 @@
     "nome": "Tirano Flamígero",
     "tipo": "chefe_tirano",
     "descricao": "Tirano ancestral envolto em runas flamejantes.",
+    "titulo": "Tirano Flamígero - Chamas do Deserto",
+    "historia": "Runas incandescentes cobrem a armadura do tirano. O calor que emana dele resseca a garganta antes mesmo da luta começar.",
     "andar_min": 4,
     "andar_max": 6
   },
@@ -60,6 +74,8 @@
     "nome": "Pesadelo Ancestral",
     "tipo": "chefe_dragao",
     "descricao": "Pesadelo ancestral",
+    "titulo": "Pesadelo Ancestral - Sombra Infinita",
+    "historia": "Uma sombra colossal toma forma de dragão. O ar fica pesado como se a própria esperança estivesse sendo esmagada.",
     "andar_min": 6,
     "andar_max": 10
   }

@@ -220,6 +220,9 @@ class Sala:
     chefe_tipo: str | None = None
     chefe_nome: str | None = None
     chefe_descricao: str | None = None
+    chefe_titulo: str | None = None
+    chefe_historia: str | None = None
+    chefe_intro_exibida: bool = False
     nivel_area: int = 1
     evento_id: str | None = None
     evento_resolvido: bool = False
@@ -248,6 +251,9 @@ class Sala:
         payload.setdefault("chefe_tipo", None)
         payload.setdefault("chefe_nome", None)
         payload.setdefault("chefe_descricao", None)
+        payload.setdefault("chefe_titulo", None)
+        payload.setdefault("chefe_historia", None)
+        payload.setdefault("chefe_intro_exibida", False)
         payload.setdefault("nivel_area", 1)
         payload.setdefault("evento_id", None)
         payload.setdefault("evento_resolvido", False)

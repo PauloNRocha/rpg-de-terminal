@@ -123,8 +123,10 @@ def _criar_sala(
             sala.chefe_tipo = chefe_config.tipo
             sala.chefe_nome = chefe_config.nome
             sala.chefe_descricao = chefe_config.descricao or sala.descricao
-            sala.nome = f"Covil de {chefe_config.nome}"
+            sala.chefe_titulo = chefe_config.titulo
+            sala.chefe_historia = chefe_config.historia
             sala.descricao = sala.chefe_descricao
+            sala.nome = f"Covil de {chefe_config.nome}"
         return sala
     if tipo == "escada":
         return Sala(
