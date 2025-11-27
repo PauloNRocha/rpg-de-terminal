@@ -5,8 +5,8 @@ from src.combate import calcular_dano
 
 def test_calcular_dano() -> None:
     """Testa a função calcular_dano para garantir que o dano é calculado corretamente."""
-    # Garante que o dano não seja negativo
-    assert calcular_dano(5, 10) == 0
+    # Garante que o dano não seja negativo, mas mantém piso 1 para ataques positivos
+    assert calcular_dano(5, 10) == 1
     assert calcular_dano(0, 0) == 0
 
     # Testa um cenário básico de dano

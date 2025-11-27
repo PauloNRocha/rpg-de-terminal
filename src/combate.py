@@ -11,6 +11,9 @@ def calcular_dano(ataque: int, defesa: int) -> int:
     variacao = random.uniform(0.8, 1.2)
     dano_bruto = ataque * variacao
     dano_final = max(0, dano_bruto - defesa)
+    if dano_final <= 0 and ataque > 0:
+        # Garante progresso no combate, evitando lutas infinitas por defesa alta.
+        return 1
     return int(dano_final)
 
 
