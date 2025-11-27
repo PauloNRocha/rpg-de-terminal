@@ -38,6 +38,14 @@ def limpar_tela() -> None:
     console.clear()
 
 
+def _limitar_log(mensagens: list[str], limite: int = 10) -> list[str]:
+    """Retorna apenas as últimas entradas, com cabeçalho de truncamento se necessário."""
+    if len(mensagens) <= limite:
+        return mensagens
+    ocultos = len(mensagens) - limite
+    return [f"(… +{ocultos} eventos anteriores)", *mensagens[-limite:]]
+
+
 def desenhar_caixa(titulo: str, conteudo: str, largura: int = 75) -> None:
     """Desenha uma caixa de texto com título e conteúdo usando rich.Panel."""
     panel = Panel(
@@ -670,6 +678,7 @@ def desenhar_tela_combate(
 ) -> str:
     """Desenha a tela de combate com informações do jogador, inimigo e mensagens."""
     mensagem = mensagem or []
+    display_log = _limitar_log(mensagem)
     limpar_tela()
 
     hp_jogador_percent = (jogador.hp / jogador.hp_max) * 100
@@ -694,7 +703,7 @@ def desenhar_tela_combate(
         Text(f" {max(0, inimigo.hp)}/{inimigo.hp_max}", style="bold red"),
     )
 
-    log_combate_texto = "\n".join(mensagem)
+    log_combate_texto = "\n".join(display_log)
     log_combate = Text(log_combate_texto, style="white")
 
     grid_principal = Table.grid(expand=True)

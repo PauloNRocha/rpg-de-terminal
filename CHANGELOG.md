@@ -9,6 +9,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   Em andamento para a série 1.6.3 (narrativa de chefes e motivações data-driven).
 -   Ajuste de combate: ataques com dano calculado menor ou igual a zero, mas com ataque positivo, agora causam pelo menos 1 de dano, evitando combates intermináveis quando a defesa do alvo é muito alta.
+-   UX de combate: o log exibido é limitado às últimas mensagens, com indicador de quantas entradas anteriores foram ocultadas, evitando telas gigantes durante lutas longas.
 
 ## [1.6.2] - 2025-11-18
 
