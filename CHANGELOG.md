@@ -7,7 +7,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
-_(Sem entradas por enquanto.)_
+-   Em andamento para a série 1.6.3 (narrativa de chefes e motivações data-driven).
 
 ## [1.6.2] - 2025-11-18
 
