@@ -745,7 +745,23 @@ def desenhar_tela_combate(
         border_style="red",
     )
     console.print(combate_panel)
-    return console.input("[bold yellow]Sua ação (1. Atacar, 2. Usar Item, 3. Fugir): [/]")
+    return console.input(
+        "[bold yellow]Sua ação (1. Atacar, 2. Usar Item, 3. Fugir, L. Ver log): [/]"
+    )
+
+
+def desenhar_log_completo(log: list[str]) -> None:
+    """Mostra o log completo do combate em uma tela separada."""
+    limpar_tela()
+    texto = "\n".join(log) if log else "Sem eventos registrados."
+    panel = Panel(
+        Text(texto, style="white"),
+        title=Text("Log completo do combate", style="bold yellow"),
+        border_style="blue",
+        width=90,
+    )
+    console.print(panel)
+    console.input("[bold yellow]Pressione Enter para voltar ao combate... [/]")
 
 
 def tela_game_over() -> None:

@@ -3,7 +3,7 @@ import time
 from collections.abc import Callable
 
 from src.entidades import Inimigo, Personagem
-from src.ui import desenhar_tela_combate
+from src.ui import desenhar_log_completo, desenhar_tela_combate
 
 
 def calcular_dano(ataque: int, defesa: int) -> int:
@@ -25,6 +25,10 @@ def iniciar_combate(
 
     while jogador.esta_vivo() and inimigo.esta_vivo():
         escolha = desenhar_tela_combate(jogador, inimigo, log_combate)
+
+        if escolha.lower() == "l":
+            desenhar_log_completo(log_combate)
+            continue
 
         if escolha == "1":
             # Turno do Jogador
