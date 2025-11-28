@@ -21,8 +21,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Histórico: tabela inclui chefe mais profundo derrotado e permite limpar histórico pelo atalho `L` na tela de histórico.
 -   Resumo final mostra chefe mais profundo derrotado, turnos/ações da run e, em caso de morte, o inimigo que finalizou o jogador; essas informações também são gravadas no histórico.
 -   Eventos com custo (ex.: sacrificar moedas) agora verificam saldo antes de aplicar efeitos; se não houver moedas suficientes, a ação é abortada sem consumir HP/buffs.
--   Minimap e HUD: layout sem duplicação do painel do jogador, minimapa ao lado com padding reduzido; limpeza de tela reforçada para evitar resíduos visuais.
--   Limpeza de tela: cursor reposicionado ao topo a cada quadro para evitar resíduos de telas anteriores em terminais que não suportam bem `clear`.
+-   Minimap e HUD: layout sem duplicação do painel do jogador, minimapa ao lado com padding reduzido.
 
 ## [1.6.5] - 2025-11-28
 
