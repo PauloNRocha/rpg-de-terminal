@@ -9,6 +9,18 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   Em aberto.
 
+## [1.6.6] - Em desenvolvimento
+
+### Planejado (alinhado ao backlog temático)
+- Mini-mapa textual opcional e teclas alternativas (WASD/HJKL) para movimentação.
+- Pequenas melhorias de UX de combate/histórico, conforme feedback.
+- (Conteúdo adicional pode ser incluído conforme testes.)
+
+### Corrigido/ajustado até aqui
+-   Correção UX: ao iniciar nova aventura sem saves existentes, digitar o número sugerido cria o slot diretamente (não volta mais ao menu).
+-   Histórico: tabela inclui chefe mais profundo derrotado e permite limpar histórico pelo atalho `L` na tela de histórico.
+-   Resumo final mostra chefe mais profundo derrotado, turnos/ações da run e, em caso de morte, o inimigo que finalizou o jogador; essas informações também são gravadas no histórico.
+
 ## [1.6.5] - 2025-11-28
 
 -   Correção UX: ao iniciar nova aventura sem saves existentes, digitar o número sugerido cria o slot diretamente (não volta mais ao menu).
