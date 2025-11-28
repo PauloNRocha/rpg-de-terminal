@@ -15,6 +15,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Datas dos saves passam a ser exibidas no horário local do usuário, em formato legível (`YYYY-MM-DD HH:MM:SS`), facilitando identificar qual run é mais recente.
 -   Painel de resumo final ao sair da masmorra ou morrer: mostra andar alcançado, inimigos derrotados, itens, moedas, eventos e andares concluídos.
 -   Eventos interativos (ex.: Poço Misterioso e Altar Antigo) agora permitem escolhas com efeitos distintos, ampliando o risco/benefício das salas especiais.
+-   Drops guiados nos andares 1–2 garantem que o jogador obtenha ao menos uma arma e um escudo cedo (Espada Afiada / Escudo de Madeira), suavizando a curva inicial.
 
 ### Alterado
 

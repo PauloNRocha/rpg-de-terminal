@@ -40,7 +40,7 @@ from src.estados import (
     usar_item as usar_item_estado,
 )
 from src.gerador_inimigos import gerar_inimigo
-from src.gerador_itens import gerar_item_aleatorio
+from src.gerador_itens import gerar_item_aleatorio, obter_item_por_nome
 from src.gerador_mapa import gerar_mapa
 from src.personagem import criar_personagem, obter_classes
 from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temporarios
@@ -619,6 +619,26 @@ def _equipar_item_com_bonus(jogador: Personagem) -> None:
 
 def _gerar_item_para_contexto(contexto: ContextoJogo, raridade: str) -> Item | None:
     bonus = contexto.obter_perfil_dificuldade().drop_consumivel_bonus
+    jogador = contexto.jogador
+    # Drops guiados para andares iniciais: garantir 1 arma e 1 escudo cedo.
+    if jogador and contexto.nivel_masmorra <= 2:
+        possui_arma = bool(
+            jogador.equipamento.get("arma")
+            or any(item.tipo == "arma" for item in jogador.inventario)
+        )
+        possui_escudo = bool(
+            jogador.equipamento.get("escudo")
+            or any(item.tipo == "escudo" for item in jogador.inventario)
+        )
+        if not possui_arma:
+            return obter_item_por_nome("Espada Afiada") or gerar_item_aleatorio(
+                "comum", bonus_consumivel=bonus
+            )
+        if not possui_escudo:
+            return obter_item_por_nome("Escudo de Madeira") or gerar_item_aleatorio(
+                "comum", bonus_consumivel=bonus
+            )
+
     return gerar_item_aleatorio(raridade, bonus_consumivel=bonus)
 
 
