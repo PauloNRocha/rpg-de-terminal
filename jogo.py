@@ -13,7 +13,7 @@ from src.armazenamento import (
     proximo_slot_disponivel,
     salvar_jogo,
 )
-from src.atualizador import AtualizacaoInfo, verificar_atualizacao
+from src.atualizador import AtualizacaoInfo, carregar_preferencias, verificar_atualizacao
 from src.chefes import obter_chefe_por_id
 from src.combate import iniciar_combate
 from src.entidades import Inimigo, Item, Personagem, Sala
@@ -60,6 +60,7 @@ from src.ui import (
     desenhar_tela_saida,
     tela_game_over,
 )
+from src.ui_helpers import TutorialEstado
 from src.ui_resumo import desenhar_tela_resumo_final
 from src.version import __version__
 
@@ -116,6 +117,7 @@ class ContextoJogo:
     dificuldade: str = config.DIFICULDADE_PADRAO
     estatisticas_andar: dict[str, int] = field(default_factory=_nova_estatistica_andar)
     estatisticas_total: dict[str, int] = field(default_factory=_nova_estatistica_total)
+    tutorial: TutorialEstado = field(default_factory=TutorialEstado)
 
     def limpar_combate(self) -> None:
         """Remove referências ao combate atual."""
@@ -272,6 +274,11 @@ def _selecionar_slot(novo_jogo: bool, saves: list[SaveInfo]) -> str | None:
 
 def executar_estado_menu(contexto: ContextoJogo) -> Estado:
     """Renderiza o menu e decide o próximo estado."""
+    # Carrega preferências (inclui tutorial) só na primeira passagem.
+    if not contexto.tutorial.vistos:
+        prefs = carregar_preferencias()
+        contexto.tutorial.ativo = bool(prefs.get("tutorial_enabled", True))
+
     if not contexto.atualizacao_notificada:
         info = verificar_atualizacao()
         if info:
@@ -368,6 +375,12 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             contexto.nivel_masmorra, contexto.obter_perfil_dificuldade()
         )
         _posicionar_na_entrada(jogador, contexto.mapa_atual)
+        contexto.tutorial.mostrar(
+            "exploracao_basica",
+            "Dica: Exploração",
+            "Use os números para se mover (N/S/L/O), abrir inventário, salvar ou sair.\n"
+            "A HUD mostra HP, XP, motivação, dificuldade e andar atual.",
+        )
 
     mapa = contexto.mapa_atual
     sala_atual = mapa[jogador.y][jogador.x]
@@ -544,6 +557,13 @@ def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
     if jogador is None:
         return Estado.MENU
 
+    contexto.tutorial.mostrar(
+        "inventario_basico",
+        "Dica: Inventário",
+        "Use 'Usar Item' para consumir poções e 'Equipar' para trocar arma/escudo.\n"
+        "Itens repetidos aparecem agrupados; compare bônus antes de confirmar.",
+    )
+
     gerenciar_inventario_estado(
         jogador,
         usar_item_fn=_usar_item_com_feedback,
@@ -554,6 +574,14 @@ def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
 
 def executar_estado_combate(contexto: ContextoJogo) -> Estado:
     """Repasse para o estado modular de combate."""
+    contexto.tutorial.mostrar(
+        "combate_basico",
+        "Dica: Combate",
+        "1. Atacar (dano baseado em ataque vs defesa)\n"
+        "2. Usar Item (consome turno, inimigo ainda ataca)\n"
+        "3. Fugir (chance de 50%)\n"
+        "L. Ver log completo do combate.",
+    )
     return executar_estado_combate_mod(
         contexto,
         iniciar_combate,
