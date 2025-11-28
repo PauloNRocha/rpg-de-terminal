@@ -44,18 +44,11 @@ class Moeda:
         return {"valor_bronze": self.valor_bronze}
 
     def formatar(self) -> str:
-        """Retorna o valor formatado como Ouro/Prata/Bronze legível."""
+        """Retorna o valor formatado exibindo sempre Ouro/Prata/Bronze."""
         restante = max(0, self.valor_bronze)
         ouro, restante = divmod(restante, BRONZE_POR_OURO)
         prata, bronze = divmod(restante, BRONZE_POR_PRATA)
-        partes: list[str] = []
-        if ouro:
-            partes.append(f"{ouro} Ouro")
-        if prata:
-            partes.append(f"{prata} Prata")
-        if bronze or not partes:
-            partes.append(f"{bronze} Bronze")
-        return ", ".join(partes)
+        return f"{ouro} Ouro, {prata} Prata, {bronze} Bronze"
 
     def receber(self, valor: int) -> None:
         """Ganha moedas (ou corrige perdas), sem deixar o total negativo."""

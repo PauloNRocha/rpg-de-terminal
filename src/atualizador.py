@@ -27,6 +27,7 @@ DEFAULT_PREFERENCIAS = {
     "frequency": "semanal",  # "diaria", "semanal", "mensal"
     "allow_prerelease": False,
     "last_check_iso": None,
+    "ultima_falha_iso": None,
 }
 FREQUENCIA_DIAS = {"diaria": 1, "semanal": 7, "mensal": 30}
 
@@ -58,8 +59,9 @@ class AtualizacaoInfo:
         return base + "Baixe o ZIP da release no link acima e substitua os arquivos."
 
 
-def carregar_preferencias(caminho: Path = SETTINGS_PATH) -> dict[str, Any]:
+def carregar_preferencias(caminho: Path | None = None) -> dict[str, Any]:
     """Lê o arquivo de preferências de atualização, criando-o com defaults se necessário."""
+    caminho = caminho or SETTINGS_PATH
     if not caminho.exists():
         salvar_preferencias(DEFAULT_PREFERENCIAS.copy(), caminho)
         return DEFAULT_PREFERENCIAS.copy()
@@ -72,8 +74,9 @@ def carregar_preferencias(caminho: Path = SETTINGS_PATH) -> dict[str, Any]:
     return prefs
 
 
-def salvar_preferencias(preferencias: dict[str, Any], caminho: Path = SETTINGS_PATH) -> None:
+def salvar_preferencias(preferencias: dict[str, Any], caminho: Path | None = None) -> None:
     """Salva o dicionário de preferências em disco."""
+    caminho = caminho or SETTINGS_PATH
     caminho.write_text(json.dumps(preferencias, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
@@ -85,6 +88,8 @@ def deve_verificar(preferencias: dict[str, Any], agora: datetime | None = None) 
     """Determina se está na hora de checar atualizações novamente."""
     if not preferencias.get("auto_update_check", True):
         return False
+    if preferencias.get("ultima_falha_iso"):
+        return True
     ultimo = preferencias.get("last_check_iso")
     if not ultimo:
         return True
@@ -173,12 +178,13 @@ def verificar_atualizacao(
 
     try:
         release = buscar_release_mais_recente(preferencias.get("allow_prerelease", False), fetch_fn)
-    except URLError:
-        release = None
-    except OSError:
-        release = None
+    except (URLError, OSError):
+        preferencias["ultima_falha_iso"] = agora.isoformat()
+        salvar_preferencias(preferencias)
+        return None
 
     preferencias["last_check_iso"] = agora.isoformat()
+    preferencias["ultima_falha_iso"] = None
     salvar_preferencias(preferencias)
 
     if not release:

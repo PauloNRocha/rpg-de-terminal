@@ -43,6 +43,20 @@
             "bonus": { "ataque": 6 },
             "descricao": "+6 Ataque",
             "preco_bronze": 125
+        },
+        {
+            "nome": "Arco da Ventania",
+            "tipo": "arma",
+            "bonus": { "ataque": 5, "defesa": 1 },
+            "descricao": "+5 Ataque, +1 Defesa",
+            "preco_bronze": 140
+        },
+        {
+            "nome": "Cota de Malha Reforçada",
+            "tipo": "escudo",
+            "bonus": { "defesa": 5 },
+            "descricao": "+5 Defesa",
+            "preco_bronze": 150
         }
     ],
     "raro": [
@@ -59,6 +73,34 @@
             "bonus": { "defesa": 5, "ataque": 1 },
             "descricao": "+5 Defesa, +1 Ataque",
             "preco_bronze": 215
+        },
+        {
+            "nome": "Lâmina Fantasmal",
+            "tipo": "arma",
+            "bonus": { "ataque": 7, "defesa": 2 },
+            "descricao": "+7 Ataque, +2 Defesa",
+            "preco_bronze": 230
+        },
+        {
+            "nome": "Broquel da Aurora",
+            "tipo": "escudo",
+            "bonus": { "defesa": 4, "ataque": 2 },
+            "descricao": "+4 Defesa, +2 Ataque",
+            "preco_bronze": 225
+        },
+        {
+            "nome": "Lança Solar",
+            "tipo": "arma",
+            "bonus": { "ataque": 9 },
+            "descricao": "+9 Ataque",
+            "preco_bronze": 260
+        },
+        {
+            "nome": "Couraça Rúnica",
+            "tipo": "escudo",
+            "bonus": { "defesa": 6, "ataque": 1 },
+            "descricao": "+6 Defesa, +1 Ataque",
+            "preco_bronze": 255
         }
     ],
     "consumivel": [

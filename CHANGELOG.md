@@ -7,7 +7,71 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
-(sem entradas)
+-   Em aberto.
+
+## [1.6.3] - 2025-11-28
+
+### Adicionado
+
+-   Motivações do personagem passaram a ser múltiplas por classe, carregadas de `src/data/historias_personagem.json`, e são exibidas na criação, HUD e ficha (cada nova run começa com um motivo diferente para estar na masmorra).
+-   Chefes ganharam histórias específicas por classe (`historias_por_classe` em `chefes.json`); a cena pré-chefe exibe um título e narrativa adaptados à classe escolhida, aumentando a imersão.
+-   Tela de criação/ficha ganhou painel separado para a Motivação, com destaque visual e texto em itálico.
+
+### Alterado
+
+-   UX de combate: o log exibido é limitado às últimas mensagens, com indicador de entradas ocultas; a tecla `L` abre o log completo em uma tela separada.
+-   Ajuste de combate: dano mínimo de 1 quando o ataque é positivo, evitando lutas infinitas contra defesa alta.
+-   Ao encontrar chefe, o jogador vê uma cena narrativa e pode escolher enfrentar, abrir inventário ou recuar (retornando à sala anterior).
+
+### Corrigido
+
+-   Fuga em combate volta imediatamente para exploração, limpando o contexto e evitando ficar preso na tela de combate.
+
+## [1.6.2] - 2025-11-18
+
+### Adicionado
+
+-   Salas de percurso e salas secundárias agora são carregadas de `src/data/salas.json`, com um baralho que evita repetir nomes/descrições dentro do mesmo andar e facilita a criação de novos biomas narrativos.
+-   Sistema de eventos recebeu novos tipos: bênçãos e maldições que aplicam bônus/penalidades temporárias (`buffs` com duração em combates) e encontros sociais como o Mercador Fantasma; o schema foi ampliado em `eventos.json` e suportado por `status_temporarios` no `Personagem`.
+-   Arsenal expandido: novas armas/escudos incomuns e raros (Arco da Ventania, Cota de Malha Reforçada, Lança Solar, Couraça Rúnica, etc.) e bestiário com Guardião Espectral, Sentinela Rúnica e Arqueiro de Obsidiana — alguns com drops exclusivos definidos em `drop_item_nome`.
+-   Resumo pós-andar: ao descer a escadaria, o jogo exibe um painel Rich com inimigos derrotados, itens coletados, moedas e eventos do andar, além de indicar o HP recuperado antes de gerar o próximo mapa.
+
+### Alterado
+
+-   `Personagem` passou a armazenar `status_temporarios`; o módulo `personagem_utils.py` centraliza o recálculo dos atributos e o consumo dos buffs/maldições após cada combate.
+-   A tela de combate e o estado de loot agora suportam drops exclusivos (`drop_item_nome`) antes de recorrer à raridade; `gerador_itens.obter_item_por_nome` facilita buscar itens específicos definidos nos dados.
+-   Estatísticas de cada andar (inimigos, itens, moedas, eventos) são acumuladas no `ContextoJogo` para alimentar o painel de resumo ao descer a escada.
+
+### Corrigido
+
+-   Eventos que reduzem o HP a zero interrompem imediatamente a run (tela de Game Over), evitando que o jogador receba primeiro a mensagem de encontro com inimigo antes da derrota.
+
+## [1.6.1] - 2025-11-18
+
+### Adicionado
+
+-   Nova opção "Ver Ficha do Personagem" durante a exploração abre um painel Rich com atributos atuais, valores base, posição e equipamentos, permitindo consultar a ficha completa sem sair da run.
+-   Tela de inventário agora agrupa itens idênticos (ex.: “Poção de Cura x6”) e exibe a contagem em uma coluna dedicada, deixando listas longas muito mais legíveis.
+-   Catálogo data-driven de chefes (`src/data/chefes.json`) com nomes, descrições e faixas de andares, carregado por `src/chefes.py` e integrado ao gerador de mapas.
+-   HUD destaca automaticamente quando o jogador está diante de um chefe, mostrando o nome/descrição sorteados antes do combate.
+-   Novos itens raros (Lâmina Fantasmal e Broquel da Aurora) foram adicionados ao loot de alto nível para diversificar os drops dos espectros e demais inimigos raros.
+
+### Alterado
+
+-   A formatação da bolsa (`Moeda.formatar`) agora mostra sempre Ouro, Prata e Bronze (ex.: `0 Ouro, 7 Prata, 0 Bronze`), evitando a sensação de que o jogador perdeu moedas ao converter valores.
+-   O menu principal e demais telas que exibem a autoria passaram a usar "Desenvolvido por Paulo Rocha e IA", refletindo a colaboração ativa da assistente.
+-   A ficha do personagem em jogo ganhou novo layout com painéis Rich lado a lado (status total, atributos base, equipamento detalhado), tornando a leitura mais rápida e elegante.
+-   Salas de chefe agora registram `chefe_id`, `chefe_tipo` e `chefe_nome` no save, garantindo que a mesma criatura e narrativa sejam restauradas ao retomar a aventura.
+-   Inimigos de chefe usam o template correspondente ao perfil sorteado (HP/ataque/defesa/xp e nome customizados), evitando encontros repetitivos como "Chefe Orc" em todos os andares.
+-   Probabilidade de encontrar inimigos agora escala por andar/dificuldade (`config.probabilidade_inimigo_por_nivel`), tornando os níveis profundos mais perigosos e recompensadores.
+-   Inimigos escalam com fator maior por andar e recebem uma leve variação aleatória nos atributos, deixando combates menos previsíveis sem quebrar o balanceamento geral.
+-   Chefes passaram a usar bônus escalonados por nível (HP/ATK/DEF/XP), deixando o Chefe Orc acessível no início da campanha e aumentando gradualmente o desafio nos andares seguintes.
+
+### Corrigido
+
+-   O verificador automático de updates (`src/atualizador.py`) só grava `last_check_iso` quando a chamada à API é bem-sucedida, marcando falhas em `ultima_falha_iso`; assim, o jogo re-tenta automaticamente na próxima abertura mesmo que o intervalo configurado ainda não tenha passado.
+-   A HUD de exploração passa a sinalizar chefes apenas enquanto estiverem vivos e confirma quando já foram derrotados, eliminando o alerta permanente de “Chefe Desconhecido” após a vitória.
+-   “Nigromante Sombrio” foi renomeado para “Necromante Sombrio” em todos os dados, mantendo consistência com o vocabulário de fantasia utilizado no restante do jogo.
 
 ## [1.6.0] - 2025-11-16
 

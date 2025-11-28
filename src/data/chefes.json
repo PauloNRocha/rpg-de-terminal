@@ -1,0 +1,258 @@
+[
+  {
+    "id": "chefe_orc",
+    "nome": "Senhor dos Orcs",
+    "tipo": "chefe_orc",
+    "descricao": "Um orc colossal, líder das hordas subterrâneas.",
+    "titulo": "Chefe Orc - Senhor das Forjas",
+    "historia": "As forjas retumbam atrás do Senhor dos Orcs. Dizem que cada cicatriz dele foi marcada a ferro enquanto dominava clãs rivais.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Chefe Orc - Carrasco do Seu Mentor",
+        "historia": "Você reconhece a cicatriz no rosto do orc: é o mesmo carrasco que matou seu mentor. As forjas atrás dele ainda cheiram a sangue queimado."
+      },
+      "mago": {
+        "titulo": "Chefe Orc - Profanador de Santuários",
+        "historia": "Runas quebradas estão cravadas nas placas de metal da armadura dele. São fragmentos de santuários arcanos que você jurou proteger."
+      },
+      "arqueiro": {
+        "titulo": "Chefe Orc - Presa dos Caçadores",
+        "historia": "Velhos cartazes de recompensa falavam de um orc impossível de derrubar à distância. Agora ele está a poucos passos do seu arco."
+      },
+      "ladino": {
+        "titulo": "Chefe Orc - Senhor do Contrabando",
+        "historia": "Você já viu o símbolo dele em carregamentos roubados. As cicatrizes nas mãos denunciam anos conduzindo ataques contra viajantes indefesos."
+      },
+      "default": {
+        "titulo": "Chefe Orc - Senhor das Forjas",
+        "historia": "As forjas retumbam atrás do Senhor dos Orcs. Dizem que cada cicatriz dele foi marcada a ferro enquanto dominava clãs rivais."
+      }
+    },
+    "andar_min": 1,
+    "andar_max": 2
+  },
+  {
+    "id": "chefe_nigromante",
+    "nome": "Necromante Sombrio",
+    "tipo": "chefe_nigromante",
+    "descricao": "Um necromante que convoca espectros para auxiliá-lo.",
+    "titulo": "Necromante Sombrio - Voz dos Mortos",
+    "historia": "Velas negras flutuam ao redor do necromante. Sussurros dos mortos fazem o ar gelar enquanto ele ergue o cajado.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Necromante Sombrio - Profanador de Tumbas",
+        "historia": "Os mortos que você honrou em batalha agora atendem ao chamado dele. Você vê armaduras conhecidas penduradas em correntes espectrais."
+      },
+      "mago": {
+        "titulo": "Necromante Sombrio - Traidor do Círculo",
+        "historia": "Os símbolos no cajado são variações corrompidas dos sigilos do seu círculo arcano. Foi ele quem levou antigos colegas para o lado da morte."
+      },
+      "arqueiro": {
+        "titulo": "Necromante Sombrio - Caçador de Almas",
+        "historia": "Sombras em forma de flechas cruzam o ar ao redor dele, imitando seu próprio estilo de luta. Cada alma que ele toma vira um novo projétil."
+      },
+      "ladino": {
+        "titulo": "Necromante Sombrio - Dono das Dívidas",
+        "historia": "Você reconhece algumas das faces espectrais: antigos parceiros de golpe que sumiram sem deixar rastro. Agora pagam juros na moeda das almas."
+      },
+      "default": {
+        "titulo": "Necromante Sombrio - Voz dos Mortos",
+        "historia": "Velas negras flutuam ao redor do necromante. Sussurros dos mortos fazem o ar gelar enquanto ele ergue o cajado."
+      }
+    },
+    "andar_min": 2,
+    "andar_max": 3
+  },
+  {
+    "id": "chefe_hidra",
+    "nome": "Hidra Cristalina",
+    "tipo": "chefe_hidra",
+    "descricao": "Uma hidra cristalina de múltiplas cabeças venenosa.",
+    "titulo": "Hidra Cristalina - Eco das Profundezas",
+    "historia": "Cada cabeça reflete a luz em prismas cortantes. O chão está coberto de veneno seco que já devorou aventureiros desavisados.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Hidra Cristalina - Julgamento do Aço",
+        "historia": "Seu escudo devolve o reflexo de inúmeras cabeças famintas. Cada golpe errado pode partir sua lâmina em mil estilhaços."
+      },
+      "mago": {
+        "titulo": "Hidra Cristalina - Prisma Arcano",
+        "historia": "A luz que atravessa as escamas funciona como um foco para magia. Qualquer feitiço mal lançado pode ser devolvido multiplicado."
+      },
+      "arqueiro": {
+        "titulo": "Hidra Cristalina - Alvo Impossível",
+        "historia": "Acertar o ponto certo entre as placas cristalinas é quase impossível. Mesmo assim, seus dedos já procuram a próxima flecha."
+      },
+      "ladino": {
+        "titulo": "Hidra Cristalina - Guardiã dos Túneis Secretos",
+        "historia": "Mapas antigos indicavam passagens por trás desta criatura. Para atravessá-las, você precisa dançar entre cabeças e veneno."
+      },
+      "default": {
+        "titulo": "Hidra Cristalina - Eco das Profundezas",
+        "historia": "Cada cabeça reflete a luz em prismas cortantes. O chão está coberto de veneno seco que já devorou aventureiros desavisados."
+      }
+    },
+    "andar_min": 3,
+    "andar_max": 4
+  },
+  {
+    "id": "chefe_golem",
+    "nome": "Golem de Obsidiana",
+    "tipo": "chefe_golem",
+    "descricao": "Golem de obsidiana, praticamente impenetrável.",
+    "titulo": "Golem de Obsidiana - Guardião Silente",
+    "historia": "Runas brilhantes pulsarem no peito do golem. O silêncio pesa, como se a própria masmorra segurasse o fôlego.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Golem de Obsidiana - Prova do Machado",
+        "historia": "Suas armas parecem brinquedos diante da massa de pedra negra. Cada rachadura que você abrir será uma vitória contra o impossível."
+      },
+      "mago": {
+        "titulo": "Golem de Obsidiana - Forja de Runas",
+        "historia": "As runas no peito dele lembram fórmulas que você estudou, mas ligadas a um núcleo de energia bruto. Derrubá-lo pode revelar um segredo antigo."
+      },
+      "arqueiro": {
+        "titulo": "Golem de Obsidiana - Alvo de Pedra",
+        "historia": "Dizem que nenhuma flecha atravessa obsidiana. Você veio para provar o contrário, mirando nas linhas de runas que cruzam o corpo da criatura."
+      },
+      "ladino": {
+        "titulo": "Golem de Obsidiana - Cofre Vivo",
+        "historia": "Lendas contam que um tesouro inteiro foi fundido dentro deste golem. Se conseguir rachá-lo, talvez saiam moedas junto com as pedras."
+      },
+      "default": {
+        "titulo": "Golem de Obsidiana - Guardião Silente",
+        "historia": "Runas brilhantes pulsarem no peito do golem. O silêncio pesa, como se a própria masmorra segurasse o fôlego."
+      }
+    },
+    "andar_min": 4,
+    "andar_max": 5
+  },
+  {
+    "id": "chefe_dragao",
+    "nome": "Dragão Abissal",
+    "tipo": "chefe_dragao",
+    "descricao": "Dragão abissal que cospe chamas púrpuras e corrompe o ar.",
+    "titulo": "Dragão Abissal - Fogo do Vácuo",
+    "historia": "As chamas púrpuras distorcem o ar. Cada batida de asa escurece as paredes como tinta viva.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Dragão Abissal - Última Forja",
+        "historia": "Você treinou a vida inteira imaginando o dia em que enfrentaria um dragão. As chamas púrpuras à sua frente são a prova de que esse dia chegou cedo demais."
+      },
+      "mago": {
+        "titulo": "Dragão Abissal - Biblioteca Viva",
+        "historia": "Escamas marcadas por símbolos arcanos sugerem que o próprio corpo da criatura guarda feitiços perdidos. Vê-lo de perto é como folhear um tomo vivo."
+      },
+      "arqueiro": {
+        "titulo": "Dragão Abissal - Flecha contra o Vento",
+        "historia": "Um dragão em pleno voo é o alvo supremo de qualquer arqueiro. Você sente a tensão na corda como se o mundo inteiro estivesse preso nela."
+      },
+      "ladino": {
+        "titulo": "Dragão Abissal - Tesouro Impossível",
+        "historia": "Por trás da criatura, montes de ouro queimado brilham em tons de roxo. É o tipo de tesouro que ladinos só veem em histórias... ou morrem tentando roubar."
+      },
+      "default": {
+        "titulo": "Dragão Abissal - Fogo do Vácuo",
+        "historia": "As chamas púrpuras distorcem o ar. Cada batida de asa escurece as paredes como tinta viva."
+      }
+    },
+    "andar_min": 5,
+    "andar_max": 10
+  },
+  {
+    "id": "chefe_matriarca",
+    "nome": "Matriarca Tecelã",
+    "tipo": "chefe_matriarca",
+    "descricao": "Matriarca aracnídea que tece veneno e armadilhas mentais.",
+    "titulo": "Matriarca Tecelã - Rainha das Tramas",
+    "historia": "Fios prateados cruzam a sala formando armadilhas mentais. Seus olhos múltiplos acompanham cada movimento.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Matriarca Tecelã - Batalha na Teia",
+        "historia": "Seu peso faz a teia ranger sob a armadura. Um passo em falso e você vira mais um casulo pendurado no teto."
+      },
+      "mago": {
+        "titulo": "Matriarca Tecelã - Tecedora de Pensamentos",
+        "historia": "Os fios brilham com energia psíquica. Uma mente distraída pode ser tecida e desfiada como lã."
+      },
+      "arqueiro": {
+        "titulo": "Matriarca Tecelã - Arco em Fio de Seda",
+        "historia": "Suas flechas precisam atravessar camadas de seda sem prender. Cada disparo é um desafio de precisão absoluta."
+      },
+      "ladino": {
+        "titulo": "Matriarca Tecelã - Labirinto de Armadilhas",
+        "historia": "Você enxerga padrões nas teias, como trilhas de armadilhas que alguém como você desenharia... se tivesse pernas demais."
+      },
+      "default": {
+        "titulo": "Matriarca Tecelã - Rainha das Tramas",
+        "historia": "Fios prateados cruzam a sala formando armadilhas mentais. Seus olhos múltiplos acompanham cada movimento."
+      }
+    },
+    "andar_min": 2,
+    "andar_max": 4
+  },
+  {
+    "id": "chefe_tirano",
+    "nome": "Tirano Flamígero",
+    "tipo": "chefe_tirano",
+    "descricao": "Tirano ancestral envolto em runas flamejantes.",
+    "titulo": "Tirano Flamígero - Chamas do Deserto",
+    "historia": "Runas incandescentes cobrem a armadura do tirano. O calor que emana dele resseca a garganta antes mesmo da luta começar.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Tirano Flamígero - Exército em Chamas",
+        "historia": "Histórias contam que um exército inteiro derreteu diante dele. Você encara sozinho o que exércitos não puderam deter."
+      },
+      "mago": {
+        "titulo": "Tirano Flamígero - General das Runas",
+        "historia": "As runas no chão são círculos militares que canalizam fogo. Enfrentá-lo é decifrar uma estratégia flamejante em tempo real."
+      },
+      "arqueiro": {
+        "titulo": "Tirano Flamígero - Tiro contra a Fornalha",
+        "historia": "Cada flecha que se aproxima dele parece derreter no ar quente. Você precisa mirar onde o calor falha por um segundo."
+      },
+      "ladino": {
+        "titulo": "Tirano Flamígero - Carrasco de Rebeldes",
+        "historia": "Muitos que desafiaram tiranos como ele desapareceram sem rastro. Você pretende ser o primeiro a roubar o trono em plena batalha."
+      },
+      "default": {
+        "titulo": "Tirano Flamígero - Chamas do Deserto",
+        "historia": "Runas incandescentes cobrem a armadura do tirano. O calor que emana dele resseca a garganta antes mesmo da luta começar."
+      }
+    },
+    "andar_min": 4,
+    "andar_max": 6
+  },
+  {
+    "id": "chefe_pesadelo",
+    "nome": "Pesadelo Ancestral",
+    "tipo": "chefe_dragao",
+    "descricao": "Pesadelo ancestral",
+    "titulo": "Pesadelo Ancestral - Sombra Infinita",
+    "historia": "Uma sombra colossal toma forma de dragão. O ar fica pesado como se a própria esperança estivesse sendo esmagada.",
+    "historias_por_classe": {
+      "guerreiro": {
+        "titulo": "Pesadelo Ancestral - Último Inimigo",
+        "historia": "Este é o inimigo que assolou suas noites desde que você pisou na masmorra. Agora, o sonho e a realidade se misturam na mesma sala."
+      },
+      "mago": {
+        "titulo": "Pesadelo Ancestral - Eco de Todos os Feitiços",
+        "historia": "A criatura parece feita de fragmentos de magias mal-sucedidas. Cada parte dela reflete um feitiço que deu errado em algum lugar do mundo."
+      },
+      "arqueiro": {
+        "titulo": "Pesadelo Ancestral - Alvo de Pesadelo",
+        "historia": "Você já acordou inúmeras vezes com a sensação de mirar contra esta sombra. Agora, o alvo está real e nenhum despertar te salvará se errar."
+      },
+      "ladino": {
+        "titulo": "Pesadelo Ancestral - Sombra entre Sombras",
+        "historia": "Você sempre aprendeu a se esconder nas sombras. Desta vez, a própria sombra veio caçar você."
+      },
+      "default": {
+        "titulo": "Pesadelo Ancestral - Sombra Infinita",
+        "historia": "Uma sombra colossal toma forma de dragão. O ar fica pesado como se a própria esperança estivesse sendo esmagada."
+      }
+    },
+    "andar_min": 6,
+    "andar_max": 10
+  }
+]

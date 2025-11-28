@@ -54,6 +54,7 @@ class Inimigo(Entidade):
 
     xp_recompensa: int
     drop_raridade: str
+    drop_item_nome: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância."""
@@ -62,7 +63,32 @@ class Inimigo(Entidade):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Inimigo":
         """Cria uma instância de Inimigo a partir de um dicionário."""
-        return cls(**data)
+        payload = data.copy()
+        payload.setdefault("drop_item_nome", None)
+        return cls(**payload)
+
+
+@dataclass
+class Motivacao:
+    """Motivação narrativa do personagem."""
+
+    id: str
+    titulo: str
+    descricao: str
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializa a motivação."""
+        return asdict(self)
+
+
+@dataclass
+class StatusTemporario:
+    """Bônus ou penalidade que dura um número limitado de combates."""
+
+    atributo: str
+    valor: int
+    combates_restantes: int
+    descricao: str = ""
 
 
 @dataclass
@@ -82,6 +108,8 @@ class Personagem(Entidade):
         default_factory=lambda: {"arma": None, "escudo": None}
     )
     carteira: Moeda = field(default_factory=Moeda)
+    status_temporarios: list[StatusTemporario] = field(default_factory=list)
+    motivacao: Motivacao | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Retorna o dicionário da instância.
@@ -97,6 +125,17 @@ class Personagem(Entidade):
         )
         data["inventario"] = [item.to_dict() for item in self.inventario]
         data["carteira"] = self.carteira.to_dict()
+        data["status_temporarios"] = [
+            {
+                "atributo": s.atributo,
+                "valor": s.valor,
+                "combates_restantes": s.combates_restantes,
+                "descricao": s.descricao,
+            }
+            for s in self.status_temporarios
+        ]
+        if self.motivacao:
+            data["motivacao"] = self.motivacao.to_dict()
         return data
 
     @classmethod
@@ -117,6 +156,8 @@ class Personagem(Entidade):
             "arma": None,
             "escudo": None,
         }
+        status_raw = payload.pop("status_temporarios", [])
+        motivacao_raw = payload.pop("motivacao", None)
 
         inventario: list[Item] = []
         for item_data in inventario_raw:
@@ -128,11 +169,37 @@ class Personagem(Entidade):
             "arma": _hidratar_item(equipamento_raw.get("arma")),
             "escudo": _hidratar_item(equipamento_raw.get("escudo")),
         }
+        status_temporarios: list[StatusTemporario] = []
+        for status in status_raw:
+            if isinstance(status, Mapping):
+                try:
+                    status_temporarios.append(
+                        StatusTemporario(
+                            atributo=str(status.get("atributo", "")).lower(),
+                            valor=int(status.get("valor", 0)),
+                            combates_restantes=int(status.get("combates_restantes", 0)),
+                            descricao=str(status.get("descricao", "")),
+                        )
+                    )
+                except ValueError:
+                    continue
+        motivacao_obj = None
+        if isinstance(motivacao_raw, Mapping):
+            try:
+                motivacao_obj = Motivacao(
+                    id=str(motivacao_raw.get("id", "")),
+                    titulo=str(motivacao_raw.get("titulo", "")),
+                    descricao=str(motivacao_raw.get("descricao", "")),
+                )
+            except ValueError:
+                motivacao_obj = None
 
         return cls(
             inventario=inventario,
             equipamento=equipamento,
             carteira=Moeda.from_dict(carteira_raw),
+            status_temporarios=status_temporarios,
+            motivacao=motivacao_obj,
             **payload,
         )
 
@@ -149,6 +216,13 @@ class Sala:
     inimigo_derrotado: bool = False
     inimigo_atual: Inimigo | None = None
     chefe: bool = False
+    chefe_id: str | None = None
+    chefe_tipo: str | None = None
+    chefe_nome: str | None = None
+    chefe_descricao: str | None = None
+    chefe_titulo: str | None = None
+    chefe_historia: str | None = None
+    chefe_intro_exibida: bool = False
     nivel_area: int = 1
     evento_id: str | None = None
     evento_resolvido: bool = False
@@ -173,6 +247,13 @@ class Sala:
         payload.setdefault("inimigo_derrotado", False)
         payload.setdefault("pode_ter_inimigo", False)
         payload.setdefault("chefe", False)
+        payload.setdefault("chefe_id", None)
+        payload.setdefault("chefe_tipo", None)
+        payload.setdefault("chefe_nome", None)
+        payload.setdefault("chefe_descricao", None)
+        payload.setdefault("chefe_titulo", None)
+        payload.setdefault("chefe_historia", None)
+        payload.setdefault("chefe_intro_exibida", False)
         payload.setdefault("nivel_area", 1)
         payload.setdefault("evento_id", None)
         payload.setdefault("evento_resolvido", False)

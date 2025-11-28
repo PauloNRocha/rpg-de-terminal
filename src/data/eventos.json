@@ -16,5 +16,41 @@
     "nome": "Cofre Esquecido",
     "descricao": "Você encontra um pequeno cofre escondido sob pedras soltas.",
     "efeitos": { "moedas": 35 }
+  },
+  {
+    "id": "bencao_do_guardiao",
+    "nome": "Bênção do Guardião",
+    "descricao": "Uma figura etérea toca sua arma, infundindo-a com fogo azul.",
+    "efeitos": {
+      "buffs": [
+        {
+          "atributo": "ataque",
+          "valor": 3,
+          "duracao_combates": 2,
+          "mensagem": "Seu ataque aumenta em +3 pelos próximos 2 combates."
+        }
+      ]
+    }
+  },
+  {
+    "id": "maldicao_dos_sussurros",
+    "nome": "Maldição dos Sussurros",
+    "descricao": "Vozes ancestrais enfraquecem sua guarda. É melhor ter cuidado.",
+    "efeitos": {
+      "buffs": [
+        {
+          "atributo": "defesa",
+          "valor": -2,
+          "duracao_combates": 2,
+          "mensagem": "Sua defesa diminui em 2 pelos próximos 2 combates."
+        }
+      ]
+    }
+  },
+  {
+    "id": "mercador_fantasma",
+    "nome": "Mercador Fantasma",
+    "descricao": "Um vendedor translúcido oferece um punhado de moedas em troca de ouvir suas histórias.",
+    "efeitos": { "moedas": 50 }
   }
 ]

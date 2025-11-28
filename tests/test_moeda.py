@@ -8,9 +8,15 @@ def test_moeda_from_gp_sp_cp() -> None:
 
 
 def test_moeda_formatar() -> None:
-    """Formata o valor em uma string amigável."""
+    """Formata sempre exibindo ouro, prata e bronze."""
     moeda = Moeda(123)
     assert moeda.formatar() == "1 Ouro, 2 Prata, 3 Bronze"
+
+
+def test_moeda_formatar_mostra_zeros() -> None:
+    """Mesmo sem todas as casas, a string continua completa."""
+    moeda = Moeda(70)
+    assert moeda.formatar() == "0 Ouro, 7 Prata, 0 Bronze"
 
 
 def test_moeda_to_from_dict() -> None:
