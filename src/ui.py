@@ -43,7 +43,8 @@ CLASSE_CORES = {
 def limpar_tela() -> None:
     """Limpa a tela do terminal."""
     console.clear()
-    console.control("\033[H")
+    # ANSI reset do cursor para topo (sem quebrar Rich)
+    console.print("\033[H", end="")
 
 
 def _limitar_log(mensagens: list[str], limite: int = 10) -> list[str]:
