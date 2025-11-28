@@ -68,8 +68,11 @@ def iniciar_combate(
             chance_de_fuga = 0.5
             if random.random() < chance_de_fuga:
                 log_combate.append("Você conseguiu fugir!")
-                desenhar_tela_combate(jogador, inimigo, log_combate)
-                time.sleep(2)
+                # Não pedimos nova entrada aqui; apenas mostramos feedback rápido
+                # para então retornar ao estado de exploração.
+                # (Desenhar a tela de combate novamente forçava o jogador a digitar
+                # outra ação mesmo após escapar.)
+                time.sleep(1)
                 return False, inimigo
             log_combate.append("Você tentou fugir, mas falhou!")
             # Turno do Inimigo após falha na fuga

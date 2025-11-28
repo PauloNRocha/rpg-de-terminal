@@ -7,14 +7,25 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
--   Em andamento para a série 1.6.3 (narrativa de chefes e motivações data-driven).
--   Ajuste de combate: ataques com dano calculado menor ou igual a zero, mas com ataque positivo, agora causam pelo menos 1 de dano, evitando combates intermináveis quando a defesa do alvo é muito alta.
--   UX de combate: o log exibido é limitado às últimas mensagens, com indicador de quantas entradas anteriores foram ocultadas, evitando telas gigantes durante lutas longas.
--   Tecla `L` no combate abre um painel com o log completo, mantendo a HUD compacta sem perder o histórico para quem quiser consultar.
--   Motivações do personagem passaram a ser múltiplas por classe, carregadas de `historias_personagem.json`, e são exibidas na criação, HUD e ficha (cada nova run começa com um motivo diferente para estar na masmorra).
+-   Em aberto.
+
+## [1.6.3] - 2025-11-28
+
+### Adicionado
+
+-   Motivações do personagem passaram a ser múltiplas por classe, carregadas de `src/data/historias_personagem.json`, e são exibidas na criação, HUD e ficha (cada nova run começa com um motivo diferente para estar na masmorra).
 -   Chefes ganharam histórias específicas por classe (`historias_por_classe` em `chefes.json`); a cena pré-chefe exibe um título e narrativa adaptados à classe escolhida, aumentando a imersão.
--   Fuga em combate retorna imediatamente ao estado de exploração, limpando o contexto de combate e evitando ficar “preso” na tela de combate após escapar.
--   Tela de criação/ficha ganhou painel separado para a Motivação, com destaque visual e texto em itálico, tornando o motivo da aventura mais legível.
+-   Tela de criação/ficha ganhou painel separado para a Motivação, com destaque visual e texto em itálico.
+
+### Alterado
+
+-   UX de combate: o log exibido é limitado às últimas mensagens, com indicador de entradas ocultas; a tecla `L` abre o log completo em uma tela separada.
+-   Ajuste de combate: dano mínimo de 1 quando o ataque é positivo, evitando lutas infinitas contra defesa alta.
+-   Ao encontrar chefe, o jogador vê uma cena narrativa e pode escolher enfrentar, abrir inventário ou recuar (retornando à sala anterior).
+
+### Corrigido
+
+-   Fuga em combate volta imediatamente para exploração, limpando o contexto e evitando ficar preso na tela de combate.
 
 ## [1.6.2] - 2025-11-18
 
