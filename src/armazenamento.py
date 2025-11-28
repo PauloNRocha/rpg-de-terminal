@@ -260,3 +260,9 @@ def registrar_historico(entry: dict[str, Any], limite: int = 50) -> None:
         json.dumps(historico, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+
+
+def limpar_historico() -> None:
+    """Remove o arquivo de histórico, se existir."""
+    if _ARQUIVO_HISTORICO.exists():
+        _ARQUIVO_HISTORICO.unlink()

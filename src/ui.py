@@ -13,6 +13,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from src.armazenamento import limpar_historico
 from src.config import DificuldadePerfil
 from src.economia import formatar_preco
 from src.entidades import Inimigo, Item, Personagem, Sala
@@ -426,10 +427,17 @@ def desenhar_historico(limite: int = 20) -> None:
     tabela.add_column("Dificuldade", style="white")
     tabela.add_column("Inimigos", justify="right", style="white")
     tabela.add_column("Itens", justify="right", style="white")
+    tabela.add_column("Chefe + profundo", style="white")
 
     historico = (historico or [])[-limite:]
     historico = list(reversed(historico))  # mais recente primeiro
     for entrada in historico:
+        chefe_info = ""
+        if entrada.get("chefe_mais_profundo_nivel"):
+            chefe_info = (
+                f"A{entrada.get('chefe_mais_profundo_nivel')} "
+                f"- {entrada.get('chefe_mais_profundo_nome', '')}"
+            )
         tabela.add_row(
             str(entrada.get("timestamp_local", "?")),
             str(entrada.get("personagem", "?")),
@@ -439,13 +447,25 @@ def desenhar_historico(limite: int = 20) -> None:
             str(entrada.get("dificuldade", "?")),
             str(entrada.get("inimigos_derrotados", 0)),
             str(entrada.get("itens_obtidos", 0)),
+            chefe_info,
         )
 
     if not historico:
         tabela.add_row("—", "Nenhuma run registrada", "", "", "", "", "", "")
 
     console.print(Panel(tabela, title="Histórico de Aventuras", border_style="blue"))
-    console.input("[bold yellow]Pressione Enter para voltar... [/]")
+    console.print(
+        Panel(
+            "Enter: voltar | L: limpar histórico",
+            border_style="magenta",
+            width=40,
+        )
+    )
+    escolha = console.input("[bold yellow](Enter/L): [/]").strip().lower()
+    if escolha == "l":
+        limpar_historico()
+        console.print("[bold green]Histórico apagado.[/]")
+        console.input("[bold yellow]Pressione Enter para voltar... [/]")
 
 
 def desenhar_tela_escolha_classe(classes: ClassesConfig) -> str:
