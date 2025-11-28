@@ -511,19 +511,34 @@ def desenhar_tela_resumo_personagem(jogador: Personagem) -> None:
     resumo_texto.append(f"Defesa: {jogador.defesa}\n", style="blue")
     resumo_texto.append(f"Nível: {jogador.nivel}\n", style="magenta")
     resumo_texto.append(f"Carteira: {jogador.carteira.formatar()}\n", style="bold yellow")
-    if jogador.motivacao:
-        resumo_texto.append(
-            f"Motivação: {jogador.motivacao.titulo}\n{jogador.motivacao.descricao}\n",
-            style="italic white",
+
+    blocos: list[Panel] = []
+    blocos.append(
+        Panel(
+            resumo_texto,
+            title=Text("SEU PERSONAGEM", justify="center", style="bold white"),
+            width=75,
+            box=box.DOUBLE,
+            border_style="green",
         )
-    panel = Panel(
-        resumo_texto,
-        title=Text("SEU PERSONAGEM", justify="center", style="bold white"),
-        width=75,
-        box=box.DOUBLE,
-        border_style="green",
     )
-    console.print(panel)
+
+    if jogador.motivacao:
+        texto_mot = Text()
+        texto_mot.append(f"{jogador.motivacao.titulo}\n", style="bold yellow")
+        texto_mot.append(jogador.motivacao.descricao, style="italic white")
+        blocos.append(
+            Panel(
+                texto_mot,
+                title=Text("MOTIVAÇÃO", style="bold cyan"),
+                border_style="cyan",
+                width=75,
+            )
+        )
+
+    for bloco in blocos:
+        console.print(bloco)
+
     console.input("[bold yellow]Pressione Enter para iniciar a aventura... [/]")
 
 
