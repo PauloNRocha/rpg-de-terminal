@@ -13,6 +13,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Tecla `L` no combate abre um painel com o log completo, mantendo a HUD compacta sem perder o histórico para quem quiser consultar.
 -   Motivações do personagem passaram a ser múltiplas por classe, carregadas de `historias_personagem.json`, e são exibidas na criação, HUD e ficha (cada nova run começa com um motivo diferente para estar na masmorra).
 -   Chefes ganharam histórias específicas por classe (`historias_por_classe` em `chefes.json`); a cena pré-chefe exibe um título e narrativa adaptados à classe escolhida, aumentando a imersão.
+-   Fuga em combate retorna imediatamente ao estado de exploração, limpando o contexto de combate e evitando ficar “preso” na tela de combate após escapar.
 
 ## [1.6.2] - 2025-11-18
 
