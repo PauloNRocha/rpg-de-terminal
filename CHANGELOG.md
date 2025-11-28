@@ -9,6 +9,26 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   Em aberto.
 
+## [1.6.4] - 2025-11-28
+
+### Adicionado
+
+-   Suporte a múltiplos saves com slots dedicados (`saves/save_<n>.json`), metadados (nome, classe, nível, andar, dificuldade, data) e seleção por tabela no menu. O save único legado continua funcionando e pode ser convertido para um slot.
+-   Datas dos saves passam a ser exibidas no horário local do usuário, em formato legível (`YYYY-MM-DD HH:MM:SS`), facilitando identificar qual run é mais recente.
+-   Painel de resumo final ao sair da masmorra ou morrer: mostra andar alcançado, inimigos derrotados, itens, moedas, eventos e andares concluídos.
+-   Eventos interativos (ex.: Poço Misterioso e Altar Antigo) agora permitem escolhas com efeitos distintos, ampliando o risco/benefício das salas especiais.
+-   Drops guiados nos andares 1–2 garantem que o jogador obtenha ao menos uma arma e um escudo cedo (Espada Afiada / Escudo de Madeira), suavizando a curva inicial.
+-   Tutorial opcional: dicas rápidas nas primeiras sessões de exploração, combate e inventário (desativável em `settings.json` via `tutorial_enabled`).
+-   Histórico pós-partida: ao morrer ou sair, a run é registrada em `saves/history.json` (ignorado pelo Git) com personagem, classe, andar alcançado, dificuldade, tempo local e estatísticas resumidas.
+
+### Alterado
+
+-   Menu principal agora pede escolha de slot antes de iniciar uma nova aventura ou continuar uma existente; ao salvar dentro do jogo, o progresso sobrescreve automaticamente o slot selecionado.
+
+### Corrigido
+
+-   Saves de versões anteriores dentro da mesma série (mesmo `major.minor`, ex.: 1.6.3 → 1.6.4) são aceitos, evitando incompatibilidade ao trocar apenas o patch.
+
 ## [1.6.3] - 2025-11-28
 
 ### Adicionado

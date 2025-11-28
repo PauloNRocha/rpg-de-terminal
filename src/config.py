@@ -100,6 +100,9 @@ DIFICULDADES: dict[str, DificuldadePerfil] = {
 DIFICULDADE_ORDEM: tuple[str, ...] = ("facil", "normal", "dificil")
 DIFICULDADE_PADRAO = "normal"
 
+# Número máximo de slots de save suportados (pode ser ajustado futuramente).
+MAX_SAVE_SLOTS = 5
+
 
 def probabilidade_inimigo_por_nivel(nivel: int, perfil: DificuldadePerfil | None = None) -> float:
     """Escala a chance de salas terem inimigos conforme o andar/dificuldade."""

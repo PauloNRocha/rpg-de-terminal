@@ -1,7 +1,7 @@
 import random
 import unicodedata
 from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rich import box
 from rich.bar import Bar
@@ -14,6 +14,9 @@ from rich.text import Text
 from src.config import DificuldadePerfil
 from src.economia import formatar_preco
 from src.entidades import Inimigo, Item, Personagem, Sala
+
+if TYPE_CHECKING:
+    from src.eventos import Evento
 
 console = Console()
 ClassesConfig = dict[str, dict[str, Any]]
@@ -306,6 +309,95 @@ def desenhar_tela_input(titulo: str, prompt: str) -> str:
     )
     console.print(panel)
     return console.input("[bold yellow]> [/]")
+
+
+def desenhar_evento_interativo(evento: "Evento") -> dict[str, Any] | None:
+    """Mostra um evento com opções de escolha e retorna a opção selecionada."""
+    limpar_tela()
+    descricao = getattr(evento, "descricao", "") or ""
+    nome = getattr(evento, "nome", "Evento")
+    opcoes = getattr(evento, "opcoes", []) or []
+
+    panel_desc = Panel(Text(descricao, justify="left"), title=Text(nome, style="bold yellow"))
+    console.print(panel_desc)
+
+    tabela = Table(box=box.SIMPLE, border_style="cyan", expand=False)
+    tabela.add_column("Opção", justify="center", style="bold yellow", width=6)
+    tabela.add_column("Escolha", style="bold white")
+    for idx, opcao in enumerate(opcoes, start=1):
+        tabela.add_row(str(idx), str(opcao.get("descricao") or opcao.get("nome") or ""))
+    console.print(tabela)
+    console.print(
+        Panel(
+            "Digite o número da opção ou pressione Enter para cancelar.",
+            border_style="blue",
+        )
+    )
+
+    escolha = console.input("[bold yellow]Escolha: [/]").strip()
+    if not escolha:
+        return None
+    try:
+        idx = int(escolha)
+    except ValueError:
+        return None
+    if 1 <= idx <= len(opcoes):
+        return opcoes[idx - 1]
+    return None
+
+
+def desenhar_selecao_save(
+    saves: list[dict[str, str | int]],
+    titulo: str,
+    pode_criar_novo: bool = False,
+    sugestao_novo: int | None = None,
+) -> str | None:
+    """Mostra tabela de saves e retorna o slot escolhido (str) ou None se cancelar."""
+    limpar_tela()
+    tabela = Table(title=titulo, box=box.SIMPLE, border_style="cyan")
+    tabela.add_column("Opção", justify="center", style="bold yellow", width=6)
+    tabela.add_column("Slot", justify="center", style="white")
+    tabela.add_column("Personagem", style="bold white")
+    tabela.add_column("Classe", style="white")
+    tabela.add_column("Nível", justify="right", style="white")
+    tabela.add_column("Andar", justify="right", style="white")
+    tabela.add_column("Dificuldade", style="white")
+    tabela.add_column("Salvo em", style="dim white")
+    tabela.add_column("Versão", style="dim white")
+
+    for idx, save in enumerate(saves, start=1):
+        tabela.add_row(
+            str(idx),
+            str(save.get("slot_id")),
+            str(save.get("personagem")),
+            str(save.get("classe")),
+            str(save.get("nivel")),
+            str(save.get("andar")),
+            str(save.get("dificuldade")),
+            str(save.get("salvo_em")),
+            str(save.get("versao")),
+        )
+
+    console.print(tabela)
+
+    opcoes_extra = []
+    if pode_criar_novo and sugestao_novo is not None:
+        opcoes_extra.append(f"N. Criar novo slot (sugestão: {sugestao_novo})")
+    opcoes_extra.append("C. Cancelar")
+    console.print(Panel("\n".join(opcoes_extra), border_style="blue", width=75))
+
+    escolha = console.input("[bold yellow]Escolha (número/N/C): [/]").strip().lower()
+    if escolha == "c":
+        return None
+    if escolha == "n" and pode_criar_novo and sugestao_novo is not None:
+        return str(sugestao_novo)
+    try:
+        idx = int(escolha)
+    except ValueError:
+        return None
+    if 1 <= idx <= len(saves):
+        return str(saves[idx - 1].get("slot_id"))
+    return None
 
 
 def desenhar_tela_escolha_classe(classes: ClassesConfig) -> str:

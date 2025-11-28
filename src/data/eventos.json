@@ -52,5 +52,63 @@
     "nome": "Mercador Fantasma",
     "descricao": "Um vendedor translúcido oferece um punhado de moedas em troca de ouvir suas histórias.",
     "efeitos": { "moedas": 50 }
+  },
+  {
+    "id": "poco_misterioso",
+    "nome": "Poço Misterioso",
+    "descricao": "Um poço antigo borbulha com água escura. O cheiro é estranho, mas parece mágico.",
+    "opcoes": [
+      {
+        "descricao": "Beber a água",
+        "efeitos": { "hp": 12 }
+      },
+      {
+        "descricao": "Coletar moedas no fundo",
+        "efeitos": { "moedas": 25 }
+      },
+      {
+        "descricao": "Ignorar o poço",
+        "efeitos": {}
+      }
+    ]
+  },
+  {
+    "id": "altar_antigo",
+    "nome": "Altar Antigo",
+    "descricao": "Um altar coberto de runas convida por um sacrifício. Um brilho revela que algo pode ser concedido.",
+    "opcoes": [
+      {
+        "descricao": "Sacrificar 20 moedas",
+        "efeitos": {
+          "moedas": -20,
+          "buffs": [
+            {
+              "atributo": "ataque",
+              "valor": 2,
+              "duracao_combates": 3,
+              "mensagem": "Seu ataque é imbuído pelo altar (+2 por 3 combates)."
+            }
+          ]
+        }
+      },
+      {
+        "descricao": "Oferecer sangue (-8 HP)",
+        "efeitos": {
+          "hp": -8,
+          "buffs": [
+            {
+              "atributo": "defesa",
+              "valor": 3,
+              "duracao_combates": 3,
+              "mensagem": "Sua pele se torna pétrea (+3 DEF por 3 combates)."
+            }
+          ]
+        }
+      },
+      {
+        "descricao": "Recuar e não arriscar",
+        "efeitos": {}
+      }
+    ]
   }
 ]

@@ -28,6 +28,7 @@ DEFAULT_PREFERENCIAS = {
     "allow_prerelease": False,
     "last_check_iso": None,
     "ultima_falha_iso": None,
+    "tutorial_enabled": True,
 }
 FREQUENCIA_DIAS = {"diaria": 1, "semanal": 7, "mensal": 30}
 

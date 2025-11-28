@@ -1,12 +1,21 @@
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum, auto
 from typing import Any
 
 from src import config, eventos
-from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
-from src.atualizador import AtualizacaoInfo, verificar_atualizacao
+from src.armazenamento import (
+    ErroCarregamento,
+    SaveInfo,
+    carregar_jogo,
+    listar_saves,
+    proximo_slot_disponivel,
+    registrar_historico,
+    salvar_jogo,
+)
+from src.atualizador import AtualizacaoInfo, carregar_preferencias, verificar_atualizacao
 from src.chefes import obter_chefe_por_id
 from src.combate import iniciar_combate
 from src.entidades import Inimigo, Item, Personagem, Sala
@@ -33,13 +42,15 @@ from src.estados import (
     usar_item as usar_item_estado,
 )
 from src.gerador_inimigos import gerar_inimigo
-from src.gerador_itens import gerar_item_aleatorio
+from src.gerador_itens import gerar_item_aleatorio, obter_item_por_nome
 from src.gerador_mapa import gerar_mapa
 from src.personagem import criar_personagem, obter_classes
 from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temporarios
 from src.ui import (
+    desenhar_evento_interativo,
     desenhar_hud_exploracao,
     desenhar_menu_principal,
+    desenhar_selecao_save,
     desenhar_tela_escolha_classe,
     desenhar_tela_escolha_dificuldade,
     desenhar_tela_evento,
@@ -51,6 +62,8 @@ from src.ui import (
     desenhar_tela_saida,
     tela_game_over,
 )
+from src.ui_helpers import TutorialEstado
+from src.ui_resumo import desenhar_tela_resumo_final
 from src.version import __version__
 
 Mapa = list[list[Sala]]
@@ -82,6 +95,13 @@ def _nova_estatistica_andar() -> dict[str, int]:
     }
 
 
+def _nova_estatistica_total() -> dict[str, int]:
+    """Cria uma estrutura de estatísticas acumuladas da run."""
+    stats = _nova_estatistica_andar()
+    stats["andares_concluidos"] = 0
+    return stats
+
+
 @dataclass
 class ContextoJogo:
     """Armazena o estado corrente entre as transições."""
@@ -92,11 +112,14 @@ class ContextoJogo:
     sala_em_combate: Sala | None = None
     inimigo_em_combate: Inimigo | None = None
     posicao_anterior: tuple[int, int] | None = None
+    slot_atual: str | None = None
     atualizacao_notificada: bool = False
     info_atualizacao: AtualizacaoInfo | None = None
     alerta_atualizacao_exibido: bool = False
     dificuldade: str = config.DIFICULDADE_PADRAO
     estatisticas_andar: dict[str, int] = field(default_factory=_nova_estatistica_andar)
+    estatisticas_total: dict[str, int] = field(default_factory=_nova_estatistica_total)
+    tutorial: TutorialEstado = field(default_factory=TutorialEstado)
 
     def limpar_combate(self) -> None:
         """Remove referências ao combate atual."""
@@ -143,19 +166,62 @@ class ContextoJogo:
     def registrar_inimigo_derrotado(self) -> None:
         """Incrementa o contador de inimigos derrotados no andar atual."""
         self.estatisticas_andar["inimigos_derrotados"] += 1
+        self.estatisticas_total["inimigos_derrotados"] += 1
 
     def registrar_item_obtido(self, quantidade: int = 1) -> None:
         """Soma itens coletados (drops, recompensas) ao resumo do andar."""
-        self.estatisticas_andar["itens_obtidos"] += max(0, quantidade)
+        ganho = max(0, quantidade)
+        self.estatisticas_andar["itens_obtidos"] += ganho
+        self.estatisticas_total["itens_obtidos"] += ganho
 
     def registrar_moedas(self, valor: int) -> None:
         """Acumula moedas obtidas durante o andar."""
         if valor > 0:
             self.estatisticas_andar["moedas_ganhas"] += valor
+            self.estatisticas_total["moedas_ganhas"] += valor
 
     def registrar_evento(self) -> None:
         """Marca que um evento de sala foi disparado no andar atual."""
         self.estatisticas_andar["eventos_disparados"] += 1
+        self.estatisticas_total["eventos_disparados"] += 1
+
+    def registrar_andar_concluido(self) -> None:
+        """Conta que um andar foi concluído (usado no resumo final)."""
+        self.estatisticas_total["andares_concluidos"] += 1
+
+    def _estatisticas_run(self) -> dict[str, int]:
+        """Combina totais com progresso parcial do andar atual."""
+        combinadas = self.estatisticas_total.copy()
+        for chave, valor in self.estatisticas_andar.items():
+            combinadas[chave] = combinadas.get(chave, 0) + valor
+        return combinadas
+
+    def exibir_resumo_final(self, motivo: str) -> None:
+        """Mostra o painel de resumo da run antes de resetar."""
+        stats = self._estatisticas_run()
+        desenhar_tela_resumo_final(
+            motivo=motivo,
+            jogador=self.jogador,
+            nivel_atual=self.nivel_masmorra,
+            estatisticas=stats,
+        )
+        if self.jogador:
+            historico_entry = {
+                "motivo": motivo,
+                "personagem": self.jogador.nome,
+                "classe": self.jogador.classe,
+                "nivel_personagem": self.jogador.nivel,
+                "andar_alcancado": self.nivel_masmorra,
+                "dificuldade": self.dificuldade,
+                "versao": __version__,
+                "inimigos_derrotados": stats.get("inimigos_derrotados", 0),
+                "itens_obtidos": stats.get("itens_obtidos", 0),
+                "moedas_ganhas": stats.get("moedas_ganhas", 0),
+                "eventos_disparados": stats.get("eventos_disparados", 0),
+                "andares_concluidos": stats.get("andares_concluidos", 0),
+                "timestamp_local": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            registrar_historico(historico_entry)
 
 
 def selecionar_dificuldade(contexto: ContextoJogo) -> None:
@@ -183,8 +249,55 @@ def _posicionar_na_entrada(jogador: Personagem, mapa: Mapa) -> None:
                 return
 
 
+def _salvar_slot_contexto(contexto: ContextoJogo, slot: str | None) -> None:
+    """Guarda o slot selecionado no contexto."""
+    contexto.slot_atual = slot
+
+
+def _formatar_saves_para_ui(saves: list[SaveInfo]) -> list[dict[str, str | int]]:
+    """Converta SaveInfo em dicts simples para exibição na UI."""
+    return [
+        {
+            "slot_id": save.slot_id,
+            "personagem": save.personagem,
+            "classe": save.classe,
+            "nivel": save.nivel,
+            "andar": save.andar,
+            "dificuldade": save.dificuldade,
+            "salvo_em": save.salvo_em,
+            "versao": save.versao,
+        }
+        for save in saves
+    ]
+
+
+def _selecionar_slot(novo_jogo: bool, saves: list[SaveInfo]) -> str | None:
+    """Abre a UI de seleção de slot para novo jogo ou carregar existente."""
+    saves_ui = _formatar_saves_para_ui(saves)
+    if novo_jogo:
+        sugestao = proximo_slot_disponivel()
+        return desenhar_selecao_save(
+            saves_ui,
+            "Selecione um slot para salvar a nova aventura",
+            pode_criar_novo=True,
+            sugestao_novo=sugestao,
+        )
+    if not saves:
+        return None
+    return desenhar_selecao_save(
+        saves_ui,
+        "Selecione um save para continuar",
+        pode_criar_novo=False,
+    )
+
+
 def executar_estado_menu(contexto: ContextoJogo) -> Estado:
     """Renderiza o menu e decide o próximo estado."""
+    # Carrega preferências (inclui tutorial) só na primeira passagem.
+    if not contexto.tutorial.vistos:
+        prefs = carregar_preferencias()
+        contexto.tutorial.ativo = bool(prefs.get("tutorial_enabled", True))
+
     if not contexto.atualizacao_notificada:
         info = verificar_atualizacao()
         if info:
@@ -193,7 +306,8 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             if not contexto.alerta_atualizacao_exibido:
                 _mostrar_aviso_atualizacao(info)
                 contexto.alerta_atualizacao_exibido = True
-    tem_save = existe_save()
+    saves_disponiveis = listar_saves()
+    tem_save = bool(saves_disponiveis)
     alerta = None
     if contexto.info_atualizacao:
         alerta = (
@@ -223,10 +337,17 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             )
         return Estado.MENU
     if escolha == "1":
+        slot_escolhido = _selecionar_slot(True, saves_disponiveis)
+        if not slot_escolhido:
+            return Estado.MENU
+        _salvar_slot_contexto(contexto, slot_escolhido)
         return Estado.CRIACAO
     if escolha == "2" and tem_save:
+        slot_escolhido = _selecionar_slot(False, saves_disponiveis)
+        if not slot_escolhido:
+            return Estado.MENU
         try:
-            estado_salvo = carregar_jogo()
+            estado_salvo = carregar_jogo(slot_escolhido)
             jogador_data = estado_salvo.get("jogador")
             mapa_salvo = estado_salvo.get("mapa")
             nivel_masmorra = estado_salvo.get("nivel_masmorra")
@@ -237,6 +358,7 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             contexto.mapa_atual = hidratar_mapa(mapa_salvo)
             contexto.nivel_masmorra = nivel_masmorra
             contexto.posicao_anterior = None
+            _salvar_slot_contexto(contexto, slot_escolhido)
             desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
             return Estado.EXPLORACAO
         except ErroCarregamento as erro:
@@ -272,6 +394,12 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             contexto.nivel_masmorra, contexto.obter_perfil_dificuldade()
         )
         _posicionar_na_entrada(jogador, contexto.mapa_atual)
+        contexto.tutorial.mostrar(
+            "exploracao_basica",
+            "Dica: Exploração",
+            "Use os números para se mover (N/S/L/O), abrir inventário, salvar ou sair.\n"
+            "A HUD mostra HP, XP, motivação, dificuldade e andar atual.",
+        )
 
     mapa = contexto.mapa_atual
     sala_atual = mapa[jogador.y][jogador.x]
@@ -280,10 +408,20 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
         perfil = contexto.obter_perfil_dificuldade()
         contexto.registrar_evento()
         moedas_antes = jogador.carteira.valor_bronze
-        titulo, mensagem = eventos.disparar_evento(
-            sala_atual.evento_id, jogador, perfil.saque_moedas_mult
-        )
-        desenhar_tela_evento(titulo, mensagem)
+        evento = eventos.carregar_eventos().get(sala_atual.evento_id)
+        if evento and evento.opcoes:
+            escolha = desenhar_evento_interativo(evento)
+            if escolha is None:
+                return Estado.EXPLORACAO
+            op_efeitos = escolha.get("efeitos", {})
+            msgs, _ = eventos.aplicar_efeitos(op_efeitos, jogador, perfil.saque_moedas_mult)
+            corpo = [evento.descricao, *msgs]
+            desenhar_tela_evento(evento.nome.upper(), "\n".join(corpo))
+        else:
+            titulo, mensagem = eventos.disparar_evento(
+                sala_atual.evento_id, jogador, perfil.saque_moedas_mult
+            )
+            desenhar_tela_evento(titulo, mensagem)
         ganho_moedas = jogador.carteira.valor_bronze - moedas_antes
         contexto.registrar_moedas(max(0, ganho_moedas))
         sala_atual.evento_resolvido = True
@@ -395,6 +533,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             hp_cura = int(jogador.hp_max * config.DESCENT_HEAL_PERCENT)
             jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
             desenhar_tela_resumo_andar(nivel_atual, resumo, hp_cura)
+            contexto.registrar_andar_concluido()
             contexto.nivel_masmorra += 1
             contexto.mapa_atual = None
             contexto.posicao_anterior = None
@@ -413,16 +552,13 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 "dificuldade": contexto.dificuldade,
             }
             try:
-                caminho = salvar_jogo(estado)
+                caminho = salvar_jogo(estado, contexto.slot_atual)
                 desenhar_tela_evento("JOGO SALVO", f"Progresso salvo em {caminho}.")
             except OSError as erro:
                 desenhar_tela_evento("ERRO AO SALVAR", f"Não foi possível salvar: {erro}.")
             return Estado.EXPLORACAO
         if acao_escolhida == "Sair da masmorra":
-            desenhar_tela_evento(
-                "FIM DE JOGO",
-                "Você saiu da masmorra.\n\nObrigado por jogar!",
-            )
+            contexto.exibir_resumo_final("saida")
             contexto.jogador = None
             contexto.mapa_atual = None
             contexto.nivel_masmorra = 1
@@ -440,6 +576,13 @@ def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
     if jogador is None:
         return Estado.MENU
 
+    contexto.tutorial.mostrar(
+        "inventario_basico",
+        "Dica: Inventário",
+        "Use 'Usar Item' para consumir poções e 'Equipar' para trocar arma/escudo.\n"
+        "Itens repetidos aparecem agrupados; compare bônus antes de confirmar.",
+    )
+
     gerenciar_inventario_estado(
         jogador,
         usar_item_fn=_usar_item_com_feedback,
@@ -450,6 +593,14 @@ def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
 
 def executar_estado_combate(contexto: ContextoJogo) -> Estado:
     """Repasse para o estado modular de combate."""
+    contexto.tutorial.mostrar(
+        "combate_basico",
+        "Dica: Combate",
+        "1. Atacar (dano baseado em ataque vs defesa)\n"
+        "2. Usar Item (consome turno, inimigo ainda ataca)\n"
+        "3. Fugir (chance de 50%)\n"
+        "L. Ver log completo do combate.",
+    )
     return executar_estado_combate_mod(
         contexto,
         iniciar_combate,
@@ -515,6 +666,26 @@ def _equipar_item_com_bonus(jogador: Personagem) -> None:
 
 def _gerar_item_para_contexto(contexto: ContextoJogo, raridade: str) -> Item | None:
     bonus = contexto.obter_perfil_dificuldade().drop_consumivel_bonus
+    jogador = contexto.jogador
+    # Drops guiados para andares iniciais: garantir 1 arma e 1 escudo cedo.
+    if jogador and contexto.nivel_masmorra <= 2:
+        possui_arma = bool(
+            jogador.equipamento.get("arma")
+            or any(item.tipo == "arma" for item in jogador.inventario)
+        )
+        possui_escudo = bool(
+            jogador.equipamento.get("escudo")
+            or any(item.tipo == "escudo" for item in jogador.inventario)
+        )
+        if not possui_arma:
+            return obter_item_por_nome("Espada Afiada") or gerar_item_aleatorio(
+                "comum", bonus_consumivel=bonus
+            )
+        if not possui_escudo:
+            return obter_item_por_nome("Escudo de Madeira") or gerar_item_aleatorio(
+                "comum", bonus_consumivel=bonus
+            )
+
     return gerar_item_aleatorio(raridade, bonus_consumivel=bonus)
 
 

@@ -5,7 +5,7 @@ Bem-vindo a "Aventura no Terminal", um RPG solo em modo texto que roda direto no
 ## Panorama do Projeto
 
 - **Gênero:** Roguelike leve por turnos.
-- **Versão atual:** `v1.6.3`.
+- **Versão atual:** `v1.6.4`.
 - **Plataforma:** Python 3.12+.
 - **UI:** Painéis, barras e entradas estilizadas com `rich` (nada de `print` cru!).
 
@@ -51,12 +51,12 @@ pre-commit install
 pytest
 ```
 
-## Funcionalidades Principais (v1.4.0)
+## Funcionalidades Principais (v1.6.x)
 
 - **Progressão de Masmorra Dinâmica:** mapas 10x10 gerados proceduralmente com caminho garantido, salas especiais (entrada, chefe, escada) e becos extras (`src/gerador_mapa.py`).
 - **Combate por Turnos Estilizado:** interface completa com barras de HP/XP, log de combate e opções de ação (`src/combate.py`, `src/ui.py`).
 - **Sistema de XP e Level Up:** múltiplos níveis por loop, atributos restaurados e bônus aplicados automaticamente (`jogo.py:29`).
-- **Salvar e Continuar:** grave o progresso com um clique no menu de exploração e retome pelo menu principal quando quiser.
+- **Múltiplos Saves:** escolha um slot ao iniciar ou continuar; o jogo grava sempre no mesmo slot com metadados (nome, classe, nível, andar).
 - **Modos de Dificuldade Dinâmicos:** escolha entre Explorador (Fácil), Aventureiro (Normal) e Pesadelo (Difícil), com multiplicadores claros para encontros, loot e força dos inimigos.
 - **Arquitetura com Dataclasses:** personagens, itens e inimigos usam `dataclasses`, garantindo serialização confiável, menos bugs e APIs mais claras para novas features.
 - **Inventário Inteligente:** telas dedicadas para visualizar, equipar e usar itens, com comparação lado a lado dos bônus (`jogo.py`, `src/ui.py`).
@@ -77,7 +77,7 @@ pytest
 1. Inicie o jogo (`python3 jogo.py`).
 2. **Criação do Personagem:** informe o nome e escolha uma classe (Guerreiro, Mago ou Arqueiro) visualizando a descrição completa.
 3. **Exploração:** use o menu numérico para se mover, abrir o inventário ou sair da masmorra.
-4. **Salvar Progresso:** escolha a opção "Salvar jogo" a qualquer momento da exploração para gravar o estado atual. O menu principal exibirá "Continuar Aventura" quando houver um save.
+4. **Salvar Progresso:** escolha a opção "Salvar jogo" a qualquer momento; o progresso sobrescreve o slot selecionado no menu. É possível manter várias aventuras em slots diferentes.
 5. **Combate:** enfrente inimigos por turnos; use itens, ataque ou tente fugir. Vitória concede XP e loot.
 6. **Level Up:** ao acumular XP suficiente, suba de nível, restaure o HP e receba melhorias automáticas.
 7. **Chefe e Escada:** derrote o chefe do andar para liberar a escada. Ao descer, você cura parte do HP e vê um resumo da run antes de continuar.
