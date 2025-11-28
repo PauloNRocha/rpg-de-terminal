@@ -1,6 +1,7 @@
 """Estado responsável pelo combate."""
 
 from collections.abc import Callable
+from contextlib import suppress
 from enum import Enum
 from typing import Protocol
 
@@ -77,6 +78,9 @@ def executar_estado_combate(
 
     if not jogador.esta_vivo():
         tela_game_over()
+        if hasattr(contexto, "exibir_resumo_final"):
+            with suppress(Exception):
+                contexto.exibir_resumo_final("morte")
         contexto.resetar_jogo()
         return estado_menu
 

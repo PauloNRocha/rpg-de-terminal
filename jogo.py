@@ -59,6 +59,7 @@ from src.ui import (
     desenhar_tela_saida,
     tela_game_over,
 )
+from src.ui_resumo import desenhar_tela_resumo_final
 from src.version import __version__
 
 Mapa = list[list[Sala]]
@@ -90,6 +91,13 @@ def _nova_estatistica_andar() -> dict[str, int]:
     }
 
 
+def _nova_estatistica_total() -> dict[str, int]:
+    """Cria uma estrutura de estatísticas acumuladas da run."""
+    stats = _nova_estatistica_andar()
+    stats["andares_concluidos"] = 0
+    return stats
+
+
 @dataclass
 class ContextoJogo:
     """Armazena o estado corrente entre as transições."""
@@ -106,6 +114,7 @@ class ContextoJogo:
     alerta_atualizacao_exibido: bool = False
     dificuldade: str = config.DIFICULDADE_PADRAO
     estatisticas_andar: dict[str, int] = field(default_factory=_nova_estatistica_andar)
+    estatisticas_total: dict[str, int] = field(default_factory=_nova_estatistica_total)
 
     def limpar_combate(self) -> None:
         """Remove referências ao combate atual."""
@@ -152,19 +161,45 @@ class ContextoJogo:
     def registrar_inimigo_derrotado(self) -> None:
         """Incrementa o contador de inimigos derrotados no andar atual."""
         self.estatisticas_andar["inimigos_derrotados"] += 1
+        self.estatisticas_total["inimigos_derrotados"] += 1
 
     def registrar_item_obtido(self, quantidade: int = 1) -> None:
         """Soma itens coletados (drops, recompensas) ao resumo do andar."""
-        self.estatisticas_andar["itens_obtidos"] += max(0, quantidade)
+        ganho = max(0, quantidade)
+        self.estatisticas_andar["itens_obtidos"] += ganho
+        self.estatisticas_total["itens_obtidos"] += ganho
 
     def registrar_moedas(self, valor: int) -> None:
         """Acumula moedas obtidas durante o andar."""
         if valor > 0:
             self.estatisticas_andar["moedas_ganhas"] += valor
+            self.estatisticas_total["moedas_ganhas"] += valor
 
     def registrar_evento(self) -> None:
         """Marca que um evento de sala foi disparado no andar atual."""
         self.estatisticas_andar["eventos_disparados"] += 1
+        self.estatisticas_total["eventos_disparados"] += 1
+
+    def registrar_andar_concluido(self) -> None:
+        """Conta que um andar foi concluído (usado no resumo final)."""
+        self.estatisticas_total["andares_concluidos"] += 1
+
+    def _estatisticas_run(self) -> dict[str, int]:
+        """Combina totais com progresso parcial do andar atual."""
+        combinadas = self.estatisticas_total.copy()
+        for chave, valor in self.estatisticas_andar.items():
+            combinadas[chave] = combinadas.get(chave, 0) + valor
+        return combinadas
+
+    def exibir_resumo_final(self, motivo: str) -> None:
+        """Mostra o painel de resumo da run antes de resetar."""
+        stats = self._estatisticas_run()
+        desenhar_tela_resumo_final(
+            motivo=motivo,
+            jogador=self.jogador,
+            nivel_atual=self.nivel_masmorra,
+            estatisticas=stats,
+        )
 
 
 def selecionar_dificuldade(contexto: ContextoJogo) -> None:
@@ -455,6 +490,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             hp_cura = int(jogador.hp_max * config.DESCENT_HEAL_PERCENT)
             jogador.hp = min(jogador.hp_max, jogador.hp + hp_cura)
             desenhar_tela_resumo_andar(nivel_atual, resumo, hp_cura)
+            contexto.registrar_andar_concluido()
             contexto.nivel_masmorra += 1
             contexto.mapa_atual = None
             contexto.posicao_anterior = None
@@ -479,10 +515,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 desenhar_tela_evento("ERRO AO SALVAR", f"Não foi possível salvar: {erro}.")
             return Estado.EXPLORACAO
         if acao_escolhida == "Sair da masmorra":
-            desenhar_tela_evento(
-                "FIM DE JOGO",
-                "Você saiu da masmorra.\n\nObrigado por jogar!",
-            )
+            contexto.exibir_resumo_final("saida")
             contexto.jogador = None
             contexto.mapa_atual = None
             contexto.nivel_masmorra = 1

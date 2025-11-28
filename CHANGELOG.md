@@ -13,6 +13,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   Suporte a múltiplos saves com slots dedicados (`saves/save_<n>.json`), metadados (nome, classe, nível, andar, dificuldade, data) e seleção por tabela no menu. O save único legado continua funcionando e pode ser convertido para um slot.
 -   Datas dos saves passam a ser exibidas no horário local do usuário, em formato legível (`YYYY-MM-DD HH:MM:SS`), facilitando identificar qual run é mais recente.
+-   Painel de resumo final ao sair da masmorra ou morrer: mostra andar alcançado, inimigos derrotados, itens, moedas, eventos e andares concluídos.
 
 ### Alterado
 
