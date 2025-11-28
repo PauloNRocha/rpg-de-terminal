@@ -7,7 +7,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
--   Em aberto.
+-   Em andamento para a série 1.6.5 (visualização de histórico, dicas extras e refino do resumo final).
 
 ## [1.6.4] - 2025-11-28
 
