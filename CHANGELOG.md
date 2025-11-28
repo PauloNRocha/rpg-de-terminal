@@ -7,7 +7,9 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
--   Em andamento para a série 1.6.4 (tutorial opcional, log pós-partida, melhorias de eventos e drops iniciais).
+-   Em aberto.
+
+## [1.6.4] - 2025-11-28
 
 ### Adicionado
 
@@ -17,6 +19,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Eventos interativos (ex.: Poço Misterioso e Altar Antigo) agora permitem escolhas com efeitos distintos, ampliando o risco/benefício das salas especiais.
 -   Drops guiados nos andares 1–2 garantem que o jogador obtenha ao menos uma arma e um escudo cedo (Espada Afiada / Escudo de Madeira), suavizando a curva inicial.
 -   Tutorial opcional: dicas rápidas nas primeiras sessões de exploração, combate e inventário (desativável em `settings.json` via `tutorial_enabled`).
+-   Histórico pós-partida: ao morrer ou sair, a run é registrada em `saves/history.json` (ignorado pelo Git) com personagem, classe, andar alcançado, dificuldade, tempo local e estatísticas resumidas.
 
 ### Alterado
 

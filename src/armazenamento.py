@@ -17,6 +17,7 @@ EstadoJogo = dict[str, Any]
 _DIRETORIO_SALVAMENTO: DiretorioSalvamento = Path("saves")
 _ARQUIVO_SALVAMENTO: Path = _DIRETORIO_SALVAMENTO / "save.json"
 _PADRAO_NOME_SLOT = "save_{slot}.json"
+_ARQUIVO_HISTORICO: Path = _DIRETORIO_SALVAMENTO / "history.json"
 
 
 @dataclass
@@ -239,3 +240,23 @@ def _formatar_data_local(iso_str: str) -> str:
         return dt_local.strftime("%Y-%m-%d %H:%M:%S")
     except ValueError:
         return iso_str
+
+
+def registrar_historico(entry: dict[str, Any], limite: int = 50) -> None:
+    """Acrescenta uma entrada de histórico de partidas (ignoradas pelo git)."""
+    _DIRETORIO_SALVAMENTO.mkdir(parents=True, exist_ok=True)
+    historico: list[dict[str, Any]] = []
+    if _ARQUIVO_HISTORICO.exists():
+        try:
+            historico = json.loads(_ARQUIVO_HISTORICO.read_text(encoding="utf-8"))
+            if not isinstance(historico, list):
+                historico = []
+        except (OSError, json.JSONDecodeError):
+            historico = []
+    historico.append(entry)
+    if len(historico) > limite:
+        historico = historico[-limite:]
+    _ARQUIVO_HISTORICO.write_text(
+        json.dumps(historico, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )

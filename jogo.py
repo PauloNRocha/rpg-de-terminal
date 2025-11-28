@@ -1,6 +1,7 @@
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum, auto
 from typing import Any
 
@@ -11,6 +12,7 @@ from src.armazenamento import (
     carregar_jogo,
     listar_saves,
     proximo_slot_disponivel,
+    registrar_historico,
     salvar_jogo,
 )
 from src.atualizador import AtualizacaoInfo, carregar_preferencias, verificar_atualizacao
@@ -203,6 +205,23 @@ class ContextoJogo:
             nivel_atual=self.nivel_masmorra,
             estatisticas=stats,
         )
+        if self.jogador:
+            historico_entry = {
+                "motivo": motivo,
+                "personagem": self.jogador.nome,
+                "classe": self.jogador.classe,
+                "nivel_personagem": self.jogador.nivel,
+                "andar_alcancado": self.nivel_masmorra,
+                "dificuldade": self.dificuldade,
+                "versao": __version__,
+                "inimigos_derrotados": stats.get("inimigos_derrotados", 0),
+                "itens_obtidos": stats.get("itens_obtidos", 0),
+                "moedas_ganhas": stats.get("moedas_ganhas", 0),
+                "eventos_disparados": stats.get("eventos_disparados", 0),
+                "andares_concluidos": stats.get("andares_concluidos", 0),
+                "timestamp_local": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            registrar_historico(historico_entry)
 
 
 def selecionar_dificuldade(contexto: ContextoJogo) -> None:
