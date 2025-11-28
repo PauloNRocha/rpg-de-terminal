@@ -7,7 +7,20 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
--   Em andamento para a série 1.6.4 (multi-saves, tutorial opcional, log pós-partida, melhorias de eventos e drops iniciais).
+-   Em andamento para a série 1.6.4 (tutorial opcional, log pós-partida, melhorias de eventos e drops iniciais).
+
+### Adicionado
+
+-   Suporte a múltiplos saves com slots dedicados (`saves/save_<n>.json`), metadados (nome, classe, nível, andar, dificuldade, data) e seleção por tabela no menu. O save único legado continua funcionando e pode ser convertido para um slot.
+-   Datas dos saves passam a ser exibidas no horário local do usuário, em formato legível (`YYYY-MM-DD HH:MM:SS`), facilitando identificar qual run é mais recente.
+
+### Alterado
+
+-   Menu principal agora pede escolha de slot antes de iniciar uma nova aventura ou continuar uma existente; ao salvar dentro do jogo, o progresso sobrescreve automaticamente o slot selecionado.
+
+### Corrigido
+
+-   Saves de versões anteriores dentro da mesma série (mesmo `major.minor`, ex.: 1.6.3 → 1.6.4) são aceitos, evitando incompatibilidade ao trocar apenas o patch.
 
 ## [1.6.3] - 2025-11-28
 

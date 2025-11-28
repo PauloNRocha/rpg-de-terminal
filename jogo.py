@@ -5,7 +5,14 @@ from enum import Enum, auto
 from typing import Any
 
 from src import config, eventos
-from src.armazenamento import ErroCarregamento, carregar_jogo, existe_save, salvar_jogo
+from src.armazenamento import (
+    ErroCarregamento,
+    SaveInfo,
+    carregar_jogo,
+    listar_saves,
+    proximo_slot_disponivel,
+    salvar_jogo,
+)
 from src.atualizador import AtualizacaoInfo, verificar_atualizacao
 from src.chefes import obter_chefe_por_id
 from src.combate import iniciar_combate
@@ -40,6 +47,7 @@ from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temp
 from src.ui import (
     desenhar_hud_exploracao,
     desenhar_menu_principal,
+    desenhar_selecao_save,
     desenhar_tela_escolha_classe,
     desenhar_tela_escolha_dificuldade,
     desenhar_tela_evento,
@@ -92,6 +100,7 @@ class ContextoJogo:
     sala_em_combate: Sala | None = None
     inimigo_em_combate: Inimigo | None = None
     posicao_anterior: tuple[int, int] | None = None
+    slot_atual: str | None = None
     atualizacao_notificada: bool = False
     info_atualizacao: AtualizacaoInfo | None = None
     alerta_atualizacao_exibido: bool = False
@@ -183,6 +192,48 @@ def _posicionar_na_entrada(jogador: Personagem, mapa: Mapa) -> None:
                 return
 
 
+def _salvar_slot_contexto(contexto: ContextoJogo, slot: str | None) -> None:
+    """Guarda o slot selecionado no contexto."""
+    contexto.slot_atual = slot
+
+
+def _formatar_saves_para_ui(saves: list[SaveInfo]) -> list[dict[str, str | int]]:
+    """Converta SaveInfo em dicts simples para exibição na UI."""
+    return [
+        {
+            "slot_id": save.slot_id,
+            "personagem": save.personagem,
+            "classe": save.classe,
+            "nivel": save.nivel,
+            "andar": save.andar,
+            "dificuldade": save.dificuldade,
+            "salvo_em": save.salvo_em,
+            "versao": save.versao,
+        }
+        for save in saves
+    ]
+
+
+def _selecionar_slot(novo_jogo: bool, saves: list[SaveInfo]) -> str | None:
+    """Abre a UI de seleção de slot para novo jogo ou carregar existente."""
+    saves_ui = _formatar_saves_para_ui(saves)
+    if novo_jogo:
+        sugestao = proximo_slot_disponivel()
+        return desenhar_selecao_save(
+            saves_ui,
+            "Selecione um slot para salvar a nova aventura",
+            pode_criar_novo=True,
+            sugestao_novo=sugestao,
+        )
+    if not saves:
+        return None
+    return desenhar_selecao_save(
+        saves_ui,
+        "Selecione um save para continuar",
+        pode_criar_novo=False,
+    )
+
+
 def executar_estado_menu(contexto: ContextoJogo) -> Estado:
     """Renderiza o menu e decide o próximo estado."""
     if not contexto.atualizacao_notificada:
@@ -193,7 +244,8 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             if not contexto.alerta_atualizacao_exibido:
                 _mostrar_aviso_atualizacao(info)
                 contexto.alerta_atualizacao_exibido = True
-    tem_save = existe_save()
+    saves_disponiveis = listar_saves()
+    tem_save = bool(saves_disponiveis)
     alerta = None
     if contexto.info_atualizacao:
         alerta = (
@@ -223,10 +275,17 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             )
         return Estado.MENU
     if escolha == "1":
+        slot_escolhido = _selecionar_slot(True, saves_disponiveis)
+        if not slot_escolhido:
+            return Estado.MENU
+        _salvar_slot_contexto(contexto, slot_escolhido)
         return Estado.CRIACAO
     if escolha == "2" and tem_save:
+        slot_escolhido = _selecionar_slot(False, saves_disponiveis)
+        if not slot_escolhido:
+            return Estado.MENU
         try:
-            estado_salvo = carregar_jogo()
+            estado_salvo = carregar_jogo(slot_escolhido)
             jogador_data = estado_salvo.get("jogador")
             mapa_salvo = estado_salvo.get("mapa")
             nivel_masmorra = estado_salvo.get("nivel_masmorra")
@@ -237,6 +296,7 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             contexto.mapa_atual = hidratar_mapa(mapa_salvo)
             contexto.nivel_masmorra = nivel_masmorra
             contexto.posicao_anterior = None
+            _salvar_slot_contexto(contexto, slot_escolhido)
             desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
             return Estado.EXPLORACAO
         except ErroCarregamento as erro:
@@ -413,7 +473,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 "dificuldade": contexto.dificuldade,
             }
             try:
-                caminho = salvar_jogo(estado)
+                caminho = salvar_jogo(estado, contexto.slot_atual)
                 desenhar_tela_evento("JOGO SALVO", f"Progresso salvo em {caminho}.")
             except OSError as erro:
                 desenhar_tela_evento("ERRO AO SALVAR", f"Não foi possível salvar: {erro}.")
