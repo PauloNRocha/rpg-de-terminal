@@ -14,6 +14,7 @@ def desenhar_tela_resumo_final(
     jogador: Personagem | None,
     nivel_atual: int,
     estatisticas: dict[str, int],
+    chefe_info: tuple[int, str] | None = None,
 ) -> None:
     """Mostra um painel com o resumo da aventura."""
     limpar_tela()
@@ -40,6 +41,11 @@ def desenhar_tela_resumo_final(
     tabela.add_row("Moedas ganhas", str(estatisticas.get("moedas_ganhas", 0)))
     tabela.add_row("Eventos disparados", str(estatisticas.get("eventos_disparados", 0)))
     tabela.add_row("Andares concluídos", str(estatisticas.get("andares_concluidos", 0)))
+    if chefe_info:
+        tabela.add_row(
+            "Chefe mais profundo",
+            f"Andar {chefe_info[0]} — {chefe_info[1]}",
+        )
 
     painel = Panel(
         tabela,

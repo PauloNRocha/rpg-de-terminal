@@ -121,6 +121,8 @@ class ContextoJogo:
     estatisticas_andar: dict[str, int] = field(default_factory=_nova_estatistica_andar)
     estatisticas_total: dict[str, int] = field(default_factory=_nova_estatistica_total)
     tutorial: TutorialEstado = field(default_factory=TutorialEstado)
+    chefe_mais_profundo_nivel: int = 0
+    chefe_mais_profundo_nome: str | None = None
 
     def limpar_combate(self) -> None:
         """Remove referências ao combate atual."""
@@ -143,6 +145,8 @@ class ContextoJogo:
         self.alerta_atualizacao_exibido = False
         self.limpar_combate()
         self.resetar_estatisticas()
+        self.chefe_mais_profundo_nivel = 0
+        self.chefe_mais_profundo_nome = None
 
     def obter_perfil_dificuldade(self) -> config.DificuldadePerfil:
         """Retorna a configuração completa da dificuldade atual."""
@@ -207,11 +211,18 @@ class ContextoJogo:
     def exibir_resumo_final(self, motivo: str) -> None:
         """Mostra o painel de resumo da run antes de resetar."""
         stats = self._estatisticas_run()
+        chefe_info = None
+        if self.chefe_mais_profundo_nivel > 0:
+            chefe_info = (
+                self.chefe_mais_profundo_nivel,
+                self.chefe_mais_profundo_nome or "Chefe desconhecido",
+            )
         desenhar_tela_resumo_final(
             motivo=motivo,
             jogador=self.jogador,
             nivel_atual=self.nivel_masmorra,
             estatisticas=stats,
+            chefe_info=chefe_info,
         )
         if self.jogador:
             historico_entry = {
@@ -227,6 +238,8 @@ class ContextoJogo:
                 "moedas_ganhas": stats.get("moedas_ganhas", 0),
                 "eventos_disparados": stats.get("eventos_disparados", 0),
                 "andares_concluidos": stats.get("andares_concluidos", 0),
+                "chefe_mais_profundo_nivel": self.chefe_mais_profundo_nivel,
+                "chefe_mais_profundo_nome": self.chefe_mais_profundo_nome,
                 "timestamp_local": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S"),
             }
             registrar_historico(historico_entry)

@@ -59,6 +59,12 @@ def executar_estado_combate(
         desenhar_tela_evento("VITÓRIA!", mensagem_vitoria)
         jogador.xp_atual += xp_ganho
         contexto.registrar_inimigo_derrotado()
+        if sala.chefe and (
+            not getattr(contexto, "chefe_mais_profundo_nivel", 0)
+            or contexto.nivel_masmorra >= contexto.chefe_mais_profundo_nivel
+        ):
+            contexto.chefe_mais_profundo_nivel = contexto.nivel_masmorra
+            contexto.chefe_mais_profundo_nome = sala.chefe_nome or inimigo.nome
         item_dropado: Item | None = None
         if getattr(inimigo_atualizado, "drop_item_nome", None):
             item_dropado = obter_item_por_nome(inimigo_atualizado.drop_item_nome or "")
