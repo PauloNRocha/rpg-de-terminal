@@ -11,6 +11,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   Correção UX: ao iniciar nova aventura sem saves existentes, digitar o número sugerido cria o slot diretamente (não volta mais ao menu).
 -   Histórico: tabela inclui chefe mais profundo derrotado e permite limpar histórico pelo atalho `L` na tela de histórico.
+-   Resumo final mostra chefe mais profundo derrotado, turnos/ações da run e, em caso de morte, o inimigo que finalizou o jogador; essas informações também são gravadas no histórico.
 
 ## [1.6.4] - 2025-11-28
 

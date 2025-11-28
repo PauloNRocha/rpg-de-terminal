@@ -83,6 +83,7 @@ def executar_estado_combate(
         return estado_exploracao
 
     if not jogador.esta_vivo():
+        contexto.inimigo_causa_morte = inimigo.nome
         tela_game_over()
         if hasattr(contexto, "exibir_resumo_final"):
             with suppress(Exception):

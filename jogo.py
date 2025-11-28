@@ -123,6 +123,8 @@ class ContextoJogo:
     tutorial: TutorialEstado = field(default_factory=TutorialEstado)
     chefe_mais_profundo_nivel: int = 0
     chefe_mais_profundo_nome: str | None = None
+    inimigo_causa_morte: str | None = None
+    turnos_totais: int = 0
 
     def limpar_combate(self) -> None:
         """Remove referências ao combate atual."""
@@ -223,6 +225,8 @@ class ContextoJogo:
             nivel_atual=self.nivel_masmorra,
             estatisticas=stats,
             chefe_info=chefe_info,
+            inimigo_causa_morte=self.inimigo_causa_morte,
+            turnos=self.turnos_totais,
         )
         if self.jogador:
             historico_entry = {
@@ -240,6 +244,8 @@ class ContextoJogo:
                 "andares_concluidos": stats.get("andares_concluidos", 0),
                 "chefe_mais_profundo_nivel": self.chefe_mais_profundo_nivel,
                 "chefe_mais_profundo_nome": self.chefe_mais_profundo_nome,
+                "inimigo_causa_morte": self.inimigo_causa_morte,
+                "turnos_totais": self.turnos_totais,
                 "timestamp_local": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S"),
             }
             registrar_historico(historico_entry)
@@ -495,6 +501,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
         contexto.sala_em_combate = sala_atual
         contexto.inimigo_em_combate = inimigo
         desenhar_tela_evento("ENCONTRO!", f"CUIDADO! Um {inimigo.nome} está na sala!")
+        contexto.turnos_totais += 1  # conta a ação de combate iniciada
         return Estado.COMBATE
 
     opcoes = []
@@ -538,18 +545,22 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
         if acao_escolhida == "Ir para o Norte":
             contexto.posicao_anterior = posicao_atual
             jogador.y -= 1
+            contexto.turnos_totais += 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Ir para o Sul":
             contexto.posicao_anterior = posicao_atual
             jogador.y += 1
+            contexto.turnos_totais += 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Ir para o Leste":
             contexto.posicao_anterior = posicao_atual
             jogador.x += 1
+            contexto.turnos_totais += 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Ir para o Oeste":
             contexto.posicao_anterior = posicao_atual
             jogador.x -= 1
+            contexto.turnos_totais += 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Descer para o próximo nível":
             nivel_atual = contexto.nivel_masmorra
@@ -562,11 +573,14 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             contexto.mapa_atual = None
             contexto.posicao_anterior = None
             contexto.resetar_estatisticas()
+            contexto.turnos_totais += 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Ver Ficha do Personagem":
             desenhar_tela_ficha_personagem(jogador)
+            contexto.turnos_totais += 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Ver Inventário":
+            contexto.turnos_totais += 1
             return Estado.INVENTARIO
         if acao_escolhida == "Salvar jogo":
             estado = {
@@ -580,6 +594,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 desenhar_tela_evento("JOGO SALVO", f"Progresso salvo em {caminho}.")
             except OSError as erro:
                 desenhar_tela_evento("ERRO AO SALVAR", f"Não foi possível salvar: {erro}.")
+            contexto.turnos_totais += 1
             return Estado.EXPLORACAO
         if acao_escolhida == "Sair da masmorra":
             contexto.exibir_resumo_final("saida")
@@ -587,6 +602,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             contexto.mapa_atual = None
             contexto.nivel_masmorra = 1
             contexto.posicao_anterior = None
+            contexto.turnos_totais += 1
             return Estado.MENU
     except (ValueError, IndexError):
         desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
