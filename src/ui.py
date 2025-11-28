@@ -410,6 +410,13 @@ def desenhar_selecao_save(
 def desenhar_historico(limite: int = 20) -> None:
     """Mostra histórico de runs gravado em saves/history.json."""
     limpar_tela()
+    console.print(
+        Panel(
+            "Histórico é local e não sobe para o Git. Use para lembrar suas runs.",
+            border_style="yellow",
+            width=80,
+        )
+    )
     historico = []
     caminho_hist = Path("saves/history.json")
     if caminho_hist.exists():
@@ -431,6 +438,10 @@ def desenhar_historico(limite: int = 20) -> None:
 
     historico = (historico or [])[-limite:]
     historico = list(reversed(historico))  # mais recente primeiro
+    def _cut(txt: object, limite: int = 18) -> str:
+        s = str(txt)
+        return s if len(s) <= limite else s[: limite - 1] + "…"
+
     for entrada in historico:
         chefe_info = ""
         if entrada.get("chefe_mais_profundo_nivel"):
@@ -439,12 +450,12 @@ def desenhar_historico(limite: int = 20) -> None:
                 f"- {entrada.get('chefe_mais_profundo_nome', '')}"
             )
         tabela.add_row(
-            str(entrada.get("timestamp_local", "?")),
-            str(entrada.get("personagem", "?")),
-            str(entrada.get("classe", "?")),
-            str(entrada.get("motivo", "?")),
+            _cut(entrada.get("timestamp_local", "?"), 19),
+            _cut(entrada.get("personagem", "?")),
+            _cut(entrada.get("classe", "?")),
+            _cut(entrada.get("motivo", "?")),
             str(entrada.get("andar_alcancado", "?")),
-            str(entrada.get("dificuldade", "?")),
+            _cut(entrada.get("dificuldade", "?"), 14),
             str(entrada.get("inimigos_derrotados", 0)),
             str(entrada.get("itens_obtidos", 0)),
             chefe_info,
