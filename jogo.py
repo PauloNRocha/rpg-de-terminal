@@ -48,6 +48,7 @@ from src.personagem import criar_personagem, obter_classes
 from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temporarios
 from src.ui import (
     desenhar_evento_interativo,
+    desenhar_historico,
     desenhar_hud_exploracao,
     desenhar_menu_principal,
     desenhar_selecao_save,
@@ -184,6 +185,13 @@ class ContextoJogo:
         """Marca que um evento de sala foi disparado no andar atual."""
         self.estatisticas_andar["eventos_disparados"] += 1
         self.estatisticas_total["eventos_disparados"] += 1
+        # Marca tutorial de eventos de buff/debuff quando aplicável
+        self.tutorial.mostrar(
+            "dica_evento_buff",
+            "Dica: Buffs e Maldições",
+            "Alguns eventos aplicam buffs ou maldições por alguns combates.\n"
+            "Veja a duração abaixo da ficha; o efeito diminui a cada luta.",
+        )
 
     def registrar_andar_concluido(self) -> None:
         """Conta que um andar foi concluído (usado no resumo final)."""
@@ -342,6 +350,9 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             return Estado.MENU
         _salvar_slot_contexto(contexto, slot_escolhido)
         return Estado.CRIACAO
+    if (tem_save and escolha == "3") or (not tem_save and escolha == "2"):
+        desenhar_historico()
+        return Estado.MENU
     if escolha == "2" and tem_save:
         slot_escolhido = _selecionar_slot(False, saves_disponiveis)
         if not slot_escolhido:
@@ -364,7 +375,7 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
         except ErroCarregamento as erro:
             desenhar_tela_evento("ERRO AO CARREGAR", str(erro))
         return Estado.MENU
-    if (tem_save and escolha == "3") or (not tem_save and escolha == "2"):
+    if (tem_save and escolha == "4") or (not tem_save and escolha == "3"):
         return Estado.SAIR
 
     desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")

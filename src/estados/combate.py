@@ -85,6 +85,14 @@ def executar_estado_combate(
         return estado_menu
 
     desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
+    if hasattr(contexto, "tutorial"):
+        with suppress(Exception):
+            contexto.tutorial.mostrar(
+                "dica_fuga",
+                "Dica: Fuga",
+                "Fugir consome o turno atual. Ao retornar, o inimigo pode não estar mais lá,\n"
+                "mas a sala ainda pode ter novos perigos. Use para sobreviver, não para farmar.",
+            )
     contexto.restaurar_posicao_anterior()
     contexto.limpar_combate()
     atualizar_status_temporarios(jogador)
