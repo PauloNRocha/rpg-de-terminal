@@ -433,6 +433,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
 
     mapa = contexto.mapa_atual
     sala_atual = mapa[jogador.y][jogador.x]
+    sala_atual.visitada = True
 
     if sala_atual.evento_id and not sala_atual.evento_resolvido:
         perfil = contexto.obter_perfil_dificuldade()
@@ -444,9 +445,14 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             if escolha is None:
                 return Estado.EXPLORACAO
             op_efeitos = escolha.get("efeitos", {})
-            msgs, _ = eventos.aplicar_efeitos(op_efeitos, jogador, perfil.saque_moedas_mult)
+            msgs, _, sucesso = eventos.aplicar_efeitos(
+                op_efeitos, jogador, perfil.saque_moedas_mult
+            )
             corpo = [evento.descricao, *msgs]
             desenhar_tela_evento(evento.nome.upper(), "\n".join(corpo))
+            if not sucesso:
+                # não resolve o evento se o custo não foi pago
+                return Estado.EXPLORACAO
         else:
             titulo, mensagem = eventos.disparar_evento(
                 sala_atual.evento_id, jogador, perfil.saque_moedas_mult
@@ -533,15 +539,10 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
         opcoes,
         contexto.nivel_masmorra,
         contexto.obter_perfil_dificuldade().nome,
+        contexto.mapa_atual,
     )
 
-    try:
-        escolha = int(escolha_str)
-        if not (1 <= escolha <= len(opcoes)):
-            raise ValueError
-        acao_escolhida = opcoes[escolha - 1]
-        posicao_atual = (jogador.x, jogador.y)
-
+    def _executar_acao(acao_escolhida: str, posicao_atual: tuple[int, int]) -> Estado:
         if acao_escolhida == "Ir para o Norte":
             contexto.posicao_anterior = posicao_atual
             jogador.y -= 1
@@ -604,7 +605,31 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             contexto.posicao_anterior = None
             contexto.turnos_totais += 1
             return Estado.MENU
+        return Estado.EXPLORACAO
+
+    try:
+        escolha = int(escolha_str)
+        if not (1 <= escolha <= len(opcoes)):
+            raise ValueError
+        acao_escolhida = opcoes[escolha - 1]
+        posicao_atual = (jogador.x, jogador.y)
+        return _executar_acao(acao_escolhida, posicao_atual)
     except (ValueError, IndexError):
+        escolha_txt = escolha_str.strip().lower()
+        dir_map = {
+            "w": "Ir para o Norte",
+            "k": "Ir para o Norte",
+            "s": "Ir para o Sul",
+            "j": "Ir para o Sul",
+            "d": "Ir para o Leste",
+            "l": "Ir para o Leste",
+            "a": "Ir para o Oeste",
+            "h": "Ir para o Oeste",
+        }
+        if config.TECLAS_ALTERNATIVAS and escolha_txt in dir_map:
+            acao_escolhida = dir_map[escolha_txt]
+            if acao_escolhida in opcoes:
+                return _executar_acao(acao_escolhida, (jogador.x, jogador.y))
         desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
 
     return Estado.EXPLORACAO

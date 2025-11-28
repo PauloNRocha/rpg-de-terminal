@@ -13,6 +13,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from src import config
 from src.armazenamento import limpar_historico
 from src.config import DificuldadePerfil
 from src.economia import formatar_preco
@@ -42,6 +43,7 @@ CLASSE_CORES = {
 def limpar_tela() -> None:
     """Limpa a tela do terminal."""
     console.clear()
+    console.control("\033[H")
 
 
 def _limitar_log(mensagens: list[str], limite: int = 10) -> list[str]:
@@ -70,6 +72,7 @@ def desenhar_hud_exploracao(
     opcoes: list[str],
     nivel_masmorra: int,
     dificuldade_nome: str,
+    mapa: list[list[Sala]] | None = None,
 ) -> str:
     """Desenha o HUD de exploração com informações do jogador, sala e opções."""
     limpar_tela()
@@ -113,7 +116,7 @@ def desenhar_hud_exploracao(
     grid_jogador.add_row(Text(f"💰 Bolsa: {jogador.carteira.formatar()}", style="bold yellow"))
 
     hud_jogador = Panel(
-        grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=75
+        grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=70
     )
 
     texto_local = Text()
@@ -135,12 +138,7 @@ def desenhar_hud_exploracao(
 
     titulo_local = Text(f"Localização — Masmorra Nível {nivel_masmorra}", style="bold blue")
 
-    hud_sala = Panel(
-        texto_local,
-        title=titulo_local,
-        border_style="blue",
-        width=75,
-    )
+    hud_sala = Panel(texto_local, title=titulo_local, border_style="blue", width=70)
 
     opcoes_texto = Text("", style="green")
     for i, opcao in enumerate(opcoes, 1):
@@ -150,10 +148,16 @@ def desenhar_hud_exploracao(
         opcoes_texto,
         title=Text("Ações Disponíveis", style="bold blue"),
         border_style="blue",
-        width=75,
+        width=110,
     )
 
-    console.print(hud_jogador)
+    # Layout em colunas quando minimapa ativo
+    if config.MINIMAPA_ATIVO and mapa is not None:
+        minimapa = _render_minimapa(mapa, jogador)
+        console.print(Columns([hud_jogador, minimapa], expand=False, equal=False, padding=(0, 1)))
+    else:
+        console.print(hud_jogador)
+
     console.print(hud_sala)
     console.print(hud_opcoes)
 
@@ -165,6 +169,33 @@ def desenhar_tela_evento(titulo: str, mensagem: str) -> None:
     limpar_tela()
     desenhar_caixa(titulo, mensagem)
     console.input("[bold yellow]Pressione Enter para continuar... [/]")
+
+
+def _render_minimapa(mapa: list[list[Sala]], jogador: Personagem) -> Panel:
+    """Gera um painel textual simples de minimapa ao redor do jogador."""
+    alcance = max(1, config.MINIMAPA_TAMANHO // 2)
+    linhas = []
+    for y in range(jogador.y - alcance, jogador.y + alcance + 1):
+        linha = []
+        for x in range(jogador.x - alcance, jogador.x + alcance + 1):
+            if y == jogador.y and x == jogador.x:
+                linha.append("@")
+                continue
+            if 0 <= y < len(mapa) and 0 <= x < len(mapa[0]):
+                sala = mapa[y][x]
+                if sala.chefe and not sala.inimigo_derrotado:
+                    linha.append("C")
+                elif sala.tipo == "escada":
+                    linha.append("E")
+                elif sala.visitada:
+                    linha.append(".")
+                else:
+                    linha.append(" ")
+            else:
+                linha.append(" ")
+        linhas.append("".join(linha))
+    corpo = Text("\n".join(linhas), justify="center", style="cyan")
+    return Panel(corpo, title="Minimapa", border_style="cyan", width=24)
 
 
 def desenhar_tela_saida(titulo: str, mensagem: str) -> None:
@@ -410,13 +441,6 @@ def desenhar_selecao_save(
 def desenhar_historico(limite: int = 20) -> None:
     """Mostra histórico de runs gravado em saves/history.json."""
     limpar_tela()
-    console.print(
-        Panel(
-            "Histórico é local e não sobe para o Git. Use para lembrar suas runs.",
-            border_style="yellow",
-            width=80,
-        )
-    )
     historico = []
     caminho_hist = Path("saves/history.json")
     if caminho_hist.exists():
