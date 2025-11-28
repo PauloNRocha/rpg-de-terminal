@@ -1,6 +1,8 @@
+import json
 import random
 import unicodedata
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from rich import box
@@ -261,9 +263,11 @@ def desenhar_menu_principal(
     menu_texto.append("1. Iniciar Nova Aventura\n", style="bold green")
     if tem_save:
         menu_texto.append("2. Continuar Aventura (Carregar Save)\n", style="bold cyan")
-        menu_texto.append("3. Sair\n", style="bold red")
+        menu_texto.append("3. Ver Histórico de Aventuras\n", style="bold magenta")
+        menu_texto.append("4. Sair\n", style="bold red")
     else:
-        menu_texto.append("2. Sair\n", style="bold red")
+        menu_texto.append("2. Ver Histórico de Aventuras\n", style="bold magenta")
+        menu_texto.append("3. Sair\n", style="bold red")
 
     footer_text = f"v{versao} - Desenvolvido por Paulo Rocha e IA"
     destaque_dificuldade = Panel(
@@ -397,7 +401,51 @@ def desenhar_selecao_save(
         return None
     if 1 <= idx <= len(saves):
         return str(saves[idx - 1].get("slot_id"))
+    if not saves and sugestao_novo is not None and idx == sugestao_novo:
+        return str(sugestao_novo)
     return None
+
+
+def desenhar_historico(limite: int = 20) -> None:
+    """Mostra histórico de runs gravado em saves/history.json."""
+    limpar_tela()
+    historico = []
+    caminho_hist = Path("saves/history.json")
+    if caminho_hist.exists():
+        try:
+            historico = json.loads(caminho_hist.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            historico = []
+
+    tabela = Table(box=box.SIMPLE, border_style="cyan", expand=True)
+    tabela.add_column("Data/Hora", style="dim white")
+    tabela.add_column("Personagem", style="bold white")
+    tabela.add_column("Classe", style="white")
+    tabela.add_column("Motivo", style="white")
+    tabela.add_column("Andar", justify="right", style="yellow")
+    tabela.add_column("Dificuldade", style="white")
+    tabela.add_column("Inimigos", justify="right", style="white")
+    tabela.add_column("Itens", justify="right", style="white")
+
+    historico = (historico or [])[-limite:]
+    historico = list(reversed(historico))  # mais recente primeiro
+    for entrada in historico:
+        tabela.add_row(
+            str(entrada.get("timestamp_local", "?")),
+            str(entrada.get("personagem", "?")),
+            str(entrada.get("classe", "?")),
+            str(entrada.get("motivo", "?")),
+            str(entrada.get("andar_alcancado", "?")),
+            str(entrada.get("dificuldade", "?")),
+            str(entrada.get("inimigos_derrotados", 0)),
+            str(entrada.get("itens_obtidos", 0)),
+        )
+
+    if not historico:
+        tabela.add_row("—", "Nenhuma run registrada", "", "", "", "", "", "")
+
+    console.print(Panel(tabela, title="Histórico de Aventuras", border_style="blue"))
+    console.input("[bold yellow]Pressione Enter para voltar... [/]")
 
 
 def desenhar_tela_escolha_classe(classes: ClassesConfig) -> str:
