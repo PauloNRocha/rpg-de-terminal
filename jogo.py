@@ -45,6 +45,7 @@ from src.gerador_mapa import gerar_mapa
 from src.personagem import criar_personagem, obter_classes
 from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temporarios
 from src.ui import (
+    desenhar_evento_interativo,
     desenhar_hud_exploracao,
     desenhar_menu_principal,
     desenhar_selecao_save,
@@ -375,10 +376,20 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
         perfil = contexto.obter_perfil_dificuldade()
         contexto.registrar_evento()
         moedas_antes = jogador.carteira.valor_bronze
-        titulo, mensagem = eventos.disparar_evento(
-            sala_atual.evento_id, jogador, perfil.saque_moedas_mult
-        )
-        desenhar_tela_evento(titulo, mensagem)
+        evento = eventos.carregar_eventos().get(sala_atual.evento_id)
+        if evento and evento.opcoes:
+            escolha = desenhar_evento_interativo(evento)
+            if escolha is None:
+                return Estado.EXPLORACAO
+            op_efeitos = escolha.get("efeitos", {})
+            msgs, _ = eventos.aplicar_efeitos(op_efeitos, jogador, perfil.saque_moedas_mult)
+            corpo = [evento.descricao, *msgs]
+            desenhar_tela_evento(evento.nome.upper(), "\n".join(corpo))
+        else:
+            titulo, mensagem = eventos.disparar_evento(
+                sala_atual.evento_id, jogador, perfil.saque_moedas_mult
+            )
+            desenhar_tela_evento(titulo, mensagem)
         ganho_moedas = jogador.carteira.valor_bronze - moedas_antes
         contexto.registrar_moedas(max(0, ganho_moedas))
         sala_atual.evento_resolvido = True

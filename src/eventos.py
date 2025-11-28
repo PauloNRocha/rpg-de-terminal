@@ -25,6 +25,7 @@ class Evento:
     nome: str
     descricao: str
     efeitos: dict[str, Any]
+    opcoes: list[dict[str, Any]]
 
 
 _cache: dict[str, Evento] = {}
@@ -50,6 +51,7 @@ def carregar_eventos() -> dict[str, Evento]:
             nome=item.get("nome", item["id"].title()),
             descricao=item.get("descricao", ""),
             efeitos=item.get("efeitos", {}),
+            opcoes=item.get("opcoes", []),
         )
         _cache[evento.id] = evento
     return _cache
@@ -73,7 +75,15 @@ def disparar_evento(
     if not evento:
         return ("EVENTO", "Nada acontece.")
     efeitos = evento.efeitos or {}
-    mensagens: list[str] = [evento.descricao]
+    mensagens, _ = aplicar_efeitos(efeitos, jogador, multiplicador_moedas)
+    return evento.nome.upper(), "\n".join(mensagens)
+
+
+def aplicar_efeitos(
+    efeitos: dict[str, Any], jogador: Personagem, multiplicador_moedas: float = 1.0
+) -> tuple[list[str], int]:
+    """Aplica efeitos de evento ou opção ao jogador e retorna mensagens e moedas ganhas."""
+    mensagens: list[str] = []
     hp_delta = int(efeitos.get("hp", 0))
     if hp_delta:
         jogador.hp = max(0, min(jogador.hp_max, jogador.hp + hp_delta))
@@ -106,4 +116,4 @@ def disparar_evento(
                     buff.get("mensagem")
                     or f"Você sofreu {valor} em {atributo} por {duracao} combates."
                 )
-    return evento.nome.upper(), "\n".join(mensagens)
+    return mensagens, moedas

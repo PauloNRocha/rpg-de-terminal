@@ -1,7 +1,7 @@
 import random
 import unicodedata
 from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rich import box
 from rich.bar import Bar
@@ -14,6 +14,9 @@ from rich.text import Text
 from src.config import DificuldadePerfil
 from src.economia import formatar_preco
 from src.entidades import Inimigo, Item, Personagem, Sala
+
+if TYPE_CHECKING:
+    from src.eventos import Evento
 
 console = Console()
 ClassesConfig = dict[str, dict[str, Any]]
@@ -306,6 +309,41 @@ def desenhar_tela_input(titulo: str, prompt: str) -> str:
     )
     console.print(panel)
     return console.input("[bold yellow]> [/]")
+
+
+def desenhar_evento_interativo(evento: "Evento") -> dict[str, Any] | None:
+    """Mostra um evento com opções de escolha e retorna a opção selecionada."""
+    limpar_tela()
+    descricao = getattr(evento, "descricao", "") or ""
+    nome = getattr(evento, "nome", "Evento")
+    opcoes = getattr(evento, "opcoes", []) or []
+
+    panel_desc = Panel(Text(descricao, justify="left"), title=Text(nome, style="bold yellow"))
+    console.print(panel_desc)
+
+    tabela = Table(box=box.SIMPLE, border_style="cyan", expand=False)
+    tabela.add_column("Opção", justify="center", style="bold yellow", width=6)
+    tabela.add_column("Escolha", style="bold white")
+    for idx, opcao in enumerate(opcoes, start=1):
+        tabela.add_row(str(idx), str(opcao.get("descricao") or opcao.get("nome") or ""))
+    console.print(tabela)
+    console.print(
+        Panel(
+            "Digite o número da opção ou pressione Enter para cancelar.",
+            border_style="blue",
+        )
+    )
+
+    escolha = console.input("[bold yellow]Escolha: [/]").strip()
+    if not escolha:
+        return None
+    try:
+        idx = int(escolha)
+    except ValueError:
+        return None
+    if 1 <= idx <= len(opcoes):
+        return opcoes[idx - 1]
+    return None
 
 
 def desenhar_selecao_save(
