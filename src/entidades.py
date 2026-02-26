@@ -229,6 +229,8 @@ class Sala:
     trama_texto: str | None = None
     trama_resolvida: bool = False
     trama_inimigo_tipo: str | None = None
+    trama_consequencia_aplicada: bool = False
+    trama_consequencia_texto: str | None = None
     nivel_area: int = 1
     evento_id: str | None = None
     evento_resolvido: bool = False
@@ -266,6 +268,8 @@ class Sala:
         payload.setdefault("trama_texto", None)
         payload.setdefault("trama_resolvida", False)
         payload.setdefault("trama_inimigo_tipo", None)
+        payload.setdefault("trama_consequencia_aplicada", False)
+        payload.setdefault("trama_consequencia_texto", None)
         payload.setdefault("nivel_area", 1)
         payload.setdefault("evento_id", None)
         payload.setdefault("evento_resolvido", False)

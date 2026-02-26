@@ -465,6 +465,7 @@ def desenhar_historico(limite: int = 20) -> None:
     tabela.add_column("Inimigos", justify="right", style="white")
     tabela.add_column("Itens", justify="right", style="white")
     tabela.add_column("Chefe + profundo", style="white")
+    tabela.add_column("Marca da trama", style="white")
 
     historico = (historico or [])[-limite:]
     historico = list(reversed(historico))  # mais recente primeiro
@@ -490,10 +491,11 @@ def desenhar_historico(limite: int = 20) -> None:
             str(entrada.get("inimigos_derrotados", 0)),
             str(entrada.get("itens_obtidos", 0)),
             chefe_info,
+            _cut(entrada.get("trama_consequencia", "-"), 26),
         )
 
     if not historico:
-        tabela.add_row("—", "Nenhuma run registrada", "", "", "", "", "", "")
+        tabela.add_row("—", "Nenhuma run registrada", "", "", "", "", "", "", "", "")
 
     console.print(Panel(tabela, title="Histórico de Aventuras", border_style="blue"))
     console.print(

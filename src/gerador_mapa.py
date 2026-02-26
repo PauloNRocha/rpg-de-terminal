@@ -236,3 +236,5 @@ def _injetar_sala_trama(
     sala.trama_inimigo_tipo = (
         trama_ativa.inimigo_corrompido_tipo if trama_ativa.desfecho == "corrompido" else None
     )
+    sala.trama_consequencia_aplicada = False
+    sala.trama_consequencia_texto = None

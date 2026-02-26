@@ -27,6 +27,7 @@ class TramaConfig:
     sala_nome: str
     sala_descricao: str
     desfechos: dict[str, tuple[str, ...]]
+    consequencias: dict[str, tuple[dict[str, Any], ...]]
     inimigo_corrompido_tipo: str | None = None
 
 
@@ -144,6 +145,19 @@ def carregar_tramas() -> list[TramaConfig]:
         if not desfechos:
             raise ErroDadosError("Nenhum desfecho válido encontrado em uma trama.")
 
+        consequencias_raw = item.get("consequencias", {})
+        if not isinstance(consequencias_raw, dict):
+            consequencias_raw = {}
+        consequencias: dict[str, tuple[dict[str, Any], ...]] = {}
+        for chave, lista in consequencias_raw.items():
+            if not isinstance(lista, list):
+                continue
+            entradas_validas = tuple(
+                entrada for entrada in lista if isinstance(entrada, dict) and entrada.get("tipo")
+            )
+            if entradas_validas:
+                consequencias[str(chave).lower()] = entradas_validas
+
         tramas.append(
             TramaConfig(
                 id=str(item["id"]),
@@ -156,6 +170,7 @@ def carregar_tramas() -> list[TramaConfig]:
                 sala_nome=str(item.get("sala_nome", "Sala de Trama")),
                 sala_descricao=str(item.get("sala_descricao", "")),
                 desfechos=desfechos,
+                consequencias=consequencias,
                 inimigo_corrompido_tipo=(
                     str(item.get("inimigo_corrompido_tipo"))
                     if item.get("inimigo_corrompido_tipo") is not None
@@ -207,3 +222,14 @@ def gerar_pista_trama(trama: TramaAtiva, nivel_atual: int) -> str:
 
     pista = random.choice(list(trama.pistas))
     return pista.format(andar_alvo=trama.andar_alvo, nivel_atual=nivel_atual)
+
+
+def obter_trama_config(trama_id: str) -> TramaConfig | None:
+    """Retorna a configuração de uma trama pelo ID."""
+    trama_id = str(trama_id).strip().lower()
+    if not trama_id:
+        return None
+    for trama in carregar_tramas():
+        if trama.id.lower() == trama_id:
+            return trama
+    return None

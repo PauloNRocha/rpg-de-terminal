@@ -253,3 +253,26 @@ def test_remover_item_por_chave(jogador_base: Personagem, espada_curta: Item) ->
     removido = remover_item_por_chave(jogador_base.inventario, chave)
     assert removido.nome == "Espada Curta"
     assert len(jogador_base.inventario) == 1
+
+
+def test_aplicar_consequencia_trama_registra_marca(
+    jogador_base: Personagem, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Consequência de trama deve aplicar efeito e registrar resumo para histórico."""
+    contexto = jogo.ContextoJogo(jogador=jogador_base)
+    sala = Sala(
+        tipo="trama",
+        nome="Sala da Trama",
+        descricao="",
+        trama_id="resgate_perdido",
+    )
+
+    monkeypatch.setattr(jogo, "desenhar_tela_evento", lambda *args, **kwargs: None)
+    monkeypatch.setattr(jogo.random, "choice", lambda seq: seq[0])
+
+    jogo._aplicar_consequencia_trama(contexto, sala, "vivo")
+
+    assert sala.trama_consequencia_aplicada is True
+    assert sala.trama_consequencia_texto
+    assert contexto.trama_consequencia_resumo
+    assert any(item.nome == "Broche do Sobrevivente" for item in jogador_base.inventario)

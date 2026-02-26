@@ -15,6 +15,7 @@ def test_carregar_tramas_retorna_catalogo_valido() -> None:
         assert trama.andar_max >= trama.andar_min
         assert trama.pistas
         assert trama.desfechos
+        assert trama.consequencias
 
 
 def test_sortear_trama_para_motivacao_retorna_trama_ativa() -> None:
@@ -78,3 +79,11 @@ def test_motivacoes_de_tramas_existem_no_catalogo() -> None:
     for trama in tramas:
         for motivacao in trama.motivacoes:
             assert motivacao == "*" or motivacao in ids_motivacao
+
+
+def test_tramas_tem_consequencias_para_desfechos() -> None:
+    """Cada desfecho de trama deve possuir pelo menos uma consequência registrada."""
+    for trama in carregar_tramas():
+        for desfecho in trama.desfechos:
+            assert desfecho in trama.consequencias
+            assert trama.consequencias[desfecho]

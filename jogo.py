@@ -1,3 +1,4 @@
+import random
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -46,7 +47,12 @@ from src.gerador_itens import gerar_item_aleatorio, obter_item_por_nome
 from src.gerador_mapa import gerar_mapa
 from src.personagem import criar_personagem, obter_classes
 from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temporarios
-from src.tramas import TramaAtiva, gerar_pista_trama, sortear_trama_para_motivacao
+from src.tramas import (
+    TramaAtiva,
+    gerar_pista_trama,
+    obter_trama_config,
+    sortear_trama_para_motivacao,
+)
 from src.ui import (
     console,
     desenhar_evento_interativo,
@@ -125,6 +131,7 @@ class ContextoJogo:
     tutorial: TutorialEstado = field(default_factory=TutorialEstado)
     trama_ativa: TramaAtiva | None = None
     trama_pistas_exibidas: set[int] = field(default_factory=set)
+    trama_consequencia_resumo: str | None = None
     chefe_mais_profundo_nivel: int = 0
     chefe_mais_profundo_nome: str | None = None
     inimigo_causa_morte: str | None = None
@@ -153,6 +160,7 @@ class ContextoJogo:
         self.resetar_estatisticas()
         self.trama_ativa = None
         self.trama_pistas_exibidas.clear()
+        self.trama_consequencia_resumo = None
         self.chefe_mais_profundo_nivel = 0
         self.chefe_mais_profundo_nome = None
         self.inimigo_causa_morte = None
@@ -235,6 +243,7 @@ class ContextoJogo:
             chefe_info=chefe_info,
             inimigo_causa_morte=self.inimigo_causa_morte,
             turnos=self.turnos_totais,
+            trama_consequencia=self.trama_consequencia_resumo,
         )
         if self.jogador:
             historico_entry = {
@@ -263,6 +272,8 @@ class ContextoJogo:
                 historico_entry["trama_desfecho"] = self.trama_ativa.desfecho
                 historico_entry["trama_andar_alvo"] = self.trama_ativa.andar_alvo
                 historico_entry["trama_concluida"] = self.trama_ativa.concluida
+            if self.trama_consequencia_resumo:
+                historico_entry["trama_consequencia"] = self.trama_consequencia_resumo
             registrar_historico(historico_entry)
 
 
@@ -410,6 +421,10 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             contexto.trama_pistas_exibidas = {
                 int(v) for v in pistas_raw if isinstance(v, int) or str(v).isdigit()
             }
+            resumo_trama = estado_salvo.get("trama_consequencia_resumo")
+            contexto.trama_consequencia_resumo = (
+                str(resumo_trama).strip() if isinstance(resumo_trama, str) else None
+            )
             contexto.posicao_anterior = None
             _salvar_slot_contexto(contexto, slot_escolhido)
             desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
@@ -433,6 +448,7 @@ def executar_estado_criacao(contexto: ContextoJogo) -> Estado:
         jogador.motivacao.id if jogador.motivacao else None
     )
     contexto.trama_pistas_exibidas.clear()
+    contexto.trama_consequencia_resumo = None
     contexto.nivel_masmorra = 1
     contexto.mapa_atual = None
     contexto.posicao_anterior = None
@@ -447,6 +463,147 @@ def executar_estado_criacao(contexto: ContextoJogo) -> Estado:
             ),
         )
     return Estado.EXPLORACAO
+
+
+def _aplicar_consequencia_trama(contexto: ContextoJogo, sala: Sala, desfecho: str) -> None:
+    """Aplica uma consequência persistente do desfecho da trama."""
+    if sala.trama_consequencia_aplicada or not sala.trama_id or contexto.jogador is None:
+        return
+
+    trama_cfg = obter_trama_config(sala.trama_id)
+    if trama_cfg is None:
+        return
+
+    consequencias = trama_cfg.consequencias.get(desfecho.lower(), ())
+    if not consequencias:
+        return
+
+    consequencia = random.choice(list(consequencias))
+    tipo = str(consequencia.get("tipo", "")).lower()
+    jogador = contexto.jogador
+    mensagens: list[str] = []
+
+    if tipo == "atributo":
+        atributo = str(consequencia.get("atributo", "")).lower()
+        valor = int(consequencia.get("valor", 0))
+        if atributo not in {"ataque_base", "defesa_base", "hp_max"} or valor == 0:
+            return
+
+        if atributo == "ataque_base":
+            jogador.ataque_base = max(1, jogador.ataque_base + valor)
+        elif atributo == "defesa_base":
+            jogador.defesa_base = max(1, jogador.defesa_base + valor)
+        else:
+            jogador.hp_max = max(1, jogador.hp_max + valor)
+            jogador.hp = min(jogador.hp_max, max(1, jogador.hp + max(0, valor)))
+
+        aplicar_bonus_equipamento(jogador)
+        mensagens.append(
+            consequencia.get("mensagem")
+            or f"{atributo.replace('_', ' ').title()} {valor:+d} até o fim da run."
+        )
+    elif tipo == "item":
+        nome_item = str(consequencia.get("item_nome", "")).strip()
+        item = obter_item_por_nome(nome_item)
+        if item is None:
+            return
+        jogador.inventario.append(item)
+        contexto.registrar_item_obtido()
+        mensagens.append(consequencia.get("mensagem") or f"Você obteve o item único: {item.nome}.")
+    elif tipo == "moedas":
+        valor = int(consequencia.get("valor", 0))
+        if valor == 0:
+            return
+        if valor > 0:
+            jogador.carteira.receber(valor)
+            contexto.registrar_moedas(valor)
+            mensagens.append(consequencia.get("mensagem") or f"Você recebeu {valor} moedas.")
+        else:
+            custo = abs(valor)
+            if jogador.carteira.tem(custo):
+                jogador.carteira.gastar(custo)
+                mensagens.append(
+                    consequencia.get("mensagem") or f"Você perdeu {custo} moedas nesta escolha."
+                )
+            else:
+                mensagens.append("A masmorra cobra um preço, mas sua bolsa já está vazia.")
+    else:
+        return
+
+    registro = str(consequencia.get("registro", "")).strip() or (
+        mensagens[0] if mensagens else "A trama deixou uma marca permanente nesta run."
+    )
+    sala.trama_consequencia_aplicada = True
+    sala.trama_consequencia_texto = registro
+    contexto.trama_consequencia_resumo = registro
+    desenhar_tela_evento("MARCA DA TRAMA", "\n".join(mensagens))
+
+
+def _concluir_trama_corrompida(contexto: ContextoJogo, sala: Sala) -> None:
+    """Finaliza a trama após vencer a forma corrompida."""
+    _aplicar_consequencia_trama(contexto, sala, "corrompido")
+    texto = (
+        "Ao vencer a forma corrompida, você encerra este capítulo sombrio da jornada."
+        if not sala.trama_consequencia_texto
+        else "Ao vencer a forma corrompida, sua decisão deixa marcas na aventura."
+    )
+    if sala.trama_consequencia_texto:
+        texto = f"{texto}\n\n{sala.trama_consequencia_texto}"
+    desenhar_tela_evento("TRAMA CONCLUÍDA", texto)
+
+
+def _montar_cena_pre_chefe(contexto: ContextoJogo, sala: Sala, historia_base: str) -> str:
+    """Monta um texto narrativo coeso para a cena pré-chefe."""
+    blocos: list[str] = []
+    if historia_base:
+        blocos.append(historia_base)
+
+    jogador = contexto.jogador
+    trama = contexto.trama_ativa
+    if jogador and jogador.motivacao:
+        blocos.append(f"Você lembra do motivo que te trouxe até aqui: {jogador.motivacao.titulo}.")
+
+    if trama and not trama.concluida:
+        if contexto.nivel_masmorra < trama.andar_alvo:
+            blocos.append(
+                "Os sinais da trama ainda não culminaram, mas a presença desta criatura "
+                "pode ser o último guardião no caminho."
+            )
+        elif contexto.nivel_masmorra == trama.andar_alvo:
+            blocos.append(
+                "Tudo indica que este é o ponto mais crítico da sua trama. "
+                "O próximo passo pode definir o desfecho da run."
+            )
+        else:
+            blocos.append(
+                "Mesmo após o alvo principal, os ecos da trama ainda assombram este andar."
+            )
+    return "\n\n".join(blocos)
+
+
+def _narrar_descida_andar(contexto: ContextoJogo, proximo_andar: int) -> str:
+    """Gera uma transição narrativa curta ao descer para o próximo andar."""
+    trama = contexto.trama_ativa
+    if not trama or trama.concluida:
+        return (
+            f"Você pisa no andar {proximo_andar} e sente a masmorra mudar de ritmo. "
+            "As paredes parecem observar cada passo."
+        )
+
+    if proximo_andar < trama.andar_alvo:
+        return (
+            f"O ar pesa mais no andar {proximo_andar}. "
+            f"Os rastros da trama '{trama.nome}' ficam mais nítidos."
+        )
+    if proximo_andar == trama.andar_alvo:
+        return (
+            f"Você alcança o andar {proximo_andar}. "
+            f"Seu instinto diz que o desfecho de '{trama.nome}' está muito próximo."
+        )
+    return (
+        f"O andar {proximo_andar} guarda ecos do que você já enfrentou. "
+        "Nada aqui parece verdadeiramente encerrado."
+    )
 
 
 def _resolver_sala_trama(contexto: ContextoJogo, sala: Sala) -> None:
@@ -470,6 +627,7 @@ def _resolver_sala_trama(contexto: ContextoJogo, sala: Sala) -> None:
             "DESFECHO DA TRAMA",
             f"Você garante um resgate improvável e recebe {recompensa} moedas de gratidão.",
         )
+        _aplicar_consequencia_trama(contexto, sala, "vivo")
         sala.trama_resolvida = True
         if contexto.trama_ativa and contexto.trama_ativa.id == sala.trama_id:
             contexto.trama_ativa.concluida = True
@@ -483,6 +641,7 @@ def _resolver_sala_trama(contexto: ContextoJogo, sala: Sala) -> None:
             f"Você encontra apenas memórias e jura continuar.\nGanho de XP: {xp_ganho}.",
         )
         verificar_level_up(jogador)
+        _aplicar_consequencia_trama(contexto, sala, "morto")
         sala.trama_resolvida = True
         if contexto.trama_ativa and contexto.trama_ativa.id == sala.trama_id:
             contexto.trama_ativa.concluida = True
@@ -491,7 +650,7 @@ def _resolver_sala_trama(contexto: ContextoJogo, sala: Sala) -> None:
     if desfecho == "corrompido":
         sala.pode_ter_inimigo = True
         sala.inimigo_derrotado = False
-        sala.trama_resolvida = True
+        sala.trama_resolvida = False
         tema_trama = (
             contexto.trama_ativa.tema
             if contexto.trama_ativa is not None and not contexto.trama_ativa.concluida
@@ -625,6 +784,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 entrada = historias_cls.get(classe) or historias_cls.get("default", {})
                 titulo_pre = entrada.get("titulo") or chefe_config.titulo or titulo_pre
                 historia_pre = entrada.get("historia") or chefe_config.historia or historia_pre
+            historia_pre = _montar_cena_pre_chefe(contexto, sala_atual, historia_pre)
             escolha_chefe = desenhar_tela_pre_chefe(titulo_pre, historia_pre)
             if escolha_chefe == "enfrentar":
                 sala_atual.chefe_intro_exibida = True
@@ -701,6 +861,10 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             desenhar_tela_resumo_andar(nivel_atual, resumo, hp_cura)
             contexto.registrar_andar_concluido()
             contexto.nivel_masmorra += 1
+            desenhar_tela_evento(
+                "DESCIDA NAS PROFUNDEZAS",
+                _narrar_descida_andar(contexto, contexto.nivel_masmorra),
+            )
             contexto.mapa_atual = None
             contexto.posicao_anterior = None
             contexto.resetar_estatisticas()
@@ -721,6 +885,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 "dificuldade": contexto.dificuldade,
                 "trama_ativa": (contexto.trama_ativa.to_dict() if contexto.trama_ativa else None),
                 "trama_pistas_exibidas": sorted(contexto.trama_pistas_exibidas),
+                "trama_consequencia_resumo": contexto.trama_consequencia_resumo,
             }
             try:
                 caminho = salvar_jogo(estado, contexto.slot_atual)
@@ -736,6 +901,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
             contexto.nivel_masmorra = 1
             contexto.trama_ativa = None
             contexto.trama_pistas_exibidas.clear()
+            contexto.trama_consequencia_resumo = None
             contexto.posicao_anterior = None
             contexto.turnos_totais += 1
             return Estado.MENU
@@ -809,6 +975,7 @@ def executar_estado_combate(contexto: ContextoJogo) -> Estado:
         consumir_status_temporarios,
         Estado.MENU,
         Estado.EXPLORACAO,
+        on_trama_corrompida_vencida=lambda sala: _concluir_trama_corrompida(contexto, sala),
     )
 
 

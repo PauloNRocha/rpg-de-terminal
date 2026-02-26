@@ -34,6 +34,40 @@
         "Você reconhece o rosto, mas não a alma. A corrupção tomou conta e força você a decidir pela lâmina."
       ]
     },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Broche do Sobrevivente",
+          "mensagem": "O sobrevivente prende em seu manto um broche antigo. Você recebe o item único Broche do Sobrevivente.",
+          "registro": "Recebeu o Broche do Sobrevivente ao concluir um resgate."
+        },
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": 1,
+          "mensagem": "A gratidão fortalece sua guarda. Defesa base +1 até o fim da run.",
+          "registro": "A trama de resgate deixou uma benção defensiva permanente (+1 DEF base)."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": -1,
+          "mensagem": "O luto pesa nas mãos. Ataque base -1 até o fim da run.",
+          "registro": "O fracasso no resgate deixou uma cicatriz (-1 ATK base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "moedas",
+          "valor": 60,
+          "mensagem": "Ao derrotar a forma corrompida, você recupera moedas escondidas no altar.",
+          "registro": "Purificou o alvo corrompido e saqueou 60 moedas do ritual."
+        }
+      ]
+    },
     "inimigo_corrompido_tipo": "chefe_nigromante"
   },
   {
@@ -69,6 +103,34 @@
       "corrompido": [
         "A relíquia deformou seu guardião. A sala estremece quando ele avança, consumido pelo poder que deveria conter.",
         "O antigo protetor virou uma sombra hostil. Cada passo dele ecoa como um aviso de que você chegou tarde."
+      ]
+    },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": 1,
+          "mensagem": "O artefato reconhece seu valor. Ataque base +1 até o fim da run.",
+          "registro": "Sintonizou um artefato ancestral (+1 ATK base permanente)."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": -1,
+          "mensagem": "Fragmentos instáveis atingem seu corpo. Defesa base -1 até o fim da run.",
+          "registro": "Foi marcado por estilhaços arcanos (-1 DEF base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "item",
+          "item_nome": "Fragmento do Sínodo",
+          "mensagem": "Você recupera um Fragmento do Sínodo, item único nascido da quebra do pacto.",
+          "registro": "Recuperou o Fragmento do Sínodo após derrotar o guardião corrompido."
+        }
       ]
     },
     "inimigo_corrompido_tipo": "chefe_golem"
@@ -107,6 +169,34 @@
         "Seu alvo renasceu em forma monstruosa, preso entre culpa e ódio. Não há diálogo possível."
       ]
     },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Marca do Acerto",
+          "mensagem": "Seu alvo rende a Marca do Acerto, um item único gravado em ódio contido.",
+          "registro": "Concluiu um acerto de contas e recebeu a Marca do Acerto."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": -1,
+          "mensagem": "O vazio da vingança mina sua postura. Defesa base -1 até o fim da run.",
+          "registro": "A vingança sem rosto enfraqueceu sua defesa (-1 DEF base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": 2,
+          "mensagem": "A vitória sobre a corrupção transforma sua raiva em força. Ataque base +2.",
+          "registro": "Transformou a corrupção em poder bruto (+2 ATK base)."
+        }
+      ]
+    },
     "inimigo_corrompido_tipo": "chefe_tirano"
   },
   {
@@ -140,6 +230,34 @@
       "corrompido": [
         "Um antigo guardião foi tomado por espinhos vivos e avança sem reconhecer sua voz.",
         "A seiva negra transformou o alvo em predador. O confronto é inevitável."
+      ]
+    },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Ramo do Núcleo",
+          "mensagem": "As raízes reverenciam sua escolha e oferecem o item único Ramo do Núcleo.",
+          "registro": "Recebeu o Ramo do Núcleo ao preservar a vida na trama da floresta."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "hp_max",
+          "valor": -3,
+          "mensagem": "A seiva tóxica te contamina. HP máximo -3 até o fim da run.",
+          "registro": "A corrupção das raízes reduziu sua vitalidade (-3 HP máximo)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": 2,
+          "mensagem": "A casca ancestral endurece sua pele. Defesa base +2.",
+          "registro": "Domou o núcleo corrompido e ganhou +2 de defesa base."
+        }
       ]
     },
     "inimigo_corrompido_tipo": "chefe_hidra"
@@ -178,6 +296,33 @@
         "Um corpo envolto por chamas rúnicas se ergue e aponta para você com olhos vazios."
       ]
     },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "moedas",
+          "valor": 80,
+          "mensagem": "A quebra do pacto liberta um cofre arcano: você recolhe 80 moedas.",
+          "registro": "Converteu um pacto arcano em recursos (+80 moedas)."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": -1,
+          "mensagem": "As cinzas drenam sua energia. Ataque base -1 até o fim da run.",
+          "registro": "As cinzas do sínodo corroeram sua força (-1 ATK base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "item",
+          "item_nome": "Fragmento do Sínodo",
+          "mensagem": "Você arranca um Fragmento do Sínodo da criatura derrotada.",
+          "registro": "Obteve o Fragmento do Sínodo ao encerrar um pacto corrompido."
+        }
+      ]
+    },
     "inimigo_corrompido_tipo": "chefe_pesadelo"
   },
   {
@@ -211,6 +356,34 @@
       "corrompido": [
         "O antigo juiz voltou como executor corrompido e exige sangue para encerrar o processo.",
         "Seu último rival ergue-se das cinzas com correntes vivas, pronto para um veredito final."
+      ]
+    },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Insígnia do Julgamento",
+          "mensagem": "Você recebe a Insígnia do Julgamento como prova do novo veredito.",
+          "registro": "Conquistou a Insígnia do Julgamento e reescreveu sua honra."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": -1,
+          "mensagem": "A culpa do tribunal pesa em seus ombros. Defesa base -1.",
+          "registro": "Carregou a culpa de um tribunal perdido (-1 DEF base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": 1,
+          "mensagem": "Seu veredito final fortalece sua determinação. Ataque base +1.",
+          "registro": "Impôs seu próprio veredito e ganhou +1 de ataque base."
+        }
       ]
     },
     "inimigo_corrompido_tipo": "chefe_tirano"
