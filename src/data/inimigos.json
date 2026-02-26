@@ -5,7 +5,8 @@
         "ataque_base": 5,
         "defesa_base": 1,
         "xp_base": 18,
-        "drop_raridade": "comum"
+        "drop_raridade": "comum",
+        "tags": ["resgate", "natureza"]
     },
     "orc": {
         "nome": "Orc",
@@ -13,7 +14,8 @@
         "ataque_base": 7,
         "defesa_base": 3,
         "xp_base": 35,
-        "drop_raridade": "incomum"
+        "drop_raridade": "incomum",
+        "tags": ["honra", "vinganca"]
     },
     "troll": {
         "nome": "Troll",
@@ -21,7 +23,8 @@
         "ataque_base": 9,
         "defesa_base": 3,
         "xp_base": 55,
-        "drop_raridade": "incomum"
+        "drop_raridade": "incomum",
+        "tags": ["natureza", "honra"]
     },
     "espectro": {
         "nome": "Espectro",
@@ -29,7 +32,8 @@
         "ataque_base": 8,
         "defesa_base": 2,
         "xp_base": 45,
-        "drop_raridade": "raro"
+        "drop_raridade": "raro",
+        "tags": ["arcano", "resgate"]
     },
     "guardiao_espectral": {
         "nome": "Guardião Espectral",
@@ -38,7 +42,8 @@
         "defesa_base": 3,
         "xp_base": 70,
         "drop_raridade": "raro",
-        "drop_item_nome": "Lâmina Fantasmal"
+        "drop_item_nome": "Lâmina Fantasmal",
+        "tags": ["arcano", "artefato"]
     },
     "sentinela_runica": {
         "nome": "Sentinela Rúnica",
@@ -47,7 +52,8 @@
         "defesa_base": 6,
         "xp_base": 90,
         "drop_raridade": "raro",
-        "drop_item_nome": "Broquel da Aurora"
+        "drop_item_nome": "Broquel da Aurora",
+        "tags": ["artefato", "honra"]
     },
     "arqueiro_de_obsidiana": {
         "nome": "Arqueiro de Obsidiana",
@@ -56,7 +62,8 @@
         "defesa_base": 2,
         "xp_base": 65,
         "drop_raridade": "incomum",
-        "drop_item_nome": "Arco da Ventania"
+        "drop_item_nome": "Arco da Ventania",
+        "tags": ["vinganca", "honra"]
     },
     "chefe_orc": {
         "nome": "Chefe Orc",

@@ -7,8 +7,9 @@
       "guerreiro_guarda_falho",
       "guerreiro_promessa",
       "mago_experimento_falho",
-      "arqueiro_guarda_floresta",
-      "ladino_cobranca",
+      "arqueiro_guardiao_floresta",
+      "ladino_divida_sangue",
+      "generico_salvar_parente",
       "*"
     ],
     "andar_alvo": { "min": 2, "max": 5 },
@@ -43,7 +44,9 @@
       "mago_grimorio_perdido",
       "mago_profecia",
       "guerreiro_campeao",
-      "ladino_golpe_fracassado",
+      "ladino_golpe_falho",
+      "ladino_contrato",
+      "generico_chamado_sonhos",
       "*"
     ],
     "andar_alvo": { "min": 3, "max": 6 },
@@ -73,12 +76,13 @@
   {
     "id": "acerto_de_contas",
     "nome": "Acerto de Contas",
-    "tema": "vingança",
+    "tema": "vinganca",
     "motivacoes": [
       "guerreiro_vinganca_mentor",
       "mago_exilado",
       "arqueiro_cacador_monstros",
-      "ladino_vinganca",
+      "ladino_passado_oculto",
+      "ladino_redencao",
       "*"
     ],
     "andar_alvo": { "min": 2, "max": 7 },
@@ -101,6 +105,112 @@
       "corrompido": [
         "A pessoa que você caçava foi consumida pela masmorra e agora luta como um arauto da ruína.",
         "Seu alvo renasceu em forma monstruosa, preso entre culpa e ódio. Não há diálogo possível."
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_tirano"
+  },
+  {
+    "id": "juramento_da_floresta",
+    "nome": "Raízes em Guerra",
+    "tema": "natureza",
+    "motivacoes": [
+      "arqueiro_guardiao_floresta",
+      "arqueiro_mensageiro",
+      "guerreiro_guarda_falho",
+      "generico_desequilibrio",
+      "*"
+    ],
+    "andar_alvo": { "min": 2, "max": 6 },
+    "sala_nome": "Núcleo das Raízes",
+    "sala_descricao": "Raízes grossas atravessam as pedras e pulsos de seiva escura escorrem para uma fenda sem fundo.",
+    "pistas": [
+      "Galhos partidos e pegadas enlameadas sugerem uma criatura arrastando algo vivo para o andar {andar_alvo}.",
+      "A umidade fica mais densa a cada corredor, como se a própria floresta gritasse a partir do andar {andar_alvo}.",
+      "Você encontra penas tingidas de verde-escuro, marcando um trilho que desaparece nas escadas inferiores."
+    ],
+    "desfechos": {
+      "vivo": [
+        "No coração da sala, um guardião da mata ainda vive e entrega um talismã de proteção como gratidão.",
+        "Uma criança perdida sobreviveu entre raízes. Ela aponta um caminho seguro e divide moedas guardadas."
+      ],
+      "morto": [
+        "A vida que você buscava foi drenada pelas raízes corrompidas. Resta apenas um pingente coberto de musgo.",
+        "Você encontra um corpo envolto por vinhas petrificadas; a floresta perdeu mais um protetor."
+      ],
+      "corrompido": [
+        "Um antigo guardião foi tomado por espinhos vivos e avança sem reconhecer sua voz.",
+        "A seiva negra transformou o alvo em predador. O confronto é inevitável."
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_hidra"
+  },
+  {
+    "id": "pacto_arcano",
+    "nome": "Pacto sob Cinzas",
+    "tema": "arcano",
+    "motivacoes": [
+      "mago_chamado_dos_espiritos",
+      "mago_experimento_falho",
+      "mago_profecia",
+      "ladino_contrato",
+      "generico_chamado_sonhos",
+      "*"
+    ],
+    "andar_alvo": { "min": 3, "max": 7 },
+    "sala_nome": "Sínodo Quebrado",
+    "sala_descricao": "Círculos arcanos fraturados cobrem o piso e brasas violetas flutuam ao redor de um trono vazio.",
+    "pistas": [
+      "Runas recém-reativadas indicam que alguém abriu um portal no andar {andar_alvo}.",
+      "Você encontra velas negras ainda quentes: o ritual está próximo e acontece abaixo do andar {nivel_atual}.",
+      "Um coro distante entoa seu nome em línguas mortas, sempre vindo das escadas para o andar {andar_alvo}."
+    ],
+    "desfechos": {
+      "vivo": [
+        "O conjurador sobrevivente quebra o pacto e compartilha uma senha rúnica que facilitará sua descida.",
+        "Você salva uma aprendiz presa ao círculo arcano; ela oferece um fragmento encantado em agradecimento."
+      ],
+      "morto": [
+        "As cinzas de um ritual falho cobrem o chão. O último conjurador tombou antes de concluir o selo.",
+        "Você encontra um diário queimado com a última linha: 'que ninguém repita meu erro'."
+      ],
+      "corrompido": [
+        "O mago que você buscava tornou-se receptáculo do pacto. A sala inteira reage ao ódio dele.",
+        "Um corpo envolto por chamas rúnicas se ergue e aponta para você com olhos vazios."
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_pesadelo"
+  },
+  {
+    "id": "tribunal_das_cinzas",
+    "nome": "Julgamento nas Cinzas",
+    "tema": "honra",
+    "motivacoes": [
+      "guerreiro_condenado",
+      "arqueiro_desonrado",
+      "ladino_redencao",
+      "guerreiro_promessa",
+      "*"
+    ],
+    "andar_alvo": { "min": 2, "max": 6 },
+    "sala_nome": "Tribunal em Ruínas",
+    "sala_descricao": "Bancos quebrados cercam um palco de execução. Símbolos de antigas sentenças ainda queimam nas paredes.",
+    "pistas": [
+      "Um pergaminho judicial com seu nome foi pregado numa porta que aponta para o andar {andar_alvo}.",
+      "Correntes novas pendem do teto, como se o julgamento ainda estivesse em curso nas profundezas.",
+      "Você reconhece a marca da sua antiga ordem gravada em sangue seco no caminho para baixo."
+    ],
+    "desfechos": {
+      "vivo": [
+        "O juiz sobrevivente reconhece sua mudança e oferece perdão formal, junto de provisões para seguir.",
+        "Você encontra um aliado acorrentado ainda vivo. Libertá-lo garante recursos e uma promessa de ajuda futura."
+      ],
+      "morto": [
+        "O julgamento terminou antes da sua chegada. Restaram apenas atas chamuscadas e silêncio.",
+        "Você encontra uma máscara de carrasco sobre um túmulo recente; a sentença foi cumprida sem você."
+      ],
+      "corrompido": [
+        "O antigo juiz voltou como executor corrompido e exige sangue para encerrar o processo.",
+        "Seu último rival ergue-se das cinzas com correntes vivas, pronto para um veredito final."
       ]
     },
     "inimigo_corrompido_tipo": "chefe_tirano"

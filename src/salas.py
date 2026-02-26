@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 import random
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
+from src import config
 from src.erros import ErroDadosError
 
 _CAMINHO_SALAS = Path(__file__).parent / "data" / "salas.json"
@@ -18,6 +20,7 @@ class SalaTemplate:
 
     nome: str
     descricao: str
+    tags: tuple[str, ...] = ()
 
 
 _CATALOGO: dict[str, list[SalaTemplate]] | None = None
@@ -50,14 +53,20 @@ def carregar_salas() -> dict[str, list[SalaTemplate]]:
                 raise ErroDadosError(
                     f"Sala da categoria '{categoria}' está sem 'nome' ou 'descricao' válidos."
                 )
-            templates.append(SalaTemplate(nome=nome, descricao=descricao))
+            tags_raw = item.get("tags", [])
+            if not isinstance(tags_raw, list):
+                tags_raw = []
+            tags = tuple(_normalizar_tag(str(tag)) for tag in tags_raw if str(tag).strip())
+            templates.append(SalaTemplate(nome=nome, descricao=descricao, tags=tags))
         catalogo[categoria] = templates
     _CATALOGO = catalogo
     return catalogo
 
 
 def sortear_sala_template(
-    categoria: str, usadas_por_categoria: dict[str, set[str]]
+    categoria: str,
+    usadas_por_categoria: dict[str, set[str]],
+    tema: str | None = None,
 ) -> SalaTemplate:
     """Retorna um template de sala evitando repetição até que a lista se esgote."""
     catalogo = carregar_salas()
@@ -71,6 +80,26 @@ def sortear_sala_template(
     if not pool:
         usadas.clear()
         pool = candidatos
-    escolhido = random.choice(pool)
+    escolhido = _sortear_template_ponderado(pool, tema)
     usadas.add(escolhido.nome)
     return escolhido
+
+
+def _sortear_template_ponderado(templates: list[SalaTemplate], tema: str | None) -> SalaTemplate:
+    """Sorteia um template com peso maior para tags alinhadas ao tema da trama."""
+    if not tema:
+        return random.choice(templates)
+    tema_norm = _normalizar_tag(tema)
+    pesos = [
+        config.TEMA_PESO_SALA_COMPATIVEL if tema_norm in template.tags else 1.0
+        for template in templates
+    ]
+    if all(peso == 1.0 for peso in pesos):
+        return random.choice(templates)
+    return random.choices(templates, weights=pesos, k=1)[0]
+
+
+def _normalizar_tag(tag: str) -> str:
+    """Normaliza tags removendo acentos e padronizando caixa."""
+    texto = unicodedata.normalize("NFKD", tag.strip().lower())
+    return "".join(ch for ch in texto if not unicodedata.combining(ch))

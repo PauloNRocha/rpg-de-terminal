@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from src import config
 from src.gerador_mapa import gerar_mapa
+from src.historias import carregar_historias
 from src.tramas import TramaAtiva, carregar_tramas, gerar_pista_trama, sortear_trama_para_motivacao
 
 
@@ -68,3 +69,12 @@ def test_gerar_mapa_injeta_sala_de_trama_no_andar_alvo() -> None:
     assert sala.tipo == "trama"
     assert sala.nome == "Sala Narrativa"
     assert sala.trama_desfecho == "morto"
+
+
+def test_motivacoes_de_tramas_existem_no_catalogo() -> None:
+    """IDs de motivação em tramas devem existir em historias_personagem ou ser '*'."""
+    ids_motivacao = {historia.id for historia in carregar_historias()}
+    tramas = carregar_tramas()
+    for trama in tramas:
+        for motivacao in trama.motivacoes:
+            assert motivacao == "*" or motivacao in ids_motivacao

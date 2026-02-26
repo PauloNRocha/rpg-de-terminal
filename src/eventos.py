@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import random
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from src import config
 from src.economia import formatar_preco
 from src.erros import ErroDadosError
 from src.personagem_utils import adicionar_status_temporario
@@ -26,6 +29,7 @@ class Evento:
     descricao: str
     efeitos: dict[str, Any]
     opcoes: list[dict[str, Any]]
+    tags: tuple[str, ...] = ()
 
 
 _cache: dict[str, Evento] = {}
@@ -46,25 +50,41 @@ def carregar_eventos() -> dict[str, Evento]:
     for item in dados:
         if not isinstance(item, dict) or "id" not in item:
             raise ErroDadosError("Evento inválido em 'eventos.json'.")
+        tags_raw = item.get("tags", [])
+        if not isinstance(tags_raw, list):
+            tags_raw = []
         evento = Evento(
             id=item["id"],
             nome=item.get("nome", item["id"].title()),
             descricao=item.get("descricao", ""),
             efeitos=item.get("efeitos", {}),
             opcoes=item.get("opcoes", []),
+            tags=tuple(
+                _normalizar_tag(str(tag))
+                for tag in tags_raw
+                if isinstance(tag, str) and tag.strip()
+            ),
         )
         _cache[evento.id] = evento
     return _cache
 
 
-def sortear_evento_id() -> str | None:
+def sortear_evento_id(tema: str | None = None) -> str | None:
     """Retorna um ID aleatório dentre os eventos disponíveis."""
     eventos = list(carregar_eventos().values())
     if not eventos:
         return None
-    import random
+    if not tema:
+        return random.choice(eventos).id
 
-    return random.choice(eventos).id
+    tema_norm = _normalizar_tag(tema)
+    pesos = [
+        config.TEMA_PESO_EVENTO_COMPATIVEL if tema_norm in evento.tags else 1.0
+        for evento in eventos
+    ]
+    if all(peso == 1.0 for peso in pesos):
+        return random.choice(eventos).id
+    return random.choices(eventos, weights=pesos, k=1)[0].id
 
 
 def disparar_evento(
@@ -141,3 +161,9 @@ def aplicar_efeitos(
                     or f"Você sofreu {valor} em {atributo} por {duracao} combates."
                 )
     return mensagens, moedas_delta, sucesso
+
+
+def _normalizar_tag(tag: str) -> str:
+    """Normaliza tags removendo acentos e padronizando caixa."""
+    texto = unicodedata.normalize("NFKD", tag.strip().lower())
+    return "".join(ch for ch in texto if not unicodedata.combining(ch))

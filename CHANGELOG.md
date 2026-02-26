@@ -7,7 +7,20 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
--   Em aberto.
+### Adicionado
+
+-   Início da `v1.6.7-dev` com expansão narrativa: catálogo de tramas ampliado em `src/data/tramas.json`, com novos arcos temáticos (`natureza`, `arcano`, `honra`) e maior variedade de desfechos.
+-   Tags temáticas em `salas.json`, `eventos.json` e `inimigos.json` para orientar ambientação da run conforme a trama ativa.
+-   Novos testes de regressão para garantir consistência entre motivações e tramas, além de cobertura do sorteio temático.
+
+### Alterado
+
+-   Sorteio de conteúdo agora considera o tema narrativo da trama ativa:
+    - salas (`src/salas.py`) com peso por tag;
+    - eventos (`src/eventos.py`) com peso por tag;
+    - inimigos aleatórios (`src/gerador_inimigos.py`) com peso por tag.
+-   `src/gerador_mapa.py` passa o tema da trama para criação de salas e seleção de eventos, reforçando coesão entre história e exploração.
+-   Correção de mapeamento entre IDs de motivação e tramas (removendo referências inválidas), garantindo que o vínculo classe/motivação funcione sem lacunas.
 
 ## [1.6.6] - 2026-02-26
 

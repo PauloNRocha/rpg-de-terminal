@@ -5,7 +5,7 @@ Bem-vindo a "Aventura no Terminal", um RPG solo em modo texto que roda direto no
 ## Panorama do Projeto
 
 - **Gênero:** Roguelike leve por turnos.
-- **Versão atual:** `v1.6.6`.
+- **Versão atual:** `v1.6.7-dev`.
 - **Plataforma:** Python 3.12+.
 - **UI:** Painéis, barras e entradas estilizadas com `rich` (nada de `print` cru!).
 
@@ -93,9 +93,9 @@ Grande parte do jogo é configurável via arquivos em `src/data/`:
 | --- | --- | --- |
 | `classes.json` | classes iniciais do jogador (HP/ATK/DEF/base) | Basta adicionar um novo objeto seguindo o padrão existente. |
 | `itens.json` | catálogo de itens por raridade (com preços) | Novos itens podem ser referenciados nos drops (`drop_item_nome`). |
-| `inimigos.json` | inimigos padrão + chefes (stats base) | Suporta `drop_item_nome` opcional para garantir loot específico. |
-| `eventos.json` | eventos de sala (cura, armadilhas, buffs) | O campo `buffs` aceita objetos `{atributo, valor, duracao_combates, mensagem}`. |
-| `salas.json` | nomes/descrições de salas por categoria | O gerador embaralha e evita repetir nomes no mesmo andar. |
+| `inimigos.json` | inimigos padrão + chefes (stats base) | Suporta `drop_item_nome` e `tags` opcionais para reforçar temas de trama. |
+| `eventos.json` | eventos de sala (cura, armadilhas, buffs) | O campo `buffs` aceita objetos `{atributo, valor, duracao_combates, mensagem}` e `tags` opcionais para sorteio temático. |
+| `salas.json` | nomes/descrições de salas por categoria | O gerador embaralha e evita repetir nomes no mesmo andar; `tags` opcionais aumentam a chance em tramas relacionadas. |
 
 Exemplo de evento com buff temporário:
 

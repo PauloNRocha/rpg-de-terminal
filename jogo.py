@@ -492,12 +492,18 @@ def _resolver_sala_trama(contexto: ContextoJogo, sala: Sala) -> None:
         sala.pode_ter_inimigo = True
         sala.inimigo_derrotado = False
         sala.trama_resolvida = True
+        tema_trama = (
+            contexto.trama_ativa.tema
+            if contexto.trama_ativa is not None and not contexto.trama_ativa.concluida
+            else None
+        )
         if sala.inimigo_atual is None and sala.trama_inimigo_tipo:
             sala.inimigo_atual = gerar_inimigo(
                 max(sala.nivel_area, contexto.nivel_masmorra + 1),
                 tipo_inimigo=sala.trama_inimigo_tipo,
                 dificuldade=contexto.obter_perfil_dificuldade(),
                 chefe=False,
+                tema=tema_trama,
             )
         desenhar_tela_evento(
             "DESFECHO DA TRAMA",
@@ -543,6 +549,11 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
     mapa = contexto.mapa_atual
     sala_atual = mapa[jogador.y][jogador.x]
     sala_atual.visitada = True
+    tema_trama = (
+        contexto.trama_ativa.tema
+        if contexto.trama_ativa is not None and not contexto.trama_ativa.concluida
+        else None
+    )
 
     if sala_atual.trama_id and not sala_atual.trama_resolvida:
         _resolver_sala_trama(contexto, sala_atual)
@@ -601,6 +612,7 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 dificuldade=perfil_dificuldade,
                 chefe=sala_atual.chefe,
                 perfil_chefe=perfil_chefe,
+                tema=tema_trama,
             )
             sala_atual.inimigo_atual = inimigo
         if sala_atual.chefe and not sala_atual.chefe_intro_exibida:

@@ -3,19 +3,22 @@
     "id": "santuario_da_luz",
     "nome": "Santuário da Luz",
     "descricao": "Um brilho dourado envolve a sala, trazendo paz imediata.",
-    "efeitos": { "hp": 15 }
+    "efeitos": { "hp": 15 },
+    "tags": ["honra", "resgate", "natureza"]
   },
   {
     "id": "armadilha_de_espinhos",
     "nome": "Armadilha de Espinhos",
     "descricao": "O chão cede revelando espinhos enferrujados.",
-    "efeitos": { "hp": -12 }
+    "efeitos": { "hp": -12 },
+    "tags": ["natureza", "vinganca"]
   },
   {
     "id": "cofre_esquecido",
     "nome": "Cofre Esquecido",
     "descricao": "Você encontra um pequeno cofre escondido sob pedras soltas.",
-    "efeitos": { "moedas": 35 }
+    "efeitos": { "moedas": 35 },
+    "tags": ["artefato", "honra"]
   },
   {
     "id": "bencao_do_guardiao",
@@ -30,7 +33,8 @@
           "mensagem": "Seu ataque aumenta em +3 pelos próximos 2 combates."
         }
       ]
-    }
+    },
+    "tags": ["honra", "vinganca"]
   },
   {
     "id": "maldicao_dos_sussurros",
@@ -45,13 +49,15 @@
           "mensagem": "Sua defesa diminui em 2 pelos próximos 2 combates."
         }
       ]
-    }
+    },
+    "tags": ["arcano", "vinganca"]
   },
   {
     "id": "mercador_fantasma",
     "nome": "Mercador Fantasma",
     "descricao": "Um vendedor translúcido oferece um punhado de moedas em troca de ouvir suas histórias.",
-    "efeitos": { "moedas": 50 }
+    "efeitos": { "moedas": 50 },
+    "tags": ["artefato", "arcano"]
   },
   {
     "id": "poco_misterioso",
@@ -70,7 +76,8 @@
         "descricao": "Ignorar o poço",
         "efeitos": {}
       }
-    ]
+    ],
+    "tags": ["natureza", "arcano"]
   },
   {
     "id": "altar_antigo",
@@ -109,6 +116,7 @@
         "descricao": "Recuar e não arriscar",
         "efeitos": {}
       }
-    ]
+    ],
+    "tags": ["arcano", "artefato", "vinganca"]
   }
 ]

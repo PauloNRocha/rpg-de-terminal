@@ -72,3 +72,10 @@ def test_evento_maldicao_registra_penalidade() -> None:
     status = personagem.status_temporarios[0]
     assert status.valor == -2
     assert status.atributo == "defesa"
+
+
+def test_sortear_evento_por_tema_retorna_id_valido() -> None:
+    """Sorteio com tema deve retornar um ID existente no catálogo de eventos."""
+    evento_id = eventos.sortear_evento_id(tema="arcano")
+    assert evento_id is not None
+    assert evento_id in eventos.carregar_eventos()
