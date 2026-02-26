@@ -67,3 +67,35 @@ def test_validar_estado_aceita_estrutura_minima() -> None:
     mapa = [[{"tipo": "entrada"}]]
     estado = {"jogador": {"nome": "Hero"}, "mapa": mapa, "nivel_masmorra": 1}
     armazenamento._validar_estado(estado)
+
+
+def test_salvar_carregar_preserva_campos_de_trama(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Campos extras de trama devem ser preservados no save/load."""
+    configurar_diretorio(tmp_path, monkeypatch)
+    estado: EstadoJogo = {
+        "jogador": {"nome": "Hero", "nivel": 2, "hp": 22, "inventario": []},
+        "mapa": [[{"tipo": "entrada"}]],
+        "nivel_masmorra": 2,
+        "dificuldade": "normal",
+        "trama_ativa": {
+            "id": "resgate_perdido",
+            "nome": "Ecos do Resgate",
+            "tema": "resgate",
+            "motivacao_id": "guerreiro_promessa",
+            "andar_alvo": 3,
+            "desfecho": "vivo",
+            "desfecho_texto": "Texto de desfecho.",
+            "sala_nome": "Câmara das Correntes",
+            "sala_descricao": "desc",
+            "pistas": ["p1"],
+            "concluida": False,
+        },
+        "trama_pistas_exibidas": [1, 2],
+    }
+
+    armazenamento.salvar_jogo(estado, slot_id=1)
+    estado_carregado = armazenamento.carregar_jogo(1)
+    assert estado_carregado["trama_ativa"]["id"] == "resgate_perdido"
+    assert estado_carregado["trama_pistas_exibidas"] == [1, 2]

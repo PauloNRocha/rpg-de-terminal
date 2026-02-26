@@ -96,7 +96,9 @@ def aplicar_efeitos(
         custo = abs(moedas_base)
         if not jogador.carteira.tem(custo):
             mensagens.append(
-                f"Você não tem {formatar_preco(custo)} para realizar essa ação."
+                "Você não tem moedas suficientes para realizar essa ação.\n"
+                f"Custo: {formatar_preco(custo)} | "
+                f"Seu saldo: {jogador.carteira.formatar()}"
             )
             return mensagens, 0, False
         jogador.carteira.gastar(custo)
@@ -138,4 +140,4 @@ def aplicar_efeitos(
                     buff.get("mensagem")
                     or f"Você sofreu {valor} em {atributo} por {duracao} combates."
                 )
-    return mensagens, max(0, moedas_delta), sucesso
+    return mensagens, moedas_delta, sucesso

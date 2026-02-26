@@ -75,6 +75,18 @@ def executar_estado_combate(
             mensagem_item = f"O inimigo dropou: {item_dropado.nome}!"
             desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_item)
             contexto.registrar_item_obtido()
+        if sala.trama_id and sala.trama_desfecho == "corrompido":
+            sala.trama_resolvida = True
+            if (
+                hasattr(contexto, "trama_ativa")
+                and contexto.trama_ativa
+                and getattr(contexto.trama_ativa, "id", None) == sala.trama_id
+            ):
+                contexto.trama_ativa.concluida = True
+            desenhar_tela_evento(
+                "TRAMA CONCLUÍDA",
+                "Ao vencer a forma corrompida, você finalmente encerra este capítulo da jornada.",
+            )
         sala.inimigo_derrotado = True
         sala.inimigo_atual = None
         contexto.limpar_combate()

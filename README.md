@@ -5,7 +5,7 @@ Bem-vindo a "Aventura no Terminal", um RPG solo em modo texto que roda direto no
 ## Panorama do Projeto
 
 - **Gênero:** Roguelike leve por turnos.
-- **Versão atual:** `v1.6.6-dev`.
+- **Versão atual:** `v1.6.6`.
 - **Plataforma:** Python 3.12+.
 - **UI:** Painéis, barras e entradas estilizadas com `rich` (nada de `print` cru!).
 
@@ -63,6 +63,8 @@ pytest
 - **Loot Procedural:** inimigos droparam itens gerados a partir de templates por raridade (`src/gerador_itens.py`, `src/data/itens.json`), incluindo drops exclusivos definidos por inimigo.
 - **Inimigos Escaláveis:** atributos escalam 15% por nível e tipos são carregados de JSON (`src/gerador_inimigos.py`, `src/data/inimigos.json`).
 - **Resumo Pós-Andar:** ao descer a escada, um painel mostra inimigos derrotados, itens, moedas e HP recuperado antes do próximo nível.
+- **Tramas Narrativas por Motivação:** cada nova aventura sorteia uma trama ligada ao passado do personagem, com pistas nos andares e desfecho no andar-alvo.
+- **Tela Alternativa no Terminal:** o jogo roda em screen alternativo para reduzir poluição de scroll e manter a HUD estável durante a sessão.
 
 ## Créditos e IA
 
@@ -75,7 +77,7 @@ pytest
 ## Como Jogar (Passo a Passo)
 
 1. Inicie o jogo (`python3 jogo.py`).
-2. **Criação do Personagem:** informe o nome e escolha uma classe (Guerreiro, Mago ou Arqueiro) visualizando a descrição completa.
+2. **Criação do Personagem:** informe o nome e escolha uma classe (Guerreiro, Mago, Arqueiro ou Ladino) visualizando a descrição completa.
 3. **Exploração:** use o menu numérico para se mover, abrir o inventário ou sair da masmorra.
 4. **Salvar Progresso:** escolha a opção "Salvar jogo" a qualquer momento; o progresso sobrescreve o slot selecionado no menu. É possível manter várias aventuras em slots diferentes.
 5. **Combate:** enfrente inimigos por turnos; use itens, ataque ou tente fugir. Vitória concede XP e loot.

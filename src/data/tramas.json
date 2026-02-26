@@ -1,0 +1,108 @@
+[
+  {
+    "id": "resgate_perdido",
+    "nome": "Ecos do Resgate",
+    "tema": "resgate",
+    "motivacoes": [
+      "guerreiro_guarda_falho",
+      "guerreiro_promessa",
+      "mago_experimento_falho",
+      "arqueiro_guarda_floresta",
+      "ladino_cobranca",
+      "*"
+    ],
+    "andar_alvo": { "min": 2, "max": 5 },
+    "sala_nome": "Câmara das Correntes",
+    "sala_descricao": "Correntes partidas e marcas de luta cobrem as paredes. O ar aqui parece segurar uma respiração antiga.",
+    "pistas": [
+      "No chão, você encontra um pedaço de tecido com brasão familiar e um rastro que desce para o andar {andar_alvo}.",
+      "Uma inscrição recente fala de passos arrastados rumo às profundezas. Algo importante aguarda no andar {andar_alvo}.",
+      "Marcas de sangue seco formam setas improvisadas. Todas apontam para baixo, além do andar {nivel_atual}."
+    ],
+    "desfechos": {
+      "vivo": [
+        "Entre os escombros, você encontra a pessoa que buscava: ferida, mas viva. Em lágrimas, ela entrega um pequeno cofre de moedas pelo resgate.",
+        "Um sobrevivente exausto se esconde atrás do altar quebrado. Ao reconhecer você, oferece seu último tesouro em gratidão."
+      ],
+      "morto": [
+        "Você chega tarde demais. Restam um corpo coberto por poeira e um diário com o último relato da fuga.",
+        "A câmara está silenciosa. Você encontra um amuleto ensanguentado e compreende que a jornada virou luto."
+      ],
+      "corrompido": [
+        "A figura que você buscava ainda respira, mas os olhos brilham com corrupção. Um sussurro distorcido anuncia o combate.",
+        "Você reconhece o rosto, mas não a alma. A corrupção tomou conta e força você a decidir pela lâmina."
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_nigromante"
+  },
+  {
+    "id": "artefato_ancestral",
+    "nome": "Juramento do Artefato",
+    "tema": "artefato",
+    "motivacoes": [
+      "mago_grimorio_perdido",
+      "mago_profecia",
+      "guerreiro_campeao",
+      "ladino_golpe_fracassado",
+      "*"
+    ],
+    "andar_alvo": { "min": 3, "max": 6 },
+    "sala_nome": "Arquivo Selado",
+    "sala_descricao": "Estantes tombadas e runas apagadas indicam que alguém tentou ocultar um segredo poderoso neste salão.",
+    "pistas": [
+      "Fragmentos de pergaminho descrevem um artefato transferido para o andar {andar_alvo} após um motim.",
+      "Uma chave quebrada encontrada no andar {nivel_atual} parece pertencer a uma fechadura maior, ainda abaixo.",
+      "Você sente vibrações arcanas vindas de baixo. O foco dessa energia está no andar {andar_alvo}."
+    ],
+    "desfechos": {
+      "vivo": [
+        "O guardião do arquivo ainda vive e, após seu juramento, confia a você um fragmento intacto do artefato.",
+        "Um estudioso sobrevivente explica como conter a relíquia e paga sua proteção com moedas antigas."
+      ],
+      "morto": [
+        "O artefato está quebrado ao lado do corpo do último guardião. Você recolhe o que restou e segue em silêncio.",
+        "Restou apenas um registro final: o preço de proteger a relíquia foi a própria vida do guardião."
+      ],
+      "corrompido": [
+        "A relíquia deformou seu guardião. A sala estremece quando ele avança, consumido pelo poder que deveria conter.",
+        "O antigo protetor virou uma sombra hostil. Cada passo dele ecoa como um aviso de que você chegou tarde."
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_golem"
+  },
+  {
+    "id": "acerto_de_contas",
+    "nome": "Acerto de Contas",
+    "tema": "vingança",
+    "motivacoes": [
+      "guerreiro_vinganca_mentor",
+      "mago_exilado",
+      "arqueiro_cacador_monstros",
+      "ladino_vinganca",
+      "*"
+    ],
+    "andar_alvo": { "min": 2, "max": 7 },
+    "sala_nome": "Anfiteatro Arruinado",
+    "sala_descricao": "Um antigo círculo de julgamento foi tomado por fungos e brasas. Ecos de velhas sentenças ainda pairam no ar.",
+    "pistas": [
+      "Você encontra o emblema da facção rival marcado com fuligem. O rastro segue para o andar {andar_alvo}.",
+      "Uma lâmina partida traz o nome do seu alvo gravado no metal. O sangue secou, mas a trilha continua.",
+      "Sussurros no corredor repetem o mesmo nome, sempre apontando para níveis mais profundos."
+    ],
+    "desfechos": {
+      "vivo": [
+        "Seu alvo ainda respira e implora por redenção. Ele entrega suprimentos e informações para reparar o passado.",
+        "Você encontra o responsável à beira da morte. Antes do último suspiro, ele revela um atalho para descer mais fundo."
+      ],
+      "morto": [
+        "A vingança perdeu o alvo para a própria masmorra. Restam apenas provas de que ele pagou pelos crimes.",
+        "Você encontra um túmulo improvisado com o nome que perseguia. A raiva cede lugar ao vazio."
+      ],
+      "corrompido": [
+        "A pessoa que você caçava foi consumida pela masmorra e agora luta como um arauto da ruína.",
+        "Seu alvo renasceu em forma monstruosa, preso entre culpa e ódio. Não há diálogo possível."
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_tirano"
+  }
+]

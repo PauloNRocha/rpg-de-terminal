@@ -121,6 +121,11 @@ def desenhar_hud_exploracao(
     texto_local = Text()
     texto_local.append(f"🗺️  Local: {sala_atual.nome}\n", style="bold magenta")
     texto_local.append(sala_atual.descricao, style="white")
+    if sala_atual.trama_id and not sala_atual.trama_resolvida:
+        texto_local.append(
+            f"\n📜 Ponto da trama: {sala_atual.trama_nome or 'Mistério nas profundezas'}",
+            style="bold yellow",
+        )
     if sala_atual.chefe:
         if sala_atual.inimigo_derrotado:
             texto_local.append("\n✅ Chefe derrotado nesta sala.", style="bold green")
@@ -184,6 +189,8 @@ def _render_minimapa(mapa: list[list[Sala]], jogador: Personagem) -> Panel:
                 sala = mapa[y][x]
                 if sala.chefe and not sala.inimigo_derrotado:
                     linha.append("C")
+                elif sala.trama_id and not sala.trama_resolvida:
+                    linha.append("T")
                 elif sala.tipo == "escada":
                     linha.append("E")
                 elif sala.visitada:
@@ -461,6 +468,7 @@ def desenhar_historico(limite: int = 20) -> None:
 
     historico = (historico or [])[-limite:]
     historico = list(reversed(historico))  # mais recente primeiro
+
     def _cut(txt: object, limite: int = 18) -> str:
         s = str(txt)
         return s if len(s) <= limite else s[: limite - 1] + "…"
