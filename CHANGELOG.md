@@ -14,6 +14,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Novos testes de regressão para garantir consistência entre motivações e tramas, além de cobertura do sorteio temático.
 -   Consequências de trama data-driven (`consequencias` em `tramas.json`) com efeitos persistentes na run: buff/maldição de atributo, item único e ganhos/perdas de moedas.
 -   Novos itens únicos em `itens.json` (raridade `unico`) usados pelas conclusões narrativas das tramas.
+-   Suite de validação de schema dos dados em JSON (`tests/test_schema_dados.py`) cobrindo `classes`, `itens`, `inimigos`, `eventos`, `salas` e `tramas`.
 
 ### Alterado
 
