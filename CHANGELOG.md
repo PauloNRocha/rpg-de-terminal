@@ -26,6 +26,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Cenas pré-chefe agora incorporam motivação do personagem e estado da trama ativa, reduzindo sensação de encontro isolado.
 -   Transição narrativa ao descer andares: cada descida mostra uma cena curta contextualizada pelo progresso da trama.
 -   Histórico de aventuras e resumo final passaram a registrar/exibir a “Marca da trama” (variação textual do desfecho/consequência).
+-   Save/Load agora usa `save_version` (schema versionado) e migrador automático para formatos antigos (incluindo saves legados sem envelope), reduzindo quebras ao evoluir a série 1.6.x.
 
 ## [1.6.6] - 2026-02-26
 

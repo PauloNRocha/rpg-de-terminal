@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -18,6 +19,7 @@ _DIRETORIO_SALVAMENTO: DiretorioSalvamento = Path("saves")
 _ARQUIVO_SALVAMENTO: Path = _DIRETORIO_SALVAMENTO / "save.json"
 _PADRAO_NOME_SLOT = "save_{slot}.json"
 _ARQUIVO_HISTORICO: Path = _DIRETORIO_SALVAMENTO / "history.json"
+SAVE_SCHEMA_VERSION = 2
 
 
 @dataclass
@@ -79,6 +81,7 @@ def salvar_jogo(estado: EstadoJogo, slot_id: str | int | None = None) -> Path:
     }
 
     estado_serializavel = {
+        "save_version": SAVE_SCHEMA_VERSION,
         "versao": __version__,
         "salvo_em": agora_utc.isoformat(timespec="seconds"),
         "meta": meta,
@@ -104,10 +107,14 @@ def carregar_jogo(slot_id: str | int | None = None) -> EstadoJogo:
     except (json.JSONDecodeError, OSError) as erro:
         raise ErroCarregamento("Não foi possível ler o arquivo de save.") from erro
 
-    if "dados" not in conteudo or "versao" not in conteudo:
-        raise ErroCarregamento("Arquivo de save corrompido ou incompleto.")
+    try:
+        conteudo = _normalizar_envelope_save(conteudo)
+    except ValueError as erro:
+        raise ErroCarregamento("Arquivo de save corrompido ou incompleto.") from erro
 
-    versao_save = conteudo["versao"]
+    conteudo_migrado, migrou = _migrar_conteudo_save(conteudo)
+
+    versao_save = str(conteudo_migrado.get("versao") or "legacy")
     if not _versoes_compatíveis(versao_save, __version__):
         raise ErroCarregamento(
             "Versão do save "
@@ -115,8 +122,11 @@ def carregar_jogo(slot_id: str | int | None = None) -> EstadoJogo:
             f"({__version__})."
         )
 
-    dados = conteudo["dados"]
+    dados = conteudo_migrado.get("dados", {})
     _validar_estado(dados)
+    if migrou:
+        with caminho.open("w", encoding="utf-8") as arquivo:
+            json.dump(conteudo_migrado, arquivo, ensure_ascii=False, separators=(",", ":"))
     return dados
 
 
@@ -132,7 +142,11 @@ def _extrair_info(path: Path, slot_id: str) -> SaveInfo | None:
     try:
         with path.open(encoding="utf-8") as arquivo:
             conteudo = json.load(arquivo)
+        conteudo = _normalizar_envelope_save(conteudo)
+        conteudo, _ = _migrar_conteudo_save(conteudo)
     except (OSError, json.JSONDecodeError):
+        return None
+    except ValueError:
         return None
 
     dados = conteudo.get("dados", {}) or {}
@@ -222,12 +236,126 @@ def _validar_estado(estado: EstadoJogo) -> None:
 
 def _versoes_compatíveis(versao_save: str, versao_jogo: str) -> bool:
     """Permite carregar saves do mesmo major.minor, mesmo com patch diferente."""
+    if versao_save in {"legacy", "0.0.0", "", "?"}:
+        return True
     try:
         major_s, minor_s, *_ = versao_save.split(".")
         major_j, minor_j, *_ = versao_jogo.split(".")
         return major_s == major_j and minor_s == minor_j
     except ValueError:
         return False
+
+
+def _normalizar_envelope_save(conteudo: object) -> dict[str, Any]:
+    """Normalize formatos antigos para o envelope padrão sem perder dados."""
+    if not isinstance(conteudo, dict):
+        raise ValueError("Conteúdo de save inválido.")
+    if "dados" in conteudo and "versao" in conteudo:
+        return conteudo
+    if {"jogador", "mapa", "nivel_masmorra"}.issubset(conteudo.keys()):
+        return {
+            "save_version": 1,
+            "versao": "legacy",
+            "salvo_em": "",
+            "meta": {},
+            "dados": conteudo,
+        }
+    raise ValueError("Formato de save não reconhecido.")
+
+
+def _migrar_conteudo_save(conteudo: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+    """Aplica migrações de schema até a versão atual."""
+    migrado = copy.deepcopy(conteudo)
+    versao_atual = _coagir_save_version(migrado.get("save_version", 1))
+    if versao_atual > SAVE_SCHEMA_VERSION:
+        raise ErroCarregamento(
+            f"Arquivo de save foi gerado por uma versão mais nova do jogo (schema {versao_atual})."
+        )
+
+    houve_migracao = False
+    while versao_atual < SAVE_SCHEMA_VERSION:
+        if versao_atual == 1:
+            migrado = _migrar_v1_para_v2(migrado)
+            versao_atual = 2
+            houve_migracao = True
+            continue
+        raise ErroCarregamento(
+            f"Não existe migrador para schema de save {versao_atual} -> {versao_atual + 1}."
+        )
+
+    migrado["save_version"] = SAVE_SCHEMA_VERSION
+    return migrado, houve_migracao
+
+
+def _coagir_save_version(valor: object) -> int:
+    """Converta o identificador de versão do schema para inteiro válido."""
+    try:
+        versao = int(valor)
+    except (TypeError, ValueError):
+        versao = 1
+    return max(1, versao)
+
+
+def _migrar_v1_para_v2(conteudo: dict[str, Any]) -> dict[str, Any]:
+    """Migra saves sem schema explícito para o formato v2."""
+    dados = conteudo.get("dados")
+    if not isinstance(dados, dict):
+        dados = {}
+    conteudo["dados"] = dados
+
+    jogador = dados.get("jogador")
+    if not isinstance(jogador, dict):
+        jogador = {"nome": "Desconhecido"}
+    dados["jogador"] = jogador
+
+    jogador.setdefault("nome", "Desconhecido")
+    jogador.setdefault("classe", "Aventureiro")
+    jogador.setdefault("hp", 1)
+    jogador.setdefault("hp_max", max(1, int(jogador.get("hp", 1))))
+    jogador.setdefault("ataque", 1)
+    jogador.setdefault("defesa", 0)
+    jogador.setdefault("ataque_base", jogador.get("ataque", 1))
+    jogador.setdefault("defesa_base", jogador.get("defesa", 0))
+    jogador.setdefault("x", 0)
+    jogador.setdefault("y", 0)
+    jogador.setdefault("nivel", 1)
+    jogador.setdefault("xp_atual", 0)
+    jogador.setdefault("xp_para_proximo_nivel", 100)
+    if not isinstance(jogador.get("inventario"), list):
+        jogador["inventario"] = []
+    equipamento = jogador.get("equipamento")
+    if not isinstance(equipamento, dict):
+        equipamento = {"arma": None, "escudo": None}
+    equipamento.setdefault("arma", None)
+    equipamento.setdefault("escudo", None)
+    jogador["equipamento"] = equipamento
+    if not isinstance(jogador.get("carteira"), dict):
+        jogador["carteira"] = {"valor_bronze": 0}
+    if not isinstance(jogador.get("status_temporarios"), list):
+        jogador["status_temporarios"] = []
+
+    if not isinstance(dados.get("mapa"), list):
+        dados["mapa"] = [[{"tipo": "entrada", "nome": "Entrada", "descricao": ""}]]
+    dados.setdefault("nivel_masmorra", 1)
+    dados.setdefault("dificuldade", config.DIFICULDADE_PADRAO)
+    if not isinstance(dados.get("trama_pistas_exibidas"), list):
+        dados["trama_pistas_exibidas"] = []
+    dados.setdefault("trama_consequencia_resumo", None)
+
+    meta = conteudo.get("meta")
+    if not isinstance(meta, dict):
+        meta = {}
+    conteudo["meta"] = meta
+    meta.setdefault("slot", "legacy")
+    meta.setdefault("personagem", jogador.get("nome", "Desconhecido"))
+    meta.setdefault("classe", jogador.get("classe", "?"))
+    meta.setdefault("nivel", jogador.get("nivel", 1))
+    meta.setdefault("andar", dados.get("nivel_masmorra", 1))
+    meta.setdefault("dificuldade", dados.get("dificuldade", config.DIFICULDADE_PADRAO))
+
+    conteudo.setdefault("versao", "legacy")
+    conteudo["save_version"] = 2
+    return conteudo
 
 
 def _formatar_data_local(iso_str: str) -> str:
