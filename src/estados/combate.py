@@ -59,6 +59,12 @@ def executar_estado_combate(
         desenhar_tela_evento("VITÓRIA!", mensagem_vitoria)
         jogador.xp_atual += xp_ganho
         contexto.registrar_inimigo_derrotado()
+        if sala.chefe and (
+            not getattr(contexto, "chefe_mais_profundo_nivel", 0)
+            or contexto.nivel_masmorra >= contexto.chefe_mais_profundo_nivel
+        ):
+            contexto.chefe_mais_profundo_nivel = contexto.nivel_masmorra
+            contexto.chefe_mais_profundo_nome = sala.chefe_nome or inimigo.nome
         item_dropado: Item | None = None
         if getattr(inimigo_atualizado, "drop_item_nome", None):
             item_dropado = obter_item_por_nome(inimigo_atualizado.drop_item_nome or "")
@@ -69,6 +75,18 @@ def executar_estado_combate(
             mensagem_item = f"O inimigo dropou: {item_dropado.nome}!"
             desenhar_tela_evento("ITEM ENCONTRADO!", mensagem_item)
             contexto.registrar_item_obtido()
+        if sala.trama_id and sala.trama_desfecho == "corrompido":
+            sala.trama_resolvida = True
+            if (
+                hasattr(contexto, "trama_ativa")
+                and contexto.trama_ativa
+                and getattr(contexto.trama_ativa, "id", None) == sala.trama_id
+            ):
+                contexto.trama_ativa.concluida = True
+            desenhar_tela_evento(
+                "TRAMA CONCLUÍDA",
+                "Ao vencer a forma corrompida, você finalmente encerra este capítulo da jornada.",
+            )
         sala.inimigo_derrotado = True
         sala.inimigo_atual = None
         contexto.limpar_combate()
@@ -77,6 +95,7 @@ def executar_estado_combate(
         return estado_exploracao
 
     if not jogador.esta_vivo():
+        contexto.inimigo_causa_morte = inimigo.nome
         tela_game_over()
         if hasattr(contexto, "exibir_resumo_final"):
             with suppress(Exception):
@@ -85,6 +104,14 @@ def executar_estado_combate(
         return estado_menu
 
     desenhar_tela_evento("FUGA!", "Você recua para a sala anterior.")
+    if hasattr(contexto, "tutorial"):
+        with suppress(Exception):
+            contexto.tutorial.mostrar(
+                "dica_fuga",
+                "Dica: Fuga",
+                "Fugir consome o turno atual. Ao retornar, o inimigo pode não estar mais lá,\n"
+                "mas a sala ainda pode ter novos perigos. Use para sobreviver, não para farmar.",
+            )
     contexto.restaurar_posicao_anterior()
     contexto.limpar_combate()
     atualizar_status_temporarios(jogador)

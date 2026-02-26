@@ -2,16 +2,24 @@
 
 import random
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from src import config, eventos
 from src.chefes import ChefeConfig, sortear_chefe_para_andar
 from src.entidades import Sala
 from src.salas import sortear_sala_template
 
+if TYPE_CHECKING:
+    from src.tramas import TramaAtiva
+
 Mapa = list[list[Sala]]
 
 
-def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | None = None) -> Mapa:
+def gerar_mapa(
+    nivel: int = 1,
+    perfil_dificuldade: config.DificuldadePerfil | None = None,
+    trama_ativa: "TramaAtiva | None" = None,
+) -> Mapa:
     """Gera um novo mapa com um caminho principal garantido da entrada até a saída."""
     prob_inimigo = config.probabilidade_inimigo_por_nivel(nivel, perfil_dificuldade)
     templates_usados: dict[str, set[str]] = defaultdict(set)
@@ -73,6 +81,7 @@ def gerar_mapa(nivel: int = 1, perfil_dificuldade: config.DificuldadePerfil | No
                 mapa[ny][nx] = _criar_sala("secundaria", nivel, prob_inimigo, templates_usados)
                 break
 
+    _injetar_sala_trama(mapa, caminho_principal, nivel, trama_ativa)
     return mapa
 
 
@@ -162,3 +171,44 @@ def _atribuir_evento_randomico(sala: Sala) -> None:
     evento_id = eventos.sortear_evento_id()
     if evento_id:
         sala.evento_id = evento_id
+
+
+def _injetar_sala_trama(
+    mapa: Mapa,
+    caminho_principal: list[tuple[int, int]],
+    nivel: int,
+    trama_ativa: "TramaAtiva | None",
+) -> None:
+    """Converta uma sala comum em sala narrativa da trama ativa."""
+    if trama_ativa is None or trama_ativa.concluida or nivel != trama_ativa.andar_alvo:
+        return
+
+    candidatos = caminho_principal[1:-2]
+    if not candidatos:
+        candidatos = [
+            (x, y)
+            for y in range(1, len(mapa) - 1)
+            for x in range(1, len(mapa[0]) - 1)
+            if mapa[y][x].tipo not in {"parede", "entrada", "chefe", "escada"}
+        ]
+    if not candidatos:
+        return
+
+    tx, ty = random.choice(candidatos)
+    sala = mapa[ty][tx]
+    sala.tipo = "trama"
+    sala.nome = trama_ativa.sala_nome
+    sala.descricao = trama_ativa.sala_descricao
+    sala.pode_ter_inimigo = False
+    sala.inimigo_derrotado = False
+    sala.inimigo_atual = None
+    sala.evento_id = None
+    sala.evento_resolvido = True
+    sala.trama_id = trama_ativa.id
+    sala.trama_nome = trama_ativa.nome
+    sala.trama_desfecho = trama_ativa.desfecho
+    sala.trama_texto = trama_ativa.desfecho_texto
+    sala.trama_resolvida = False
+    sala.trama_inimigo_tipo = (
+        trama_ativa.inimigo_corrompido_tipo if trama_ativa.desfecho == "corrompido" else None
+    )

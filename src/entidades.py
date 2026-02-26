@@ -223,6 +223,12 @@ class Sala:
     chefe_titulo: str | None = None
     chefe_historia: str | None = None
     chefe_intro_exibida: bool = False
+    trama_id: str | None = None
+    trama_nome: str | None = None
+    trama_desfecho: str | None = None
+    trama_texto: str | None = None
+    trama_resolvida: bool = False
+    trama_inimigo_tipo: str | None = None
     nivel_area: int = 1
     evento_id: str | None = None
     evento_resolvido: bool = False
@@ -254,6 +260,12 @@ class Sala:
         payload.setdefault("chefe_titulo", None)
         payload.setdefault("chefe_historia", None)
         payload.setdefault("chefe_intro_exibida", False)
+        payload.setdefault("trama_id", None)
+        payload.setdefault("trama_nome", None)
+        payload.setdefault("trama_desfecho", None)
+        payload.setdefault("trama_texto", None)
+        payload.setdefault("trama_resolvida", False)
+        payload.setdefault("trama_inimigo_tipo", None)
         payload.setdefault("nivel_area", 1)
         payload.setdefault("evento_id", None)
         payload.setdefault("evento_resolvido", False)

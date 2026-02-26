@@ -103,6 +103,12 @@ DIFICULDADE_PADRAO = "normal"
 # Número máximo de slots de save suportados (pode ser ajustado futuramente).
 MAX_SAVE_SLOTS = 5
 
+# Minimap e controles alternativos
+MINIMAPA_ATIVO = True
+MINIMAPA_TAMANHO = 7  # deve ser ímpar (7 => mostra 3 salas em cada direção)
+TECLAS_ALTERNATIVAS = True  # WASD/HJKL para mover
+UI_TELA_ALTERNATIVA = True  # Usa tela alternativa do terminal para evitar scroll poluído
+
 
 def probabilidade_inimigo_por_nivel(nivel: int, perfil: DificuldadePerfil | None = None) -> float:
     """Escala a chance de salas terem inimigos conforme o andar/dificuldade."""

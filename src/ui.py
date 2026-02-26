@@ -1,6 +1,8 @@
+import json
 import random
 import unicodedata
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from rich import box
@@ -11,6 +13,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from src import config
+from src.armazenamento import limpar_historico
 from src.config import DificuldadePerfil
 from src.economia import formatar_preco
 from src.entidades import Inimigo, Item, Personagem, Sala
@@ -67,6 +71,7 @@ def desenhar_hud_exploracao(
     opcoes: list[str],
     nivel_masmorra: int,
     dificuldade_nome: str,
+    mapa: list[list[Sala]] | None = None,
 ) -> str:
     """Desenha o HUD de exploração com informações do jogador, sala e opções."""
     limpar_tela()
@@ -110,12 +115,17 @@ def desenhar_hud_exploracao(
     grid_jogador.add_row(Text(f"💰 Bolsa: {jogador.carteira.formatar()}", style="bold yellow"))
 
     hud_jogador = Panel(
-        grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=75
+        grid_jogador, title=Text("Jogador", style="bold blue"), border_style="blue", width=70
     )
 
     texto_local = Text()
     texto_local.append(f"🗺️  Local: {sala_atual.nome}\n", style="bold magenta")
     texto_local.append(sala_atual.descricao, style="white")
+    if sala_atual.trama_id and not sala_atual.trama_resolvida:
+        texto_local.append(
+            f"\n📜 Ponto da trama: {sala_atual.trama_nome or 'Mistério nas profundezas'}",
+            style="bold yellow",
+        )
     if sala_atual.chefe:
         if sala_atual.inimigo_derrotado:
             texto_local.append("\n✅ Chefe derrotado nesta sala.", style="bold green")
@@ -132,12 +142,7 @@ def desenhar_hud_exploracao(
 
     titulo_local = Text(f"Localização — Masmorra Nível {nivel_masmorra}", style="bold blue")
 
-    hud_sala = Panel(
-        texto_local,
-        title=titulo_local,
-        border_style="blue",
-        width=75,
-    )
+    hud_sala = Panel(texto_local, title=titulo_local, border_style="blue", width=70)
 
     opcoes_texto = Text("", style="green")
     for i, opcao in enumerate(opcoes, 1):
@@ -147,10 +152,16 @@ def desenhar_hud_exploracao(
         opcoes_texto,
         title=Text("Ações Disponíveis", style="bold blue"),
         border_style="blue",
-        width=75,
+        width=110,
     )
 
-    console.print(hud_jogador)
+    # Layout em colunas quando minimapa ativo
+    if config.MINIMAPA_ATIVO and mapa is not None:
+        minimapa = _render_minimapa(mapa, jogador)
+        console.print(Columns([hud_jogador, minimapa], expand=False, equal=False, padding=(0, 1)))
+    else:
+        console.print(hud_jogador)
+
     console.print(hud_sala)
     console.print(hud_opcoes)
 
@@ -162,6 +173,35 @@ def desenhar_tela_evento(titulo: str, mensagem: str) -> None:
     limpar_tela()
     desenhar_caixa(titulo, mensagem)
     console.input("[bold yellow]Pressione Enter para continuar... [/]")
+
+
+def _render_minimapa(mapa: list[list[Sala]], jogador: Personagem) -> Panel:
+    """Gera um painel textual simples de minimapa ao redor do jogador."""
+    alcance = max(1, config.MINIMAPA_TAMANHO // 2)
+    linhas = []
+    for y in range(jogador.y - alcance, jogador.y + alcance + 1):
+        linha = []
+        for x in range(jogador.x - alcance, jogador.x + alcance + 1):
+            if y == jogador.y and x == jogador.x:
+                linha.append("@")
+                continue
+            if 0 <= y < len(mapa) and 0 <= x < len(mapa[0]):
+                sala = mapa[y][x]
+                if sala.chefe and not sala.inimigo_derrotado:
+                    linha.append("C")
+                elif sala.trama_id and not sala.trama_resolvida:
+                    linha.append("T")
+                elif sala.tipo == "escada":
+                    linha.append("E")
+                elif sala.visitada:
+                    linha.append(".")
+                else:
+                    linha.append(" ")
+            else:
+                linha.append(" ")
+        linhas.append("".join(linha))
+    corpo = Text("\n".join(linhas), justify="center", style="cyan")
+    return Panel(corpo, title="Minimapa", border_style="cyan", width=24)
 
 
 def desenhar_tela_saida(titulo: str, mensagem: str) -> None:
@@ -261,9 +301,11 @@ def desenhar_menu_principal(
     menu_texto.append("1. Iniciar Nova Aventura\n", style="bold green")
     if tem_save:
         menu_texto.append("2. Continuar Aventura (Carregar Save)\n", style="bold cyan")
-        menu_texto.append("3. Sair\n", style="bold red")
+        menu_texto.append("3. Ver Histórico de Aventuras\n", style="bold magenta")
+        menu_texto.append("4. Sair\n", style="bold red")
     else:
-        menu_texto.append("2. Sair\n", style="bold red")
+        menu_texto.append("2. Ver Histórico de Aventuras\n", style="bold magenta")
+        menu_texto.append("3. Sair\n", style="bold red")
 
     footer_text = f"v{versao} - Desenvolvido por Paulo Rocha e IA"
     destaque_dificuldade = Panel(
@@ -397,7 +439,75 @@ def desenhar_selecao_save(
         return None
     if 1 <= idx <= len(saves):
         return str(saves[idx - 1].get("slot_id"))
+    if not saves and sugestao_novo is not None and idx == sugestao_novo:
+        return str(sugestao_novo)
     return None
+
+
+def desenhar_historico(limite: int = 20) -> None:
+    """Mostra histórico de runs gravado em saves/history.json."""
+    limpar_tela()
+    historico = []
+    caminho_hist = Path("saves/history.json")
+    if caminho_hist.exists():
+        try:
+            historico = json.loads(caminho_hist.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            historico = []
+
+    tabela = Table(box=box.SIMPLE, border_style="cyan", expand=True)
+    tabela.add_column("Data/Hora", style="dim white")
+    tabela.add_column("Personagem", style="bold white")
+    tabela.add_column("Classe", style="white")
+    tabela.add_column("Motivo", style="white")
+    tabela.add_column("Andar", justify="right", style="yellow")
+    tabela.add_column("Dificuldade", style="white")
+    tabela.add_column("Inimigos", justify="right", style="white")
+    tabela.add_column("Itens", justify="right", style="white")
+    tabela.add_column("Chefe + profundo", style="white")
+
+    historico = (historico or [])[-limite:]
+    historico = list(reversed(historico))  # mais recente primeiro
+
+    def _cut(txt: object, limite: int = 18) -> str:
+        s = str(txt)
+        return s if len(s) <= limite else s[: limite - 1] + "…"
+
+    for entrada in historico:
+        chefe_info = ""
+        if entrada.get("chefe_mais_profundo_nivel"):
+            chefe_info = (
+                f"A{entrada.get('chefe_mais_profundo_nivel')} "
+                f"- {entrada.get('chefe_mais_profundo_nome', '')}"
+            )
+        tabela.add_row(
+            _cut(entrada.get("timestamp_local", "?"), 19),
+            _cut(entrada.get("personagem", "?")),
+            _cut(entrada.get("classe", "?")),
+            _cut(entrada.get("motivo", "?")),
+            str(entrada.get("andar_alcancado", "?")),
+            _cut(entrada.get("dificuldade", "?"), 14),
+            str(entrada.get("inimigos_derrotados", 0)),
+            str(entrada.get("itens_obtidos", 0)),
+            chefe_info,
+        )
+
+    if not historico:
+        tabela.add_row("—", "Nenhuma run registrada", "", "", "", "", "", "")
+
+    console.print(Panel(tabela, title="Histórico de Aventuras", border_style="blue"))
+    console.print(
+        Panel(
+            "Enter: voltar | L: limpar histórico",
+            border_style="magenta",
+            width=40,
+        )
+    )
+    escolha = console.input("[bold yellow](Enter/L): [/]").strip().lower()
+    if escolha == "l":
+        limpar_historico()
+        console.print("[bold green]Histórico apagado.[/]")
+        console.input("[bold yellow]Pressione Enter para voltar... [/]")
 
 
 def desenhar_tela_escolha_classe(classes: ClassesConfig) -> str:

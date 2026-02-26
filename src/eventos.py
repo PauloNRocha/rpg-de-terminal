@@ -75,15 +75,45 @@ def disparar_evento(
     if not evento:
         return ("EVENTO", "Nada acontece.")
     efeitos = evento.efeitos or {}
-    mensagens, _ = aplicar_efeitos(efeitos, jogador, multiplicador_moedas)
+    mensagens, _, _ = aplicar_efeitos(efeitos, jogador, multiplicador_moedas)
     return evento.nome.upper(), "\n".join(mensagens)
 
 
 def aplicar_efeitos(
     efeitos: dict[str, Any], jogador: Personagem, multiplicador_moedas: float = 1.0
-) -> tuple[list[str], int]:
-    """Aplica efeitos de evento ou opção ao jogador e retorna mensagens e moedas ganhas."""
+) -> tuple[list[str], int, bool]:
+    """Aplica efeitos de evento/ação.
+
+    Retorna (mensagens, moedas_ganhas, sucesso). Sucesso=False indica que a
+    execução foi abortada (ex.: custo em moedas não pago).
+    """
     mensagens: list[str] = []
+    sucesso = True
+
+    # Moedas: valores negativos representam custo
+    moedas_base = int(efeitos.get("moedas", 0))
+    if moedas_base < 0:
+        custo = abs(moedas_base)
+        if not jogador.carteira.tem(custo):
+            mensagens.append(
+                "Você não tem moedas suficientes para realizar essa ação.\n"
+                f"Custo: {formatar_preco(custo)} | "
+                f"Seu saldo: {jogador.carteira.formatar()}"
+            )
+            return mensagens, 0, False
+        jogador.carteira.gastar(custo)
+        mensagens.append(f"Você sacrificou {formatar_preco(custo)}.")
+        moedas_delta = -custo
+    else:
+        moedas = round(max(0, moedas_base) * max(0.0, multiplicador_moedas))
+        if moedas == 0 and moedas_base > 0:
+            moedas = 1
+        moedas_delta = moedas
+        if moedas_delta:
+            jogador.carteira.receber(moedas_delta)
+            mensagens.append(f"Você recebeu {formatar_preco(moedas_delta)}.")
+
+    # HP
     hp_delta = int(efeitos.get("hp", 0))
     if hp_delta:
         jogador.hp = max(0, min(jogador.hp_max, jogador.hp + hp_delta))
@@ -91,13 +121,7 @@ def aplicar_efeitos(
             mensagens.append(f"Você recuperou {hp_delta} de HP.")
         else:
             mensagens.append(f"Você perdeu {abs(hp_delta)} de HP.")
-    moedas_base = int(efeitos.get("moedas", 0))
-    moedas = round(max(0, moedas_base) * max(0.0, multiplicador_moedas))
-    if moedas == 0 and moedas_base > 0:
-        moedas = 1
-    if moedas:
-        jogador.carteira.receber(moedas)
-        mensagens.append(f"Você recebeu {formatar_preco(moedas)}.")
+
     buffs = efeitos.get("buffs", [])
     for buff in buffs:
         atributo = str(buff.get("atributo", "")).lower()
@@ -116,4 +140,4 @@ def aplicar_efeitos(
                     buff.get("mensagem")
                     or f"Você sofreu {valor} em {atributo} por {duracao} combates."
                 )
-    return mensagens, moedas
+    return mensagens, moedas_delta, sucesso

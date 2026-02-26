@@ -9,6 +9,32 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 -   Em aberto.
 
+## [1.6.6] - 2026-02-26
+
+### Adicionado
+-   Sistema de tramas data-driven (`src/data/tramas.json`): ao criar personagem, a run recebe uma trama vinculada à motivação com andar-alvo e desfecho sorteados.
+-   Tramas agora deixam pistas nos andares anteriores e injetam uma sala narrativa especial no andar-alvo (com resultado vivo/morto/corrompido e possível combate final).
+-   Persistência de tramas em save/histórico: estado da trama ativa, pistas já exibidas e resultado entram no save e no resumo pós-run.
+-   Suíte de testes ampliada para regressões da 1.6.6: reset completo de contexto entre runs, validação de eventos com custo (saldo insuficiente/saldo suficiente), movimentação por teclas alternativas (WASD/HJKL), seleção de slot sugerido sem saves e marcadores do minimapa.
+-   Novos testes para tramas e persistência (catálogo, pistas, injeção de sala no mapa e round-trip no save/load).
+
+### Alterado
+-   Minimap e HUD: layout sem duplicação do painel do jogador, minimapa ao lado com padding reduzido.
+-   HUD principal executa em tela alternativa do terminal (`Rich screen`), reduzindo o problema de scroll poluído entre ações.
+
+### Corrigido
+-   Correção UX: ao iniciar nova aventura sem saves existentes, digitar o número sugerido cria o slot diretamente (não volta mais ao menu).
+-   Histórico: tabela inclui chefe mais profundo derrotado e permite limpar histórico pelo atalho `L` na tela de histórico.
+-   Resumo final mostra chefe mais profundo derrotado, turnos/ações da run e, em caso de morte, o inimigo que finalizou o jogador; essas informações também são gravadas no histórico.
+-   Eventos com custo (ex.: sacrificar moedas) agora verificam saldo antes de aplicar efeitos; se não houver moedas suficientes, a ação é abortada sem consumir HP/buffs.
+-   Eventos pagos exibem feedback claro de custo e saldo atual (evita confusão ao tentar pagar alta quantia sem ter moedas).
+
+## [1.6.5] - 2025-11-28
+
+-   Correção UX: ao iniciar nova aventura sem saves existentes, digitar o número sugerido cria o slot diretamente (não volta mais ao menu).
+-   Histórico: tabela inclui chefe mais profundo derrotado e permite limpar histórico pelo atalho `L` na tela de histórico.
+-   Resumo final mostra chefe mais profundo derrotado, turnos/ações da run e, em caso de morte, o inimigo que finalizou o jogador; essas informações também são gravadas no histórico.
+
 ## [1.6.4] - 2025-11-28
 
 ### Adicionado
