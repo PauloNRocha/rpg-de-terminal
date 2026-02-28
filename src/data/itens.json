@@ -103,6 +103,43 @@
             "preco_bronze": 255
         }
     ],
+    "unico": [
+        {
+            "nome": "Broche do Sobrevivente",
+            "tipo": "escudo",
+            "bonus": { "defesa": 2, "ataque": 1 },
+            "descricao": "Relíquia única de uma vida salva.",
+            "preco_bronze": 0
+        },
+        {
+            "nome": "Marca do Acerto",
+            "tipo": "arma",
+            "bonus": { "ataque": 3 },
+            "descricao": "Lâmina marcada pelo desfecho de uma vingança.",
+            "preco_bronze": 0
+        },
+        {
+            "nome": "Ramo do Núcleo",
+            "tipo": "escudo",
+            "bonus": { "defesa": 3 },
+            "descricao": "Talismã vivo arrancado da raiz da masmorra.",
+            "preco_bronze": 0
+        },
+        {
+            "nome": "Fragmento do Sínodo",
+            "tipo": "arma",
+            "bonus": { "ataque": 2, "defesa": 2 },
+            "descricao": "Cristal único remanescente de um pacto arcano.",
+            "preco_bronze": 0
+        },
+        {
+            "nome": "Insígnia do Julgamento",
+            "tipo": "escudo",
+            "bonus": { "defesa": 2 },
+            "descricao": "Símbolo único de um veredito encerrado em sangue.",
+            "preco_bronze": 0
+        }
+    ],
     "consumivel": [
         {
             "nome": "Poção de Cura",

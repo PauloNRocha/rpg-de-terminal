@@ -22,6 +22,7 @@ def gerar_mapa(
 ) -> Mapa:
     """Gera um novo mapa com um caminho principal garantido da entrada até a saída."""
     prob_inimigo = config.probabilidade_inimigo_por_nivel(nivel, perfil_dificuldade)
+    tema_trama = _tema_trama_ativa(trama_ativa)
     templates_usados: dict[str, set[str]] = defaultdict(set)
 
     mapa: Mapa = [
@@ -42,7 +43,7 @@ def gerar_mapa(
     caminho_principal: list[tuple[int, int]] = []
 
     while y < config.MAP_HEIGHT - 1:
-        mapa[y][x] = _criar_sala("caminho", nivel, prob_inimigo, templates_usados)
+        mapa[y][x] = _criar_sala("caminho", nivel, prob_inimigo, templates_usados, tema_trama)
         caminho_principal.append((x, y))
 
         direcao = random.choice(["esquerda", "direita", "baixo", "baixo", "baixo"])
@@ -54,17 +55,26 @@ def gerar_mapa(
             y += 1
 
     entrada_x, entrada_y = caminho_principal[0]
-    mapa[entrada_y][entrada_x] = _criar_sala("entrada", nivel, prob_inimigo, templates_usados)
+    mapa[entrada_y][entrada_x] = _criar_sala(
+        "entrada", nivel, prob_inimigo, templates_usados, tema_trama
+    )
 
     chefe_x, chefe_y = caminho_principal[-2]
     chefe_config = sortear_chefe_para_andar(nivel)
     sala_chefe = _criar_sala(
-        "chefe", nivel, prob_inimigo, templates_usados, chefe_config=chefe_config
+        "chefe",
+        nivel,
+        prob_inimigo,
+        templates_usados,
+        tema_trama,
+        chefe_config=chefe_config,
     )
     mapa[chefe_y][chefe_x] = sala_chefe
 
     escada_x, escada_y = caminho_principal[-1]
-    mapa[escada_y][escada_x] = _criar_sala("escada", nivel, prob_inimigo, templates_usados)
+    mapa[escada_y][escada_x] = _criar_sala(
+        "escada", nivel, prob_inimigo, templates_usados, tema_trama
+    )
 
     for _ in range(int(config.MAP_WIDTH * config.MAP_HEIGHT * config.MAP_SIDE_ROOMS_RATIO)):
         px, py = random.choice(caminho_principal)
@@ -78,7 +88,13 @@ def gerar_mapa(
                 and 0 <= ny < config.MAP_HEIGHT
                 and mapa[ny][nx].tipo == "parede"
             ):
-                mapa[ny][nx] = _criar_sala("secundaria", nivel, prob_inimigo, templates_usados)
+                mapa[ny][nx] = _criar_sala(
+                    "secundaria",
+                    nivel,
+                    prob_inimigo,
+                    templates_usados,
+                    tema_trama,
+                )
                 break
 
     _injetar_sala_trama(mapa, caminho_principal, nivel, trama_ativa)
@@ -90,6 +106,7 @@ def _criar_sala(
     nivel: int,
     prob_inimigo: float | None = None,
     templates_usados: dict[str, set[str]] | None = None,
+    tema: str | None = None,
     chefe_config: ChefeConfig | None = None,
 ) -> Sala:
     """Cria diferentes tipos de sala de acordo com o contexto."""
@@ -151,7 +168,7 @@ def _criar_sala(
 
     chance_inimigo = prob_inimigo if prob_inimigo is not None else config.MAP_ENEMY_PROBABILITY
     categoria = tipo if tipo in {"caminho", "secundaria"} else "caminho"
-    template = sortear_sala_template(categoria, templates_usados or defaultdict(set))
+    template = sortear_sala_template(categoria, templates_usados or defaultdict(set), tema=tema)
     sala = Sala(
         tipo="sala",
         nome=template.nome,
@@ -159,18 +176,25 @@ def _criar_sala(
         pode_ter_inimigo=random.random() < chance_inimigo,
         nivel_area=nivel,
     )
-    _atribuir_evento_randomico(sala)
+    _atribuir_evento_randomico(sala, tema)
     return sala
 
 
-def _atribuir_evento_randomico(sala: Sala) -> None:
+def _atribuir_evento_randomico(sala: Sala, tema: str | None = None) -> None:
     if sala.tipo != "sala":
         return
     if random.random() >= config.EVENTO_PROBABILIDADE:
         return
-    evento_id = eventos.sortear_evento_id()
+    evento_id = eventos.sortear_evento_id(tema=tema)
     if evento_id:
         sala.evento_id = evento_id
+
+
+def _tema_trama_ativa(trama_ativa: "TramaAtiva | None") -> str | None:
+    """Retorna o tema da trama ativa para orientar sorteios de conteúdo."""
+    if trama_ativa is None or trama_ativa.concluida:
+        return None
+    return trama_ativa.tema
 
 
 def _injetar_sala_trama(
@@ -212,3 +236,5 @@ def _injetar_sala_trama(
     sala.trama_inimigo_tipo = (
         trama_ativa.inimigo_corrompido_tipo if trama_ativa.desfecho == "corrompido" else None
     )
+    sala.trama_consequencia_aplicada = False
+    sala.trama_consequencia_texto = None

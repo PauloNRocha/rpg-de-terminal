@@ -7,7 +7,25 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
--   Em aberto.
+### Adicionado
+
+-   Início da `v1.6.7-dev` com expansão narrativa: catálogo de tramas ampliado em `src/data/tramas.json`, com novos arcos temáticos (`natureza`, `arcano`, `honra`) e maior variedade de desfechos.
+-   Tags temáticas em `salas.json`, `eventos.json` e `inimigos.json` para orientar ambientação da run conforme a trama ativa.
+-   Novos testes de regressão para garantir consistência entre motivações e tramas, além de cobertura do sorteio temático.
+-   Consequências de trama data-driven (`consequencias` em `tramas.json`) com efeitos persistentes na run: buff/maldição de atributo, item único e ganhos/perdas de moedas.
+-   Novos itens únicos em `itens.json` (raridade `unico`) usados pelas conclusões narrativas das tramas.
+
+### Alterado
+
+-   Sorteio de conteúdo agora considera o tema narrativo da trama ativa:
+    - salas (`src/salas.py`) com peso por tag;
+    - eventos (`src/eventos.py`) com peso por tag;
+    - inimigos aleatórios (`src/gerador_inimigos.py`) com peso por tag.
+-   `src/gerador_mapa.py` passa o tema da trama para criação de salas e seleção de eventos, reforçando coesão entre história e exploração.
+-   Correção de mapeamento entre IDs de motivação e tramas (removendo referências inválidas), garantindo que o vínculo classe/motivação funcione sem lacunas.
+-   Cenas pré-chefe agora incorporam motivação do personagem e estado da trama ativa, reduzindo sensação de encontro isolado.
+-   Transição narrativa ao descer andares: cada descida mostra uma cena curta contextualizada pelo progresso da trama.
+-   Histórico de aventuras e resumo final passaram a registrar/exibir a “Marca da trama” (variação textual do desfecho/consequência).
 
 ## [1.6.6] - 2026-02-26
 

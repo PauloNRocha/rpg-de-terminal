@@ -17,6 +17,7 @@ def desenhar_tela_resumo_final(
     chefe_info: tuple[int, str] | None = None,
     inimigo_causa_morte: str | None = None,
     turnos: int | None = None,
+    trama_consequencia: str | None = None,
 ) -> None:
     """Mostra um painel com o resumo da aventura."""
     limpar_tela()
@@ -52,6 +53,8 @@ def desenhar_tela_resumo_final(
         )
     if inimigo_causa_morte and motivo != "saida":
         tabela.add_row("Causa da morte", inimigo_causa_morte)
+    if trama_consequencia:
+        tabela.add_row("Marca da trama", trama_consequencia)
 
     painel = Panel(
         tabela,

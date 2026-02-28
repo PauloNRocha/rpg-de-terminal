@@ -42,6 +42,7 @@ def executar_estado_combate(
     atualizar_status_temporarios: Callable[[Personagem], None],
     estado_menu: Enum,
     estado_exploracao: Enum,
+    on_trama_corrompida_vencida: Callable[[Sala], None] | None = None,
 ) -> Enum:
     """Resolve o combate e retorna o próximo estado do loop principal."""
     jogador = contexto.jogador
@@ -83,10 +84,14 @@ def executar_estado_combate(
                 and getattr(contexto.trama_ativa, "id", None) == sala.trama_id
             ):
                 contexto.trama_ativa.concluida = True
-            desenhar_tela_evento(
-                "TRAMA CONCLUÍDA",
-                "Ao vencer a forma corrompida, você finalmente encerra este capítulo da jornada.",
-            )
+            if on_trama_corrompida_vencida is not None:
+                on_trama_corrompida_vencida(sala)
+            else:
+                desenhar_tela_evento(
+                    "TRAMA CONCLUÍDA",
+                    "Ao vencer a forma corrompida, "
+                    "você finalmente encerra este capítulo da jornada.",
+                )
         sala.inimigo_derrotado = True
         sala.inimigo_atual = None
         contexto.limpar_combate()

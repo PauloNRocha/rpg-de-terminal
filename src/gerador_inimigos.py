@@ -1,6 +1,7 @@
 import copy
 import json
 import random
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -59,6 +60,7 @@ def gerar_inimigo(
     dificuldade: config.DificuldadePerfil | None = None,
     chefe: bool = False,
     perfil_chefe: ChefeConfig | None = None,
+    tema: str | None = None,
 ) -> Inimigo:
     """Gera um inimigo com atributos escalados para um nível específico."""
     templates = obter_templates()
@@ -72,7 +74,7 @@ def gerar_inimigo(
         tipos_disponiveis: list[str] = [k for k in templates if not k.startswith("chefe_")]
         if not tipos_disponiveis:
             raise ValueError("Nenhum inimigo (exceto chefe) disponível para geração aleatória.")
-        tipo_escolhido = random.choice(tipos_disponiveis)
+        tipo_escolhido = _sortear_tipo_por_tema(tipos_disponiveis, templates, tema)
 
     template = copy.deepcopy(templates[tipo_escolhido])
 
@@ -115,3 +117,38 @@ def gerar_inimigo(
         xp_recompensa=xp_recompensa,
         drop_raridade=template["drop_raridade"],
     )
+
+
+def _sortear_tipo_por_tema(
+    tipos_disponiveis: list[str],
+    templates: TemplatesInimigos,
+    tema: str | None,
+) -> str:
+    """Sorteia um tipo de inimigo com peso para tags do tema narrativo."""
+    if not tema:
+        return random.choice(tipos_disponiveis)
+
+    tema_norm = _normalizar_tag(tema)
+    pesos = [
+        config.TEMA_PESO_INIMIGO_COMPATIVEL
+        if tema_norm in _tags_template(templates.get(tipo, {}))
+        else 1.0
+        for tipo in tipos_disponiveis
+    ]
+    if all(peso == 1.0 for peso in pesos):
+        return random.choice(tipos_disponiveis)
+    return random.choices(tipos_disponiveis, weights=pesos, k=1)[0]
+
+
+def _tags_template(template: dict[str, Any]) -> set[str]:
+    """Retorna as tags normalizadas de um template de inimigo."""
+    tags_raw = template.get("tags", [])
+    if not isinstance(tags_raw, list):
+        return set()
+    return {_normalizar_tag(str(tag)) for tag in tags_raw if str(tag).strip()}
+
+
+def _normalizar_tag(tag: str) -> str:
+    """Normaliza tags removendo acentos e padronizando caixa."""
+    texto = unicodedata.normalize("NFKD", tag.strip().lower())
+    return "".join(ch for ch in texto if not unicodedata.combining(ch))

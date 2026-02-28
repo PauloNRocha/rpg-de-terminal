@@ -7,8 +7,9 @@
       "guerreiro_guarda_falho",
       "guerreiro_promessa",
       "mago_experimento_falho",
-      "arqueiro_guarda_floresta",
-      "ladino_cobranca",
+      "arqueiro_guardiao_floresta",
+      "ladino_divida_sangue",
+      "generico_salvar_parente",
       "*"
     ],
     "andar_alvo": { "min": 2, "max": 5 },
@@ -33,6 +34,40 @@
         "Você reconhece o rosto, mas não a alma. A corrupção tomou conta e força você a decidir pela lâmina."
       ]
     },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Broche do Sobrevivente",
+          "mensagem": "O sobrevivente prende em seu manto um broche antigo. Você recebe o item único Broche do Sobrevivente.",
+          "registro": "Recebeu o Broche do Sobrevivente ao concluir um resgate."
+        },
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": 1,
+          "mensagem": "A gratidão fortalece sua guarda. Defesa base +1 até o fim da run.",
+          "registro": "A trama de resgate deixou uma benção defensiva permanente (+1 DEF base)."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": -1,
+          "mensagem": "O luto pesa nas mãos. Ataque base -1 até o fim da run.",
+          "registro": "O fracasso no resgate deixou uma cicatriz (-1 ATK base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "moedas",
+          "valor": 60,
+          "mensagem": "Ao derrotar a forma corrompida, você recupera moedas escondidas no altar.",
+          "registro": "Purificou o alvo corrompido e saqueou 60 moedas do ritual."
+        }
+      ]
+    },
     "inimigo_corrompido_tipo": "chefe_nigromante"
   },
   {
@@ -43,7 +78,9 @@
       "mago_grimorio_perdido",
       "mago_profecia",
       "guerreiro_campeao",
-      "ladino_golpe_fracassado",
+      "ladino_golpe_falho",
+      "ladino_contrato",
+      "generico_chamado_sonhos",
       "*"
     ],
     "andar_alvo": { "min": 3, "max": 6 },
@@ -68,17 +105,46 @@
         "O antigo protetor virou uma sombra hostil. Cada passo dele ecoa como um aviso de que você chegou tarde."
       ]
     },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": 1,
+          "mensagem": "O artefato reconhece seu valor. Ataque base +1 até o fim da run.",
+          "registro": "Sintonizou um artefato ancestral (+1 ATK base permanente)."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": -1,
+          "mensagem": "Fragmentos instáveis atingem seu corpo. Defesa base -1 até o fim da run.",
+          "registro": "Foi marcado por estilhaços arcanos (-1 DEF base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "item",
+          "item_nome": "Fragmento do Sínodo",
+          "mensagem": "Você recupera um Fragmento do Sínodo, item único nascido da quebra do pacto.",
+          "registro": "Recuperou o Fragmento do Sínodo após derrotar o guardião corrompido."
+        }
+      ]
+    },
     "inimigo_corrompido_tipo": "chefe_golem"
   },
   {
     "id": "acerto_de_contas",
     "nome": "Acerto de Contas",
-    "tema": "vingança",
+    "tema": "vinganca",
     "motivacoes": [
       "guerreiro_vinganca_mentor",
       "mago_exilado",
       "arqueiro_cacador_monstros",
-      "ladino_vinganca",
+      "ladino_passado_oculto",
+      "ladino_redencao",
       "*"
     ],
     "andar_alvo": { "min": 2, "max": 7 },
@@ -101,6 +167,223 @@
       "corrompido": [
         "A pessoa que você caçava foi consumida pela masmorra e agora luta como um arauto da ruína.",
         "Seu alvo renasceu em forma monstruosa, preso entre culpa e ódio. Não há diálogo possível."
+      ]
+    },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Marca do Acerto",
+          "mensagem": "Seu alvo rende a Marca do Acerto, um item único gravado em ódio contido.",
+          "registro": "Concluiu um acerto de contas e recebeu a Marca do Acerto."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": -1,
+          "mensagem": "O vazio da vingança mina sua postura. Defesa base -1 até o fim da run.",
+          "registro": "A vingança sem rosto enfraqueceu sua defesa (-1 DEF base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": 2,
+          "mensagem": "A vitória sobre a corrupção transforma sua raiva em força. Ataque base +2.",
+          "registro": "Transformou a corrupção em poder bruto (+2 ATK base)."
+        }
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_tirano"
+  },
+  {
+    "id": "juramento_da_floresta",
+    "nome": "Raízes em Guerra",
+    "tema": "natureza",
+    "motivacoes": [
+      "arqueiro_guardiao_floresta",
+      "arqueiro_mensageiro",
+      "guerreiro_guarda_falho",
+      "generico_desequilibrio",
+      "*"
+    ],
+    "andar_alvo": { "min": 2, "max": 6 },
+    "sala_nome": "Núcleo das Raízes",
+    "sala_descricao": "Raízes grossas atravessam as pedras e pulsos de seiva escura escorrem para uma fenda sem fundo.",
+    "pistas": [
+      "Galhos partidos e pegadas enlameadas sugerem uma criatura arrastando algo vivo para o andar {andar_alvo}.",
+      "A umidade fica mais densa a cada corredor, como se a própria floresta gritasse a partir do andar {andar_alvo}.",
+      "Você encontra penas tingidas de verde-escuro, marcando um trilho que desaparece nas escadas inferiores."
+    ],
+    "desfechos": {
+      "vivo": [
+        "No coração da sala, um guardião da mata ainda vive e entrega um talismã de proteção como gratidão.",
+        "Uma criança perdida sobreviveu entre raízes. Ela aponta um caminho seguro e divide moedas guardadas."
+      ],
+      "morto": [
+        "A vida que você buscava foi drenada pelas raízes corrompidas. Resta apenas um pingente coberto de musgo.",
+        "Você encontra um corpo envolto por vinhas petrificadas; a floresta perdeu mais um protetor."
+      ],
+      "corrompido": [
+        "Um antigo guardião foi tomado por espinhos vivos e avança sem reconhecer sua voz.",
+        "A seiva negra transformou o alvo em predador. O confronto é inevitável."
+      ]
+    },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Ramo do Núcleo",
+          "mensagem": "As raízes reverenciam sua escolha e oferecem o item único Ramo do Núcleo.",
+          "registro": "Recebeu o Ramo do Núcleo ao preservar a vida na trama da floresta."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "hp_max",
+          "valor": -3,
+          "mensagem": "A seiva tóxica te contamina. HP máximo -3 até o fim da run.",
+          "registro": "A corrupção das raízes reduziu sua vitalidade (-3 HP máximo)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": 2,
+          "mensagem": "A casca ancestral endurece sua pele. Defesa base +2.",
+          "registro": "Domou o núcleo corrompido e ganhou +2 de defesa base."
+        }
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_hidra"
+  },
+  {
+    "id": "pacto_arcano",
+    "nome": "Pacto sob Cinzas",
+    "tema": "arcano",
+    "motivacoes": [
+      "mago_chamado_dos_espiritos",
+      "mago_experimento_falho",
+      "mago_profecia",
+      "ladino_contrato",
+      "generico_chamado_sonhos",
+      "*"
+    ],
+    "andar_alvo": { "min": 3, "max": 7 },
+    "sala_nome": "Sínodo Quebrado",
+    "sala_descricao": "Círculos arcanos fraturados cobrem o piso e brasas violetas flutuam ao redor de um trono vazio.",
+    "pistas": [
+      "Runas recém-reativadas indicam que alguém abriu um portal no andar {andar_alvo}.",
+      "Você encontra velas negras ainda quentes: o ritual está próximo e acontece abaixo do andar {nivel_atual}.",
+      "Um coro distante entoa seu nome em línguas mortas, sempre vindo das escadas para o andar {andar_alvo}."
+    ],
+    "desfechos": {
+      "vivo": [
+        "O conjurador sobrevivente quebra o pacto e compartilha uma senha rúnica que facilitará sua descida.",
+        "Você salva uma aprendiz presa ao círculo arcano; ela oferece um fragmento encantado em agradecimento."
+      ],
+      "morto": [
+        "As cinzas de um ritual falho cobrem o chão. O último conjurador tombou antes de concluir o selo.",
+        "Você encontra um diário queimado com a última linha: 'que ninguém repita meu erro'."
+      ],
+      "corrompido": [
+        "O mago que você buscava tornou-se receptáculo do pacto. A sala inteira reage ao ódio dele.",
+        "Um corpo envolto por chamas rúnicas se ergue e aponta para você com olhos vazios."
+      ]
+    },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "moedas",
+          "valor": 80,
+          "mensagem": "A quebra do pacto liberta um cofre arcano: você recolhe 80 moedas.",
+          "registro": "Converteu um pacto arcano em recursos (+80 moedas)."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": -1,
+          "mensagem": "As cinzas drenam sua energia. Ataque base -1 até o fim da run.",
+          "registro": "As cinzas do sínodo corroeram sua força (-1 ATK base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "item",
+          "item_nome": "Fragmento do Sínodo",
+          "mensagem": "Você arranca um Fragmento do Sínodo da criatura derrotada.",
+          "registro": "Obteve o Fragmento do Sínodo ao encerrar um pacto corrompido."
+        }
+      ]
+    },
+    "inimigo_corrompido_tipo": "chefe_pesadelo"
+  },
+  {
+    "id": "tribunal_das_cinzas",
+    "nome": "Julgamento nas Cinzas",
+    "tema": "honra",
+    "motivacoes": [
+      "guerreiro_condenado",
+      "arqueiro_desonrado",
+      "ladino_redencao",
+      "guerreiro_promessa",
+      "*"
+    ],
+    "andar_alvo": { "min": 2, "max": 6 },
+    "sala_nome": "Tribunal em Ruínas",
+    "sala_descricao": "Bancos quebrados cercam um palco de execução. Símbolos de antigas sentenças ainda queimam nas paredes.",
+    "pistas": [
+      "Um pergaminho judicial com seu nome foi pregado numa porta que aponta para o andar {andar_alvo}.",
+      "Correntes novas pendem do teto, como se o julgamento ainda estivesse em curso nas profundezas.",
+      "Você reconhece a marca da sua antiga ordem gravada em sangue seco no caminho para baixo."
+    ],
+    "desfechos": {
+      "vivo": [
+        "O juiz sobrevivente reconhece sua mudança e oferece perdão formal, junto de provisões para seguir.",
+        "Você encontra um aliado acorrentado ainda vivo. Libertá-lo garante recursos e uma promessa de ajuda futura."
+      ],
+      "morto": [
+        "O julgamento terminou antes da sua chegada. Restaram apenas atas chamuscadas e silêncio.",
+        "Você encontra uma máscara de carrasco sobre um túmulo recente; a sentença foi cumprida sem você."
+      ],
+      "corrompido": [
+        "O antigo juiz voltou como executor corrompido e exige sangue para encerrar o processo.",
+        "Seu último rival ergue-se das cinzas com correntes vivas, pronto para um veredito final."
+      ]
+    },
+    "consequencias": {
+      "vivo": [
+        {
+          "tipo": "item",
+          "item_nome": "Insígnia do Julgamento",
+          "mensagem": "Você recebe a Insígnia do Julgamento como prova do novo veredito.",
+          "registro": "Conquistou a Insígnia do Julgamento e reescreveu sua honra."
+        }
+      ],
+      "morto": [
+        {
+          "tipo": "atributo",
+          "atributo": "defesa_base",
+          "valor": -1,
+          "mensagem": "A culpa do tribunal pesa em seus ombros. Defesa base -1.",
+          "registro": "Carregou a culpa de um tribunal perdido (-1 DEF base)."
+        }
+      ],
+      "corrompido": [
+        {
+          "tipo": "atributo",
+          "atributo": "ataque_base",
+          "valor": 1,
+          "mensagem": "Seu veredito final fortalece sua determinação. Ataque base +1.",
+          "registro": "Impôs seu próprio veredito e ganhou +1 de ataque base."
+        }
       ]
     },
     "inimigo_corrompido_tipo": "chefe_tirano"
