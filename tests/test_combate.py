@@ -1,5 +1,8 @@
 import random
 
+import pytest
+
+from src import combate
 from src.combate import calcular_dano
 
 
@@ -25,3 +28,21 @@ def test_calcular_dano() -> None:
     dano = calcular_dano(100, 1)  # Dano base esperado: 99
     # Dano base: 99. Variação de 0.8 a 1.2 => (100*0.8 - 1) a (100*1.2 - 1) => 79 a 119
     assert 79 <= dano <= 119
+
+
+def test_calcular_dano_com_detalhes_exibe_breakdown(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Breakdown deve mostrar fórmula com ataque, defesa e resultado."""
+    monkeypatch.setattr(combate.random, "uniform", lambda *_: 1.0)
+    dano, detalhe = combate._calcular_dano_com_detalhes(10, 3)
+    assert dano == 7
+    assert "ATK 10" in detalhe
+    assert "DEF 3" in detalhe
+    assert "-> 7" in detalhe
+
+
+def test_calcular_dano_com_detalhes_aplica_piso_minimo(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Quando ataque positivo não supera defesa, o piso de 1 deve ser aplicado."""
+    monkeypatch.setattr(combate.random, "uniform", lambda *_: 1.0)
+    dano, detalhe = combate._calcular_dano_com_detalhes(1, 10)
+    assert dano == 1
+    assert "piso mínimo" in detalhe

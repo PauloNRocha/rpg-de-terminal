@@ -29,6 +29,7 @@ DEFAULT_PREFERENCIAS = {
     "last_check_iso": None,
     "ultima_falha_iso": None,
     "tutorial_enabled": True,
+    "combat_log_breakdown": False,
 }
 FREQUENCIA_DIAS = {"diaria": 1, "semanal": 7, "mensal": 30}
 

@@ -31,6 +31,7 @@ def test_salvar_e_carregar_estado(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     assert caminho.exists()
 
     dados_brutos = json.loads(caminho.read_text(encoding="utf-8"))
+    assert dados_brutos["save_version"] == armazenamento.SAVE_SCHEMA_VERSION
     assert dados_brutos["dados"] == estado
 
     estado_carregado = armazenamento.carregar_jogo()
@@ -99,3 +100,52 @@ def test_salvar_carregar_preserva_campos_de_trama(
     estado_carregado = armazenamento.carregar_jogo(1)
     assert estado_carregado["trama_ativa"]["id"] == "resgate_perdido"
     assert estado_carregado["trama_pistas_exibidas"] == [1, 2]
+
+
+def test_carregar_save_legado_sem_envelope_migra_automaticamente(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Formato antigo sem envelope deve ser migrado e carregado com sucesso."""
+    arquivo_save = configurar_diretorio(tmp_path, monkeypatch)
+    legado: EstadoJogo = {
+        "jogador": {"nome": "Heroi", "nivel": 2, "hp": 18, "ataque": 5, "defesa": 2},
+        "mapa": [[{"tipo": "entrada"}]],
+        "nivel_masmorra": 2,
+    }
+    arquivo_save.write_text(json.dumps(legado), encoding="utf-8")
+
+    estado = armazenamento.carregar_jogo()
+    assert estado["jogador"]["nome"] == "Heroi"
+    assert estado["dificuldade"] == "normal"
+    assert "trama_consequencia_resumo" in estado
+
+    migrado = json.loads(arquivo_save.read_text(encoding="utf-8"))
+    assert migrado["save_version"] == armazenamento.SAVE_SCHEMA_VERSION
+    assert migrado["dados"]["jogador"]["ataque_base"] == 5
+
+
+def test_carregar_save_envelope_antigo_sem_save_version_migra(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Envelope antigo (sem save_version) deve ganhar defaults no carregamento."""
+    arquivo_save = configurar_diretorio(tmp_path, monkeypatch)
+    conteudo_antigo = {
+        "versao": "1.6.4",
+        "salvo_em": "2025-11-28T10:00:00+00:00",
+        "meta": {"personagem": "Ana"},
+        "dados": {
+            "jogador": {"nome": "Ana", "hp": 20, "hp_max": 20, "ataque": 6, "defesa": 4},
+            "mapa": [[{"tipo": "entrada"}]],
+            "nivel_masmorra": 1,
+        },
+    }
+    arquivo_save.write_text(json.dumps(conteudo_antigo), encoding="utf-8")
+
+    estado = armazenamento.carregar_jogo()
+    assert estado["dificuldade"] == "normal"
+    assert estado["jogador"]["equipamento"]["arma"] is None
+    assert estado["jogador"]["equipamento"]["armadura"] is None
+    assert estado["jogador"]["equipamento"]["escudo"] is None
+
+    migrado = json.loads(arquivo_save.read_text(encoding="utf-8"))
+    assert migrado["save_version"] == armazenamento.SAVE_SCHEMA_VERSION

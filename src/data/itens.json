@@ -53,7 +53,7 @@
         },
         {
             "nome": "Cota de Malha Reforçada",
-            "tipo": "escudo",
+            "tipo": "armadura",
             "bonus": { "defesa": 5 },
             "descricao": "+5 Defesa",
             "preco_bronze": 150
@@ -97,7 +97,7 @@
         },
         {
             "nome": "Couraça Rúnica",
-            "tipo": "escudo",
+            "tipo": "armadura",
             "bonus": { "defesa": 6, "ataque": 1 },
             "descricao": "+6 Defesa, +1 Ataque",
             "preco_bronze": 255

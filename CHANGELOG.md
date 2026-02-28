@@ -14,6 +14,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Novos testes de regressão para garantir consistência entre motivações e tramas, além de cobertura do sorteio temático.
 -   Consequências de trama data-driven (`consequencias` em `tramas.json`) com efeitos persistentes na run: buff/maldição de atributo, item único e ganhos/perdas de moedas.
 -   Novos itens únicos em `itens.json` (raridade `unico`) usados pelas conclusões narrativas das tramas.
+-   Suite de validação de schema dos dados em JSON (`tests/test_schema_dados.py`) cobrindo `classes`, `itens`, `inimigos`, `eventos`, `salas` e `tramas`.
+-   Nova preferência `combat_log_breakdown` em `settings.json` para ativar/desativar log detalhado de cálculo de dano.
 
 ### Alterado
 
@@ -26,6 +28,9 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Cenas pré-chefe agora incorporam motivação do personagem e estado da trama ativa, reduzindo sensação de encontro isolado.
 -   Transição narrativa ao descer andares: cada descida mostra uma cena curta contextualizada pelo progresso da trama.
 -   Histórico de aventuras e resumo final passaram a registrar/exibir a “Marca da trama” (variação textual do desfecho/consequência).
+-   Save/Load agora usa `save_version` (schema versionado) e migrador automático para formatos antigos (incluindo saves legados sem envelope), reduzindo quebras ao evoluir a série 1.6.x.
+-   Combate agora suporta breakdown opcional do dano no log (ataque, variação, defesa e piso mínimo), sem alterar o comportamento padrão quando a opção estiver desativada.
+-   Sistema de equipamento agora suporta o slot `armadura`; itens como `Cota de Malha Reforçada` e `Couraça Rúnica` deixaram de ser tratados incorretamente como escudos, inclusive ao carregar saves antigos.
 
 ## [1.6.6] - 2026-02-26
 
