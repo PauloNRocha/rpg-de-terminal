@@ -225,12 +225,20 @@ def desenhar_tela_equipar(jogador: Personagem, grupos_itens: list[dict[str, Any]
     tabela_equipamento.add_column("Bônus", style="white", width=25)
 
     arma_equipada = jogador.equipamento.get("arma")
+    armadura_equipada = jogador.equipamento.get("armadura")
     escudo_equipado = jogador.equipamento.get("escudo")
 
     tabela_equipamento.add_row(
         "Arma:",
         arma_equipada.nome if arma_equipada else "Nenhuma",
         ", ".join([f"{k}: {v}" for k, v in arma_equipada.bonus.items()]) if arma_equipada else "",
+    )
+    tabela_equipamento.add_row(
+        "Armadura:",
+        armadura_equipada.nome if armadura_equipada else "Nenhuma",
+        ", ".join([f"{k}: {v}" for k, v in armadura_equipada.bonus.items()])
+        if armadura_equipada
+        else "",
     )
     tabela_equipamento.add_row(
         "Escudo:",
@@ -783,6 +791,7 @@ def desenhar_tela_ficha_personagem(jogador: Personagem) -> None:
     equip.add_column("Item", justify="left")
     equip.add_column("Bônus", justify="left", width=20)
     arma = jogador.equipamento.get("arma")
+    armadura = jogador.equipamento.get("armadura")
     escudo = jogador.equipamento.get("escudo")
 
     def _bonus_str(item: Item | None) -> str:
@@ -792,6 +801,7 @@ def desenhar_tela_ficha_personagem(jogador: Personagem) -> None:
         return ", ".join(f"{k}: {v}" for k, v in dados.items()) or "-"
 
     equip.add_row("Arma", arma.nome if arma else "Nenhuma", _bonus_str(arma))
+    equip.add_row("Armadura", armadura.nome if armadura else "Nenhuma", _bonus_str(armadura))
     equip.add_row("Escudo", escudo.nome if escudo else "Nenhum", _bonus_str(escudo))
 
     painel_atributos = Panel(atributos, title="Atributos Base", border_style="green")

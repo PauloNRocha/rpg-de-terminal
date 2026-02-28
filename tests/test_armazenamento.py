@@ -144,6 +144,7 @@ def test_carregar_save_envelope_antigo_sem_save_version_migra(
     estado = armazenamento.carregar_jogo()
     assert estado["dificuldade"] == "normal"
     assert estado["jogador"]["equipamento"]["arma"] is None
+    assert estado["jogador"]["equipamento"]["armadura"] is None
     assert estado["jogador"]["equipamento"]["escudo"] is None
 
     migrado = json.loads(arquivo_save.read_text(encoding="utf-8"))

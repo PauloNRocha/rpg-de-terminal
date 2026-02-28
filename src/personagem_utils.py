@@ -15,6 +15,11 @@ def aplicar_bonus_equipamento(jogador: Personagem) -> None:
         jogador.ataque += arma.bonus.get("ataque", 0)
         jogador.defesa += arma.bonus.get("defesa", 0)
 
+    armadura = jogador.equipamento.get("armadura") if jogador.equipamento else None
+    if armadura:
+        jogador.ataque += armadura.bonus.get("ataque", 0)
+        jogador.defesa += armadura.bonus.get("defesa", 0)
+
     escudo = jogador.equipamento.get("escudo") if jogador.equipamento else None
     if escudo:
         jogador.ataque += escudo.bonus.get("ataque", 0)

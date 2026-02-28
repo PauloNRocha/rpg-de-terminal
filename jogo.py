@@ -944,7 +944,7 @@ def executar_estado_inventario(contexto: ContextoJogo) -> Estado:
     contexto.tutorial.mostrar(
         "inventario_basico",
         "Dica: Inventário",
-        "Use 'Usar Item' para consumir poções e 'Equipar' para trocar arma/escudo.\n"
+        "Use 'Usar Item' para consumir poções e 'Equipar' para trocar arma/armadura/escudo.\n"
         "Itens repetidos aparecem agrupados; compare bônus antes de confirmar.",
     )
 

@@ -30,6 +30,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 -   Histórico de aventuras e resumo final passaram a registrar/exibir a “Marca da trama” (variação textual do desfecho/consequência).
 -   Save/Load agora usa `save_version` (schema versionado) e migrador automático para formatos antigos (incluindo saves legados sem envelope), reduzindo quebras ao evoluir a série 1.6.x.
 -   Combate agora suporta breakdown opcional do dano no log (ataque, variação, defesa e piso mínimo), sem alterar o comportamento padrão quando a opção estiver desativada.
+-   Sistema de equipamento agora suporta o slot `armadura`; itens como `Cota de Malha Reforçada` e `Couraça Rúnica` deixaram de ser tratados incorretamente como escudos, inclusive ao carregar saves antigos.
 
 ## [1.6.6] - 2026-02-26
 

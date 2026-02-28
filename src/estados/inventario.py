@@ -11,14 +11,14 @@ from src.ui import (
     desenhar_tela_inventario,
 )
 
-TIPO_ORDENACAO = {"arma": 0, "escudo": 1}
+TIPO_ORDENACAO = {"arma": 0, "armadura": 1, "escudo": 2}
 
 
 def agrupar_itens_equipaveis(itens: Iterable[Item]) -> list[dict[str, Any]]:
     """Agrupa itens equipáveis por atributos para facilitar a listagem."""
     grupos: dict[tuple, dict[str, Any]] = {}
     for item in itens:
-        if item.tipo not in {"arma", "escudo"}:
+        if item.tipo not in {"arma", "armadura", "escudo"}:
             continue
         chave = _chave_item(item)
         if chave not in grupos:
@@ -121,7 +121,7 @@ def usar_item(
 
 
 def equipar_item(jogador: Personagem) -> None:
-    """Processa a seleção de armas/escudos e atualiza o equipamento."""
+    """Processa a seleção de equipáveis e atualiza o equipamento."""
     grupos = agrupar_itens_equipaveis(jogador.inventario)
     escolha_str = desenhar_tela_equipar(jogador, grupos)
     try:

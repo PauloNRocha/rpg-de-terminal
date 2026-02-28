@@ -34,7 +34,7 @@ def jogador_base() -> Personagem:
         x=0,
         y=0,
         inventario=[],
-        equipamento={"arma": None, "escudo": None},
+        equipamento={"arma": None, "armadura": None, "escudo": None},
         nivel=1,
         xp_atual=0,
         xp_para_proximo_nivel=100,
@@ -53,6 +53,12 @@ def espada_curta() -> Item:
 def escudo_madeira() -> Item:
     """Cria uma instância de Item para um escudo de madeira."""
     return Item(nome="Escudo de Madeira", tipo="escudo", descricao="", bonus={"defesa": 2})
+
+
+@pytest.fixture
+def cota_malha() -> Item:
+    """Cria uma instância de Item para uma armadura."""
+    return Item(nome="Cota de Malha Reforçada", tipo="armadura", descricao="", bonus={"defesa": 5})
 
 
 # --- Testes para verificar_level_up ---
@@ -119,6 +125,57 @@ def test_aplicar_bonus_escudo(jogador_base: Personagem, escudo_madeira: Item) ->
     aplicar_bonus_equipamento(jogador_base)
     assert jogador_base.ataque == 6  # Ataque inalterado
     assert jogador_base.defesa == 6  # 4 (base) + 2 (escudo)
+
+
+def test_aplicar_bonus_armadura(jogador_base: Personagem, cota_malha: Item) -> None:
+    """Testa se o bônus defensivo da armadura é aplicado."""
+    jogador_base.equipamento["armadura"] = cota_malha
+    aplicar_bonus_equipamento(jogador_base)
+    assert jogador_base.ataque == 6
+    assert jogador_base.defesa == 9  # 4 (base) + 5 (armadura)
+
+
+def test_personagem_from_dict_normaliza_armadura_legada() -> None:
+    """Itens salvos com tipo legado incorreto devem ocupar o slot correto ao carregar."""
+    jogador = Personagem.from_dict(
+        {
+            "nome": "Teste",
+            "classe": "Guerreiro",
+            "hp": 25,
+            "hp_max": 25,
+            "ataque": 6,
+            "defesa": 4,
+            "ataque_base": 6,
+            "defesa_base": 4,
+            "x": 0,
+            "y": 0,
+            "nivel": 1,
+            "xp_atual": 0,
+            "xp_para_proximo_nivel": 100,
+            "inventario": [
+                {
+                    "nome": "Cota de Malha Reforçada",
+                    "tipo": "escudo",
+                    "descricao": "",
+                    "bonus": {"defesa": 5},
+                }
+            ],
+            "equipamento": {
+                "arma": None,
+                "armadura": {
+                    "nome": "Couraça Rúnica",
+                    "tipo": "escudo",
+                    "descricao": "",
+                    "bonus": {"defesa": 6, "ataque": 1},
+                },
+                "escudo": None,
+            },
+        }
+    )
+
+    assert jogador.inventario[0].tipo == "armadura"
+    assert jogador.equipamento["armadura"] is not None
+    assert jogador.equipamento["armadura"].tipo == "armadura"
 
 
 def test_aplicar_bonus_arma_e_escudo(

@@ -6,13 +6,18 @@ from typing import Any
 
 from src.economia import Moeda
 
+_TIPO_ITEM_CANONICO_POR_NOME = {
+    "Cota de Malha Reforçada": "armadura",
+    "Couraça Rúnica": "armadura",
+}
+
 
 @dataclass
 class Item:
     """Representa um item no jogo, seja equipável ou consumível."""
 
     nome: str
-    tipo: str  # "arma", "escudo", "consumivel"
+    tipo: str  # "arma", "armadura", "escudo", "consumivel"
     descricao: str
     bonus: dict[str, int] = field(default_factory=dict)  # {"ataque": 5}
     efeito: dict[str, int] = field(default_factory=dict)  # {"hp": 20}
@@ -26,6 +31,10 @@ class Item:
     def from_dict(cls, data: dict[str, Any]) -> "Item":
         """Cria uma instância de Item a partir de um dicionário."""
         payload = data.copy()
+        nome_item = str(payload.get("nome", "")).strip()
+        tipo_canonico = _TIPO_ITEM_CANONICO_POR_NOME.get(nome_item)
+        if tipo_canonico:
+            payload["tipo"] = tipo_canonico
         payload.setdefault("descricao", "")
         payload.setdefault("bonus", {})
         payload.setdefault("efeito", {})
@@ -105,7 +114,7 @@ class Personagem(Entidade):
     xp_para_proximo_nivel: int
     inventario: list[Item] = field(default_factory=list)
     equipamento: dict[str, Item | None] = field(
-        default_factory=lambda: {"arma": None, "escudo": None}
+        default_factory=lambda: {"arma": None, "armadura": None, "escudo": None}
     )
     carteira: Moeda = field(default_factory=Moeda)
     status_temporarios: list[StatusTemporario] = field(default_factory=list)
@@ -119,6 +128,9 @@ class Personagem(Entidade):
         data = asdict(self)
         data["equipamento"]["arma"] = (
             self.equipamento["arma"].to_dict() if self.equipamento["arma"] else None
+        )
+        data["equipamento"]["armadura"] = (
+            self.equipamento["armadura"].to_dict() if self.equipamento["armadura"] else None
         )
         data["equipamento"]["escudo"] = (
             self.equipamento["escudo"].to_dict() if self.equipamento["escudo"] else None
@@ -152,8 +164,11 @@ class Personagem(Entidade):
         payload = data.copy()
         carteira_raw = payload.pop("carteira", {"valor_bronze": 0})
         inventario_raw = payload.pop("inventario", [])
-        equipamento_raw = payload.pop("equipamento", {"arma": None, "escudo": None}) or {
+        equipamento_raw = payload.pop(
+            "equipamento", {"arma": None, "armadura": None, "escudo": None}
+        ) or {
             "arma": None,
+            "armadura": None,
             "escudo": None,
         }
         status_raw = payload.pop("status_temporarios", [])
@@ -167,6 +182,7 @@ class Personagem(Entidade):
 
         equipamento = {
             "arma": _hidratar_item(equipamento_raw.get("arma")),
+            "armadura": _hidratar_item(equipamento_raw.get("armadura")),
             "escudo": _hidratar_item(equipamento_raw.get("escudo")),
         }
         status_temporarios: list[StatusTemporario] = []

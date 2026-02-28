@@ -325,8 +325,9 @@ def _migrar_v1_para_v2(conteudo: dict[str, Any]) -> dict[str, Any]:
         jogador["inventario"] = []
     equipamento = jogador.get("equipamento")
     if not isinstance(equipamento, dict):
-        equipamento = {"arma": None, "escudo": None}
+        equipamento = {"arma": None, "armadura": None, "escudo": None}
     equipamento.setdefault("arma", None)
+    equipamento.setdefault("armadura", None)
     equipamento.setdefault("escudo", None)
     jogador["equipamento"] = equipamento
     if not isinstance(jogador.get("carteira"), dict):
