@@ -7,16 +7,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+## [1.6.8] - 2026-03-02
+
 ### Adicionado
 
 -   Suite de validação de schema dos dados em JSON (`tests/test_schema_dados.py`) cobrindo `classes`, `itens`, `inimigos`, `eventos`, `salas` e `tramas`.
 -   Nova preferência `combat_log_breakdown` em `settings.json` para ativar/desativar log detalhado de cálculo de dano.
+-   Novo módulo `src/catalogos.py` centraliza a leitura/caching bruto dos catálogos JSON em `src/data/`, reduzindo duplicação de carregamento entre classes, itens, inimigos, salas, eventos, histórias e tramas.
+-   Testes determinísticos de aleatoriedade (`tests/test_aleatoriedade.py`) e um teste de integração da run (`tests/test_integracao_run.py`) cobrindo criação -> exploração -> evento -> combate -> save -> load -> continuação.
 
 ### Alterado
 
 -   Save/Load agora usa `save_version` (schema versionado) e migrador automático para formatos antigos (incluindo saves legados sem envelope), reduzindo quebras ao evoluir a série 1.6.x.
+-   Salvamento agora é escrito de forma atômica (`.tmp` + `os.replace`) e preserva um `.bak` do último save válido; quando o arquivo principal estiver corrompido, o carregamento tenta recuperar automaticamente a partir do backup.
 -   Combate agora suporta breakdown opcional do dano no log (ataque, variação, defesa e piso mínimo), sem alterar o comportamento padrão quando a opção estiver desativada.
 -   Sistema de equipamento agora suporta o slot `armadura`; itens como `Cota de Malha Reforçada` e `Couraça Rúnica` deixaram de ser tratados incorretamente como escudos, inclusive ao carregar saves antigos.
+-   Cada run agora nasce com uma `seed` própria e usa um RNG isolado persistido no save/histórico; mapas, tramas, salas, eventos, inimigos, chefes e drops podem ser reproduzidos com mais previsibilidade em testes e debug.
+-   O estado de exploração foi fatiado em helpers de `src/estados/exploracao.py`, extraindo inicialização do andar, resolução de trama/evento, preparação de encontros e montagem das ações disponíveis.
+-   `src/ui.py` virou fachada estável e a UI foi separada por domínio (`ui_base`, `ui_hud`, `ui_eventos`, `ui_combate`, `ui_menu`), reduzindo o tamanho do arquivo principal sem quebrar imports existentes.
 
 ## [1.6.7] - 2026-03-02
 

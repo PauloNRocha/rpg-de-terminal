@@ -7,15 +7,20 @@ from src.entidades import Inimigo, Personagem
 from src.ui import desenhar_log_completo, desenhar_tela_combate
 
 
-def calcular_dano(ataque: int, defesa: int) -> int:
+def calcular_dano(ataque: int, defesa: int, rng: random.Random | None = None) -> int:
     """Calcula o dano de um ataque, com um fator de aleatoriedade."""
-    dano, _ = _calcular_dano_com_detalhes(ataque, defesa)
+    dano, _ = _calcular_dano_com_detalhes(ataque, defesa, rng=rng)
     return dano
 
 
-def _calcular_dano_com_detalhes(ataque: int, defesa: int) -> tuple[int, str]:
+def _calcular_dano_com_detalhes(
+    ataque: int,
+    defesa: int,
+    rng: random.Random | None = None,
+) -> tuple[int, str]:
     """Retorne o dano e o breakdown do cálculo para logs detalhados."""
-    variacao = random.uniform(0.8, 1.2)
+    rng = rng or random
+    variacao = rng.uniform(0.8, 1.2)
     dano_bruto = ataque * variacao
     dano_sem_piso = max(0, int(dano_bruto - defesa))
     piso_aplicado = dano_sem_piso <= 0 and ataque > 0
@@ -37,9 +42,13 @@ def _breakdown_ativo() -> bool:
 
 
 def iniciar_combate(
-    jogador: Personagem, inimigo: Inimigo, usar_item_callback: Callable[[Personagem], bool]
+    jogador: Personagem,
+    inimigo: Inimigo,
+    usar_item_callback: Callable[[Personagem], bool],
+    rng: random.Random | None = None,
 ) -> tuple[bool, Inimigo]:
     """Inicia e gerencia um loop de combate por turnos com a nova UI."""
+    rng = rng or random
     log_combate = [f"Um {inimigo.nome} selvagem aparece!"]
     mostrar_breakdown = _breakdown_ativo()
 
@@ -53,7 +62,7 @@ def iniciar_combate(
         if escolha == "1":
             # Turno do Jogador
             dano_causado, detalhe_ataque = _calcular_dano_com_detalhes(
-                jogador.ataque, inimigo.defesa
+                jogador.ataque, inimigo.defesa, rng=rng
             )
             inimigo.hp -= dano_causado
             msg_ataque = f"Você ataca o {inimigo.nome} e causa {dano_causado} de dano!"
@@ -67,7 +76,7 @@ def iniciar_combate(
 
             # Turno do Inimigo
             dano_recebido, detalhe_defesa = _calcular_dano_com_detalhes(
-                inimigo.ataque, jogador.defesa
+                inimigo.ataque, jogador.defesa, rng=rng
             )
             jogador.hp -= dano_recebido
             msg_defesa = f"O {inimigo.nome} ataca e causa {dano_recebido} de dano em você!"
@@ -84,7 +93,7 @@ def iniciar_combate(
                 log_combate.append("Você usou um item e recuperou vida!")
                 # Turno do Inimigo após usar item
                 dano_recebido, detalhe_defesa = _calcular_dano_com_detalhes(
-                    inimigo.ataque, jogador.defesa
+                    inimigo.ataque, jogador.defesa, rng=rng
                 )
                 jogador.hp -= dano_recebido
                 mensagem_ataque = (
@@ -100,7 +109,7 @@ def iniciar_combate(
 
         elif escolha == "3":
             chance_de_fuga = 0.5
-            if random.random() < chance_de_fuga:
+            if rng.random() < chance_de_fuga:
                 log_combate.append("Você conseguiu fugir!")
                 # Não pedimos nova entrada aqui; apenas mostramos feedback rápido
                 # para então retornar ao estado de exploração.
@@ -111,7 +120,7 @@ def iniciar_combate(
             log_combate.append("Você tentou fugir, mas falhou!")
             # Turno do Inimigo após falha na fuga
             dano_recebido, detalhe_defesa = _calcular_dano_com_detalhes(
-                inimigo.ataque, jogador.defesa
+                inimigo.ataque, jogador.defesa, rng=rng
             )
             jogador.hp -= dano_recebido
             msg_fuga = f"O {inimigo.nome} ataca e causa {dano_recebido} de dano!"

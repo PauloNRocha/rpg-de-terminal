@@ -73,11 +73,16 @@ def formatar_preco(valor_bronze: int) -> str:
     return Moeda(valor_bronze).formatar()
 
 
-def calcular_moedas_saque(raridade: str | None, nivel_masmorra: int) -> int:
+def calcular_moedas_saque(
+    raridade: str | None,
+    nivel_masmorra: int,
+    rng: random.Random | None = None,
+) -> int:
     """Calcula o saque de moedas ao vencer um inimigo."""
+    rng = rng or random
     chave = (raridade or "default").lower()
     minimo, maximo = config.COIN_DROP_FAIXAS.get(chave, config.COIN_DROP_FAIXAS["default"])
-    base = random.randint(minimo, maximo)
+    base = rng.randint(minimo, maximo)
     bonus = int(base * config.COIN_DROP_ESCALONAMENTO * max(0, nivel_masmorra - 1))
     return base + bonus
 

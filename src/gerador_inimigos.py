@@ -1,11 +1,10 @@
 import copy
-import json
 import random
 import unicodedata
-from pathlib import Path
 from typing import Any
 
 from src import config
+from src.catalogos import carregar_json_catalogo
 from src.chefes import ChefeConfig
 from src.entidades import Inimigo
 from src.erros import ErroDadosError
@@ -15,15 +14,8 @@ TemplatesInimigos = dict[str, dict[str, Any]]
 
 def carregar_templates() -> TemplatesInimigos:
     """Carrega os templates de inimigos do arquivo JSON."""
-    caminho_json: Path = Path(__file__).parent / "data" / "inimigos.json"
-    try:
-        with open(caminho_json, encoding="utf-8") as f:
-            dados = json.load(f)
-    except FileNotFoundError as erro:
-        raise ErroDadosError("Arquivo 'inimigos.json' não foi encontrado em src/data/.") from erro
-    except json.JSONDecodeError as erro:
-        raise ErroDadosError("Arquivo 'inimigos.json' está inválido (JSON malformado).") from erro
-    if not isinstance(dados, dict) or not dados:
+    dados = carregar_json_catalogo("inimigos.json", tipo_esperado=dict)
+    if not dados:
         raise ErroDadosError("Arquivo 'inimigos.json' está vazio ou com formato incorreto.")
     return dados
 
@@ -45,9 +37,10 @@ def obter_templates() -> TemplatesInimigos:
     return INIMIGO_TEMPLATES
 
 
-def _aplicar_variacao(valor: int) -> int:
+def _aplicar_variacao(valor: int, rng: random.Random | None = None) -> int:
     """Aplica um desvio aleatório controlado ao atributo informado."""
-    variacao = random.uniform(
+    rng = rng or random
+    variacao = rng.uniform(
         -config.INIMIGO_VARIACAO_PERCENTUAL,
         config.INIMIGO_VARIACAO_PERCENTUAL,
     )
@@ -61,8 +54,10 @@ def gerar_inimigo(
     chefe: bool = False,
     perfil_chefe: ChefeConfig | None = None,
     tema: str | None = None,
+    rng: random.Random | None = None,
 ) -> Inimigo:
     """Gera um inimigo com atributos escalados para um nível específico."""
+    rng = rng or random
     templates = obter_templates()
 
     # Escolhe um tipo de inimigo
@@ -74,16 +69,16 @@ def gerar_inimigo(
         tipos_disponiveis: list[str] = [k for k in templates if not k.startswith("chefe_")]
         if not tipos_disponiveis:
             raise ValueError("Nenhum inimigo (exceto chefe) disponível para geração aleatória.")
-        tipo_escolhido = _sortear_tipo_por_tema(tipos_disponiveis, templates, tema)
+        tipo_escolhido = _sortear_tipo_por_tema(tipos_disponiveis, templates, tema, rng)
 
     template = copy.deepcopy(templates[tipo_escolhido])
 
     fator_escala = config.fator_inimigo_por_nivel(nivel)
 
     # Escala os atributos
-    hp = _aplicar_variacao(int(template["hp_base"] * fator_escala))
-    ataque = _aplicar_variacao(int(template["ataque_base"] * fator_escala))
-    defesa = _aplicar_variacao(int(template["defesa_base"] * fator_escala))
+    hp = _aplicar_variacao(int(template["hp_base"] * fator_escala), rng)
+    ataque = _aplicar_variacao(int(template["ataque_base"] * fator_escala), rng)
+    defesa = _aplicar_variacao(int(template["defesa_base"] * fator_escala), rng)
     xp_recompensa = max(1, int(template["xp_base"] * fator_escala))
 
     if chefe:
@@ -123,10 +118,12 @@ def _sortear_tipo_por_tema(
     tipos_disponiveis: list[str],
     templates: TemplatesInimigos,
     tema: str | None,
+    rng: random.Random | None = None,
 ) -> str:
     """Sorteia um tipo de inimigo com peso para tags do tema narrativo."""
+    rng = rng or random
     if not tema:
-        return random.choice(tipos_disponiveis)
+        return rng.choice(tipos_disponiveis)
 
     tema_norm = _normalizar_tag(tema)
     pesos = [
@@ -136,8 +133,8 @@ def _sortear_tipo_por_tema(
         for tipo in tipos_disponiveis
     ]
     if all(peso == 1.0 for peso in pesos):
-        return random.choice(tipos_disponiveis)
-    return random.choices(tipos_disponiveis, weights=pesos, k=1)[0]
+        return rng.choice(tipos_disponiveis)
+    return rng.choices(tipos_disponiveis, weights=pesos, k=1)[0]
 
 
 def _tags_template(template: dict[str, Any]) -> set[str]:

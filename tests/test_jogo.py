@@ -317,6 +317,7 @@ def test_aplicar_consequencia_trama_registra_marca(
 ) -> None:
     """Consequência de trama deve aplicar efeito e registrar resumo para histórico."""
     contexto = jogo.ContextoJogo(jogador=jogador_base)
+    contexto.rng = type("DummyRng", (), {"choice": staticmethod(lambda seq: seq[0])})()
     sala = Sala(
         tipo="trama",
         nome="Sala da Trama",
@@ -325,7 +326,6 @@ def test_aplicar_consequencia_trama_registra_marca(
     )
 
     monkeypatch.setattr(jogo, "desenhar_tela_evento", lambda *args, **kwargs: None)
-    monkeypatch.setattr(jogo.random, "choice", lambda seq: seq[0])
 
     jogo._aplicar_consequencia_trama(contexto, sala, "vivo")
 

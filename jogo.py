@@ -6,7 +6,8 @@ from datetime import datetime
 from enum import Enum, auto
 from typing import Any
 
-from src import config, eventos
+from src import config
+from src.aleatoriedade import restaurar_rng, serializar_estado_rng
 from src.armazenamento import (
     ErroCarregamento,
     SaveInfo,
@@ -17,7 +18,6 @@ from src.armazenamento import (
     salvar_jogo,
 )
 from src.atualizador import AtualizacaoInfo, carregar_preferencias, verificar_atualizacao
-from src.chefes import obter_chefe_por_id
 from src.combate import iniciar_combate
 from src.entidades import Inimigo, Item, Personagem, Sala
 from src.erros import ErroDadosError
@@ -37,19 +37,31 @@ from src.estados import (
     gerenciar_inventario as gerenciar_inventario_estado,
 )
 from src.estados import (
+    montar_opcoes_exploracao as montar_opcoes_exploracao_estado,
+)
+from src.estados import (
+    preparar_andar_exploracao as preparar_andar_exploracao_estado,
+)
+from src.estados import (
+    preparar_encontro_sala as preparar_encontro_sala_estado,
+)
+from src.estados import (
     remover_item_por_chave as remover_item_por_chave_estado,
+)
+from src.estados import (
+    resolver_evento_sala as resolver_evento_sala_estado,
+)
+from src.estados import (
+    resolver_sala_trama as resolver_sala_trama_estado,
 )
 from src.estados import (
     usar_item as usar_item_estado,
 )
-from src.gerador_inimigos import gerar_inimigo
 from src.gerador_itens import gerar_item_aleatorio, obter_item_por_nome
-from src.gerador_mapa import gerar_mapa
 from src.personagem import criar_personagem, obter_classes
 from src.personagem_utils import aplicar_bonus_equipamento, consumir_status_temporarios
 from src.tramas import (
     TramaAtiva,
-    gerar_pista_trama,
     obter_trama_config,
     sortear_trama_para_motivacao,
 )
@@ -132,6 +144,8 @@ class ContextoJogo:
     trama_ativa: TramaAtiva | None = None
     trama_pistas_exibidas: set[int] = field(default_factory=set)
     trama_consequencia_resumo: str | None = None
+    seed_run: int | None = None
+    rng: random.Random = field(default_factory=random.Random, repr=False)
     chefe_mais_profundo_nivel: int = 0
     chefe_mais_profundo_nome: str | None = None
     inimigo_causa_morte: str | None = None
@@ -161,10 +175,20 @@ class ContextoJogo:
         self.trama_ativa = None
         self.trama_pistas_exibidas.clear()
         self.trama_consequencia_resumo = None
+        self.seed_run = None
+        self.rng = random.Random()
         self.chefe_mais_profundo_nivel = 0
         self.chefe_mais_profundo_nome = None
         self.inimigo_causa_morte = None
         self.turnos_totais = 0
+
+    def inicializar_rng(
+        self,
+        seed: int | None = None,
+        estado_serializado: list[Any] | None = None,
+    ) -> None:
+        """Inicializa ou restaura o RNG isolado da run."""
+        self.seed_run, self.rng = restaurar_rng(seed, estado_serializado)
 
     def obter_perfil_dificuldade(self) -> config.DificuldadePerfil:
         """Retorna a configuração completa da dificuldade atual."""
@@ -274,6 +298,8 @@ class ContextoJogo:
                 historico_entry["trama_concluida"] = self.trama_ativa.concluida
             if self.trama_consequencia_resumo:
                 historico_entry["trama_consequencia"] = self.trama_consequencia_resumo
+            if self.seed_run is not None:
+                historico_entry["seed_run"] = self.seed_run
             registrar_historico(historico_entry)
 
 
@@ -425,6 +451,10 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
             contexto.trama_consequencia_resumo = (
                 str(resumo_trama).strip() if isinstance(resumo_trama, str) else None
             )
+            contexto.inicializar_rng(
+                estado_salvo.get("seed_run"),
+                estado_salvo.get("rng_state"),
+            )
             contexto.posicao_anterior = None
             _salvar_slot_contexto(contexto, slot_escolhido)
             desenhar_tela_evento("JOGO CARREGADO", "Seu progresso foi restaurado!")
@@ -442,10 +472,12 @@ def executar_estado_menu(contexto: ContextoJogo) -> Estado:
 def executar_estado_criacao(contexto: ContextoJogo) -> Estado:
     """Cria um personagem novo e segue para exploração."""
     selecionar_dificuldade(contexto)
-    jogador = processo_criacao_personagem()
+    contexto.inicializar_rng()
+    jogador = processo_criacao_personagem(contexto.rng)
     contexto.jogador = jogador
     contexto.trama_ativa = sortear_trama_para_motivacao(
-        jogador.motivacao.id if jogador.motivacao else None
+        jogador.motivacao.id if jogador.motivacao else None,
+        rng=contexto.rng,
     )
     contexto.trama_pistas_exibidas.clear()
     contexto.trama_consequencia_resumo = None
@@ -478,7 +510,7 @@ def _aplicar_consequencia_trama(contexto: ContextoJogo, sala: Sala, desfecho: st
     if not consequencias:
         return
 
-    consequencia = random.choice(list(consequencias))
+    consequencia = contexto.rng.choice(list(consequencias))
     tipo = str(consequencia.get("tipo", "")).lower()
     jogador = contexto.jogador
     mensagens: list[str] = []
@@ -606,209 +638,62 @@ def _narrar_descida_andar(contexto: ContextoJogo, proximo_andar: int) -> str:
     )
 
 
-def _resolver_sala_trama(contexto: ContextoJogo, sala: Sala) -> None:
-    """Aplica o desfecho da sala de trama quando o jogador a encontra."""
-    jogador = contexto.jogador
-    if jogador is None:
-        return
-
-    titulo = f"TRAMA: {sala.trama_nome or 'Mistério das Profundezas'}"
-    texto_base = sala.trama_texto or "Você encontra vestígios de uma história inacabada."
-    desfecho = (sala.trama_desfecho or "").lower()
-
-    desenhar_tela_evento(titulo, texto_base)
-    contexto.registrar_evento()
-
-    if desfecho == "vivo":
-        recompensa = 20 + contexto.nivel_masmorra * 10
-        jogador.carteira.receber(recompensa)
-        contexto.registrar_moedas(recompensa)
-        desenhar_tela_evento(
-            "DESFECHO DA TRAMA",
-            f"Você garante um resgate improvável e recebe {recompensa} moedas de gratidão.",
-        )
-        _aplicar_consequencia_trama(contexto, sala, "vivo")
-        sala.trama_resolvida = True
-        if contexto.trama_ativa and contexto.trama_ativa.id == sala.trama_id:
-            contexto.trama_ativa.concluida = True
-        return
-
-    if desfecho == "morto":
-        xp_ganho = 15 + contexto.nivel_masmorra * 12
-        jogador.xp_atual += xp_ganho
-        desenhar_tela_evento(
-            "DESFECHO DA TRAMA",
-            f"Você encontra apenas memórias e jura continuar.\nGanho de XP: {xp_ganho}.",
-        )
-        verificar_level_up(jogador)
-        _aplicar_consequencia_trama(contexto, sala, "morto")
-        sala.trama_resolvida = True
-        if contexto.trama_ativa and contexto.trama_ativa.id == sala.trama_id:
-            contexto.trama_ativa.concluida = True
-        return
-
-    if desfecho == "corrompido":
-        sala.pode_ter_inimigo = True
-        sala.inimigo_derrotado = False
-        sala.trama_resolvida = False
-        tema_trama = (
-            contexto.trama_ativa.tema
-            if contexto.trama_ativa is not None and not contexto.trama_ativa.concluida
-            else None
-        )
-        if sala.inimigo_atual is None and sala.trama_inimigo_tipo:
-            sala.inimigo_atual = gerar_inimigo(
-                max(sala.nivel_area, contexto.nivel_masmorra + 1),
-                tipo_inimigo=sala.trama_inimigo_tipo,
-                dificuldade=contexto.obter_perfil_dificuldade(),
-                chefe=False,
-                tema=tema_trama,
-            )
-        desenhar_tela_evento(
-            "DESFECHO DA TRAMA",
-            "A corrupção desperta uma criatura na sala. Prepare-se para o confronto final.",
-        )
-        return
-
-    sala.trama_resolvida = True
-    if contexto.trama_ativa and contexto.trama_ativa.id == sala.trama_id:
-        contexto.trama_ativa.concluida = True
-
-
 def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
     """Executa um ciclo de exploração e retorna o próximo estado."""
     jogador = contexto.jogador
     if jogador is None:
         return Estado.MENU
 
-    if contexto.mapa_atual is None:
-        contexto.resetar_estatisticas()
-        contexto.mapa_atual = gerar_mapa(
-            contexto.nivel_masmorra,
-            contexto.obter_perfil_dificuldade(),
-            trama_ativa=contexto.trama_ativa,
-        )
-        _posicionar_na_entrada(jogador, contexto.mapa_atual)
-        contexto.tutorial.mostrar(
-            "exploracao_basica",
-            "Dica: Exploração",
-            "Use os números para se mover (N/S/L/O), abrir inventário, salvar ou sair.\n"
-            "A HUD mostra HP, XP, motivação, dificuldade e andar atual.",
-        )
-        if (
-            contexto.trama_ativa
-            and not contexto.trama_ativa.concluida
-            and contexto.nivel_masmorra < contexto.trama_ativa.andar_alvo
-            and contexto.nivel_masmorra not in contexto.trama_pistas_exibidas
-        ):
-            pista = gerar_pista_trama(contexto.trama_ativa, contexto.nivel_masmorra)
-            desenhar_tela_evento("PISTA DA TRAMA", pista)
-            contexto.trama_pistas_exibidas.add(contexto.nivel_masmorra)
+    preparar_andar_exploracao_estado(contexto, _posicionar_na_entrada, desenhar_tela_evento)
 
     mapa = contexto.mapa_atual
+    if mapa is None:
+        return Estado.MENU
     sala_atual = mapa[jogador.y][jogador.x]
     sala_atual.visitada = True
-    tema_trama = (
-        contexto.trama_ativa.tema
-        if contexto.trama_ativa is not None and not contexto.trama_ativa.concluida
-        else None
-    )
 
     if sala_atual.trama_id and not sala_atual.trama_resolvida:
-        _resolver_sala_trama(contexto, sala_atual)
+        resolver_sala_trama_estado(
+            contexto,
+            sala_atual,
+            _aplicar_consequencia_trama,
+            verificar_level_up,
+            desenhar_tela_evento,
+        )
         if jogador.hp <= 0:
             tela_game_over()
             contexto.resetar_jogo()
             return Estado.MENU
 
     if sala_atual.evento_id and not sala_atual.evento_resolvido:
-        perfil = contexto.obter_perfil_dificuldade()
-        contexto.registrar_evento()
-        moedas_antes = jogador.carteira.valor_bronze
-        evento = eventos.carregar_eventos().get(sala_atual.evento_id)
-        if evento and evento.opcoes:
-            escolha = desenhar_evento_interativo(evento)
-            if escolha is None:
-                return Estado.EXPLORACAO
-            op_efeitos = escolha.get("efeitos", {})
-            msgs, _, sucesso = eventos.aplicar_efeitos(
-                op_efeitos, jogador, perfil.saque_moedas_mult
-            )
-            corpo = [evento.descricao, *msgs]
-            desenhar_tela_evento(evento.nome.upper(), "\n".join(corpo))
-            if not sucesso:
-                # não resolve o evento se o custo não foi pago
-                return Estado.EXPLORACAO
-        else:
-            titulo, mensagem = eventos.disparar_evento(
-                sala_atual.evento_id, jogador, perfil.saque_moedas_mult
-            )
-            desenhar_tela_evento(titulo, mensagem)
-        ganho_moedas = jogador.carteira.valor_bronze - moedas_antes
-        contexto.registrar_moedas(max(0, ganho_moedas))
-        sala_atual.evento_resolvido = True
-        if jogador.hp <= 0:
-            tela_game_over()
-            contexto.resetar_jogo()
+        resultado_evento = resolver_evento_sala_estado(
+            contexto,
+            sala_atual,
+            desenhar_tela_evento,
+            desenhar_evento_interativo,
+            tela_game_over,
+        )
+        if resultado_evento == "menu":
             return Estado.MENU
+        if resultado_evento == "exploracao":
+            return Estado.EXPLORACAO
 
     if sala_atual.pode_ter_inimigo and not sala_atual.inimigo_derrotado:
-        inimigo = sala_atual.inimigo_atual
-        if inimigo is None:
-            perfil_dificuldade = contexto.obter_perfil_dificuldade()
-            perfil_chefe = obter_chefe_por_id(sala_atual.chefe_id)
-            tipo = None
-            if sala_atual.trama_inimigo_tipo:
-                tipo = sala_atual.trama_inimigo_tipo
-            elif sala_atual.chefe:
-                if perfil_chefe:
-                    tipo = perfil_chefe.tipo
-                elif sala_atual.chefe_tipo:
-                    tipo = sala_atual.chefe_tipo
-            inimigo = gerar_inimigo(
-                sala_atual.nivel_area,
-                tipo_inimigo=tipo,
-                dificuldade=perfil_dificuldade,
-                chefe=sala_atual.chefe,
-                perfil_chefe=perfil_chefe,
-                tema=tema_trama,
-            )
-            sala_atual.inimigo_atual = inimigo
-        if sala_atual.chefe and not sala_atual.chefe_intro_exibida:
-            chefe_config = obter_chefe_por_id(sala_atual.chefe_id)
-            titulo_pre = sala_atual.nome
-            historia_pre = sala_atual.descricao
-            if chefe_config and contexto.jogador:
-                classe = contexto.jogador.classe.lower()
-                historias_cls = chefe_config.historias_por_classe or {}
-                entrada = historias_cls.get(classe) or historias_cls.get("default", {})
-                titulo_pre = entrada.get("titulo") or chefe_config.titulo or titulo_pre
-                historia_pre = entrada.get("historia") or chefe_config.historia or historia_pre
-            historia_pre = _montar_cena_pre_chefe(contexto, sala_atual, historia_pre)
-            escolha_chefe = desenhar_tela_pre_chefe(titulo_pre, historia_pre)
-            if escolha_chefe == "enfrentar":
-                sala_atual.chefe_intro_exibida = True
-            elif escolha_chefe == "inventario":
-                return Estado.INVENTARIO
-            else:  # recuar
-                contexto.restaurar_posicao_anterior()
-                sala_atual.inimigo_atual = None
-                return Estado.EXPLORACAO
-        contexto.sala_em_combate = sala_atual
-        contexto.inimigo_em_combate = inimigo
-        desenhar_tela_evento("ENCONTRO!", f"CUIDADO! Um {inimigo.nome} está na sala!")
-        contexto.turnos_totais += 1  # conta a ação de combate iniciada
-        return Estado.COMBATE
+        resultado_encontro = preparar_encontro_sala_estado(
+            contexto,
+            sala_atual,
+            _montar_cena_pre_chefe,
+            desenhar_tela_evento,
+            desenhar_tela_pre_chefe,
+        )
+        if resultado_encontro == "inventario":
+            return Estado.INVENTARIO
+        if resultado_encontro == "exploracao":
+            return Estado.EXPLORACAO
+        if resultado_encontro == "combate":
+            return Estado.COMBATE
 
-    opcoes = []
-    if jogador.y > 0 and mapa[jogador.y - 1][jogador.x].tipo != "parede":
-        opcoes.append("Ir para o Norte")
-    if jogador.y < len(mapa) - 1 and mapa[jogador.y + 1][jogador.x].tipo != "parede":
-        opcoes.append("Ir para o Sul")
-    if jogador.x < len(mapa[0]) - 1 and mapa[jogador.y][jogador.x + 1].tipo != "parede":
-        opcoes.append("Ir para o Leste")
-    if jogador.x > 0 and mapa[jogador.y][jogador.x - 1].tipo != "parede":
-        opcoes.append("Ir para o Oeste")
+    opcoes = montar_opcoes_exploracao_estado(jogador, mapa, sala_atual)
 
     if sala_atual.tipo == "escada":
         chefe_derrotado = all(
@@ -886,6 +771,8 @@ def executar_estado_exploracao(contexto: ContextoJogo) -> Estado:
                 "trama_ativa": (contexto.trama_ativa.to_dict() if contexto.trama_ativa else None),
                 "trama_pistas_exibidas": sorted(contexto.trama_pistas_exibidas),
                 "trama_consequencia_resumo": contexto.trama_consequencia_resumo,
+                "seed_run": contexto.seed_run,
+                "rng_state": serializar_estado_rng(contexto.rng),
             }
             try:
                 caminho = salvar_jogo(estado, contexto.slot_atual)
@@ -968,7 +855,12 @@ def executar_estado_combate(contexto: ContextoJogo) -> Estado:
     )
     return executar_estado_combate_mod(
         contexto,
-        iniciar_combate,
+        lambda jogador, inimigo, usar_item: iniciar_combate(
+            jogador,
+            inimigo,
+            usar_item,
+            rng=contexto.rng,
+        ),
         _usar_item_com_feedback,
         lambda raridade: _gerar_item_para_contexto(contexto, raridade),
         verificar_level_up,
@@ -1045,14 +937,14 @@ def _gerar_item_para_contexto(contexto: ContextoJogo, raridade: str) -> Item | N
         )
         if not possui_arma:
             return obter_item_por_nome("Espada Afiada") or gerar_item_aleatorio(
-                "comum", bonus_consumivel=bonus
+                "comum", bonus_consumivel=bonus, rng=contexto.rng
             )
         if not possui_escudo:
             return obter_item_por_nome("Escudo de Madeira") or gerar_item_aleatorio(
-                "comum", bonus_consumivel=bonus
+                "comum", bonus_consumivel=bonus, rng=contexto.rng
             )
 
-    return gerar_item_aleatorio(raridade, bonus_consumivel=bonus)
+    return gerar_item_aleatorio(raridade, bonus_consumivel=bonus, rng=contexto.rng)
 
 
 def serializar_mapa(mapa: Mapa) -> list[list[dict[str, Any]]]:
@@ -1105,7 +997,7 @@ def verificar_level_up(jogador: Personagem) -> None:
         aplicar_bonus_equipamento(jogador)
 
 
-def processo_criacao_personagem() -> Personagem:
+def processo_criacao_personagem(rng: random.Random | None = None) -> Personagem:
     """Orquestra o processo de criação de personagem."""
     nome = ""
     while not nome:
@@ -1125,7 +1017,7 @@ def processo_criacao_personagem() -> Personagem:
         except (ValueError, IndexError):
             pass
         desenhar_tela_evento("ERRO", "Opção inválida! Tente novamente.")
-    jogador = criar_personagem(nome, classe_escolhida)
+    jogador = criar_personagem(nome, classe_escolhida, rng=rng)
     desenhar_tela_resumo_personagem(jogador)
     return jogador
 

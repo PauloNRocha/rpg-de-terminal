@@ -1,26 +1,19 @@
-import json
-from pathlib import Path
+import random
 from typing import Any
 
+from src.catalogos import carregar_json_catalogo
 from src.economia import Moeda
 from src.entidades import Personagem
 from src.erros import ErroDadosError
-from src.historias import sortear_motivacao
+from src.historias import sortear_motivacao_com_rng
 
 ClassesConfig = dict[str, dict[str, Any]]
 
 
 def carregar_classes() -> ClassesConfig:
     """Carrega os dados das classes de personagem do arquivo JSON."""
-    caminho_arquivo: Path = Path(__file__).parent / "data" / "classes.json"
-    try:
-        with open(caminho_arquivo, encoding="utf-8") as f:
-            dados = json.load(f)
-    except FileNotFoundError as erro:
-        raise ErroDadosError("Arquivo 'classes.json' não foi encontrado em src/data/.") from erro
-    except json.JSONDecodeError as erro:
-        raise ErroDadosError("Arquivo 'classes.json' está inválido (JSON malformado).") from erro
-    if not isinstance(dados, dict) or not dados:
+    dados = carregar_json_catalogo("classes.json", tipo_esperado=dict)
+    if not dados:
         raise ErroDadosError("Arquivo 'classes.json' está vazio ou com formato incorreto.")
     return dados
 
@@ -42,10 +35,15 @@ def obter_classes() -> ClassesConfig:
     return CLASSES
 
 
-def criar_personagem(nome: str, classe_escolhida: str) -> Personagem:
+def criar_personagem(
+    nome: str,
+    classe_escolhida: str,
+    rng: random.Random | None = None,
+) -> Personagem:
     """Cria e retorna uma instância da dataclass Personagem com base no nome e na classe."""
     classes = obter_classes()
     stats = classes[classe_escolhida]
+    rng = rng or random
 
     return Personagem(
         nome=nome,
@@ -62,5 +60,5 @@ def criar_personagem(nome: str, classe_escolhida: str) -> Personagem:
         xp_atual=0,
         xp_para_proximo_nivel=100,
         carteira=Moeda(),
-        motivacao=sortear_motivacao(classe_escolhida),
+        motivacao=sortear_motivacao_com_rng(classe_escolhida, rng),
     )

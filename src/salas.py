@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import random
 import unicodedata
 from dataclasses import dataclass
-from pathlib import Path
 
 from src import config
+from src.catalogos import carregar_json_catalogo
 from src.erros import ErroDadosError
-
-_CAMINHO_SALAS = Path(__file__).parent / "data" / "salas.json"
 
 
 @dataclass(frozen=True)
@@ -31,13 +28,8 @@ def carregar_salas() -> dict[str, list[SalaTemplate]]:
     global _CATALOGO
     if _CATALOGO is not None:
         return _CATALOGO
-    try:
-        dados = json.loads(_CAMINHO_SALAS.read_text(encoding="utf-8"))
-    except FileNotFoundError as erro:
-        raise ErroDadosError("Arquivo 'salas.json' não encontrado em src/data/.") from erro
-    except json.JSONDecodeError as erro:
-        raise ErroDadosError("Arquivo 'salas.json' inválido (JSON malformado).") from erro
-    if not isinstance(dados, dict) or not dados:
+    dados = carregar_json_catalogo("salas.json", tipo_esperado=dict)
+    if not dados:
         raise ErroDadosError("Arquivo 'salas.json' deve ser um objeto com listas de salas.")
     catalogo: dict[str, list[SalaTemplate]] = {}
     for categoria, lista in dados.items():
@@ -67,8 +59,10 @@ def sortear_sala_template(
     categoria: str,
     usadas_por_categoria: dict[str, set[str]],
     tema: str | None = None,
+    rng: random.Random | None = None,
 ) -> SalaTemplate:
     """Retorna um template de sala evitando repetição até que a lista se esgote."""
+    rng = rng or random
     catalogo = carregar_salas()
     if categoria not in catalogo:
         categoria = "caminho"
@@ -80,23 +74,27 @@ def sortear_sala_template(
     if not pool:
         usadas.clear()
         pool = candidatos
-    escolhido = _sortear_template_ponderado(pool, tema)
+    escolhido = _sortear_template_ponderado(pool, tema, rng)
     usadas.add(escolhido.nome)
     return escolhido
 
 
-def _sortear_template_ponderado(templates: list[SalaTemplate], tema: str | None) -> SalaTemplate:
+def _sortear_template_ponderado(
+    templates: list[SalaTemplate],
+    tema: str | None,
+    rng: random.Random,
+) -> SalaTemplate:
     """Sorteia um template com peso maior para tags alinhadas ao tema da trama."""
     if not tema:
-        return random.choice(templates)
+        return rng.choice(templates)
     tema_norm = _normalizar_tag(tema)
     pesos = [
         config.TEMA_PESO_SALA_COMPATIVEL if tema_norm in template.tags else 1.0
         for template in templates
     ]
     if all(peso == 1.0 for peso in pesos):
-        return random.choice(templates)
-    return random.choices(templates, weights=pesos, k=1)[0]
+        return rng.choice(templates)
+    return rng.choices(templates, weights=pesos, k=1)[0]
 
 
 def _normalizar_tag(tag: str) -> str:

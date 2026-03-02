@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import copy
 import json
+import os
+import shutil
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -89,8 +91,7 @@ def salvar_jogo(estado: EstadoJogo, slot_id: str | int | None = None) -> Path:
     }
 
     caminho = caminho_save(slot_id)
-    with caminho.open("w", encoding="utf-8") as arquivo:
-        json.dump(estado_serializavel, arquivo, ensure_ascii=False, separators=(",", ":"))
+    _escrever_save_atomico(caminho, estado_serializavel)
 
     return caminho
 
@@ -101,11 +102,7 @@ def carregar_jogo(slot_id: str | int | None = None) -> EstadoJogo:
     if not caminho.exists():
         raise ErroCarregamento("Nenhum arquivo de save encontrado para esse slot.")
 
-    try:
-        with caminho.open(encoding="utf-8") as arquivo:
-            conteudo = json.load(arquivo)
-    except (json.JSONDecodeError, OSError) as erro:
-        raise ErroCarregamento("Não foi possível ler o arquivo de save.") from erro
+    conteudo = _ler_save_com_fallback(caminho)
 
     try:
         conteudo = _normalizar_envelope_save(conteudo)
@@ -125,8 +122,7 @@ def carregar_jogo(slot_id: str | int | None = None) -> EstadoJogo:
     dados = conteudo_migrado.get("dados", {})
     _validar_estado(dados)
     if migrou:
-        with caminho.open("w", encoding="utf-8") as arquivo:
-            json.dump(conteudo_migrado, arquivo, ensure_ascii=False, separators=(",", ":"))
+        _escrever_save_atomico(caminho, conteudo_migrado)
     return dados
 
 
@@ -135,6 +131,9 @@ def remover_save(slot_id: str | int | None = None) -> None:
     caminho = caminho_save(slot_id)
     if caminho.exists():
         caminho.unlink()
+    caminho_backup = _caminho_backup(caminho)
+    if caminho_backup.exists():
+        caminho_backup.unlink()
 
 
 def _extrair_info(path: Path, slot_id: str) -> SaveInfo | None:
@@ -168,6 +167,60 @@ def _extrair_info(path: Path, slot_id: str) -> SaveInfo | None:
         salvo_em=salvo_legivel,
         versao=str(conteudo.get("versao") or "?"),
     )
+
+
+def _caminho_backup(caminho: Path) -> Path:
+    """Retorna o caminho do backup do save."""
+    return caminho.with_suffix(f"{caminho.suffix}.bak")
+
+
+def _caminho_temporario(caminho: Path) -> Path:
+    """Retorna o caminho temporário usado na escrita atômica."""
+    return caminho.with_suffix(f"{caminho.suffix}.tmp")
+
+
+def _escrever_save_atomico(caminho: Path, conteudo: dict[str, Any]) -> None:
+    """Grava o save de forma atômica e preserva o último estado válido em backup."""
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    temporario = _caminho_temporario(caminho)
+    backup = _caminho_backup(caminho)
+
+    try:
+        with temporario.open("w", encoding="utf-8") as arquivo:
+            json.dump(conteudo, arquivo, ensure_ascii=False, separators=(",", ":"))
+            arquivo.flush()
+            os.fsync(arquivo.fileno())
+        if caminho.exists():
+            shutil.copy2(caminho, backup)
+        os.replace(temporario, caminho)
+    finally:
+        if temporario.exists():
+            temporario.unlink()
+
+
+def _ler_json_save(caminho: Path) -> dict[str, Any]:
+    """Lê e decodifica um arquivo JSON de save."""
+    with caminho.open(encoding="utf-8") as arquivo:
+        conteudo = json.load(arquivo)
+    if not isinstance(conteudo, dict):
+        raise ErroCarregamento("Arquivo de save inválido.")
+    return conteudo
+
+
+def _ler_save_com_fallback(caminho: Path) -> dict[str, Any]:
+    """Lê o save principal e, em caso de corrupção, tenta restaurar a partir do backup."""
+    try:
+        return _ler_json_save(caminho)
+    except (json.JSONDecodeError, OSError, ErroCarregamento) as erro:
+        backup = _caminho_backup(caminho)
+        if backup.exists():
+            try:
+                return _ler_json_save(backup)
+            except (json.JSONDecodeError, OSError, ErroCarregamento) as erro_backup:
+                raise ErroCarregamento(
+                    "Não foi possível ler nem o save principal nem o backup."
+                ) from erro_backup
+        raise ErroCarregamento("Não foi possível ler o arquivo de save.") from erro
 
 
 def listar_saves() -> list[SaveInfo]:

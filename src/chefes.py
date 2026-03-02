@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import json
 import random
 from dataclasses import dataclass, field
-from pathlib import Path
 
+from src.catalogos import carregar_json_catalogo
 from src.erros import ErroDadosError
-
-_CAMINHO_CHEFES = Path(__file__).parent / "data" / "chefes.json"
 
 
 @dataclass
@@ -40,14 +37,7 @@ def carregar_chefes() -> list[ChefeConfig]:
     global _CACHE
     if _CACHE is not None:
         return _CACHE
-    try:
-        dados = json.loads(_CAMINHO_CHEFES.read_text(encoding="utf-8"))
-    except FileNotFoundError as erro:
-        raise ErroDadosError("Arquivo 'chefes.json' não encontrado em src/data/.") from erro
-    except json.JSONDecodeError as erro:
-        raise ErroDadosError("Arquivo 'chefes.json' inválido (JSON malformado).") from erro
-    if not isinstance(dados, list):
-        raise ErroDadosError("Arquivo 'chefes.json' deve ser uma lista.")
+    dados = carregar_json_catalogo("chefes.json", tipo_esperado=list)
     chefes: list[ChefeConfig] = []
     for item in dados:
         if not all(chave in item for chave in ("id", "tipo", "andar_min", "andar_max")):
@@ -82,9 +72,10 @@ def obter_chefe_por_id(chefe_id: str | None) -> ChefeConfig | None:
     return None
 
 
-def sortear_chefe_para_andar(andar: int) -> ChefeConfig | None:
+def sortear_chefe_para_andar(andar: int, rng: random.Random | None = None) -> ChefeConfig | None:
     """Retorna um chefe apropriado para o andar informado."""
+    rng = rng or random
     chefes = [c for c in carregar_chefes() if c.andar_min <= andar <= c.andar_max]
     if not chefes:
         return None
-    return random.choice(chefes)
+    return rng.choice(chefes)

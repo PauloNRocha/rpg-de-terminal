@@ -2,22 +2,19 @@
 
 from __future__ import annotations
 
-import json
 import random
 import unicodedata
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from src import config
+from src.catalogos import carregar_json_catalogo
 from src.economia import formatar_preco
 from src.erros import ErroDadosError
 from src.personagem_utils import adicionar_status_temporario
 
 if TYPE_CHECKING:
     from src.entidades import Personagem
-
-CAMINHO_EVENTOS = Path(__file__).parent / "data" / "eventos.json"
 
 
 @dataclass
@@ -39,14 +36,7 @@ def carregar_eventos() -> dict[str, Evento]:
     """Carrega os eventos do arquivo JSON (com cache)."""
     if _cache:
         return _cache
-    try:
-        dados = json.loads(CAMINHO_EVENTOS.read_text(encoding="utf-8"))
-    except FileNotFoundError as erro:
-        raise ErroDadosError("Arquivo 'eventos.json' não encontrado.") from erro
-    except json.JSONDecodeError as erro:
-        raise ErroDadosError("Arquivo 'eventos.json' inválido.") from erro
-    if not isinstance(dados, list):
-        raise ErroDadosError("Arquivo 'eventos.json' deve ser uma lista de eventos.")
+    dados = carregar_json_catalogo("eventos.json", tipo_esperado=list)
     for item in dados:
         if not isinstance(item, dict) or "id" not in item:
             raise ErroDadosError("Evento inválido em 'eventos.json'.")
@@ -69,13 +59,14 @@ def carregar_eventos() -> dict[str, Evento]:
     return _cache
 
 
-def sortear_evento_id(tema: str | None = None) -> str | None:
+def sortear_evento_id(tema: str | None = None, rng: random.Random | None = None) -> str | None:
     """Retorna um ID aleatório dentre os eventos disponíveis."""
+    rng = rng or random
     eventos = list(carregar_eventos().values())
     if not eventos:
         return None
     if not tema:
-        return random.choice(eventos).id
+        return rng.choice(eventos).id
 
     tema_norm = _normalizar_tag(tema)
     pesos = [
@@ -83,8 +74,8 @@ def sortear_evento_id(tema: str | None = None) -> str | None:
         for evento in eventos
     ]
     if all(peso == 1.0 for peso in pesos):
-        return random.choice(eventos).id
-    return random.choices(eventos, weights=pesos, k=1)[0].id
+        return rng.choice(eventos).id
+    return rng.choices(eventos, weights=pesos, k=1)[0].id
 
 
 def disparar_evento(

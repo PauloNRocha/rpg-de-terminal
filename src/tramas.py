@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import random
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
+from src.catalogos import carregar_json_catalogo
 from src.erros import ErroDadosError
-
-_CAMINHO_TRAMAS = Path(__file__).parent / "data" / "tramas.json"
 
 
 @dataclass(frozen=True)
@@ -101,14 +98,8 @@ def carregar_tramas() -> list[TramaConfig]:
     if _CACHE_TRAMAS is not None:
         return _CACHE_TRAMAS
 
-    try:
-        dados = json.loads(_CAMINHO_TRAMAS.read_text(encoding="utf-8"))
-    except FileNotFoundError as erro:
-        raise ErroDadosError("Arquivo 'tramas.json' não encontrado em src/data/.") from erro
-    except json.JSONDecodeError as erro:
-        raise ErroDadosError("Arquivo 'tramas.json' inválido (JSON malformado).") from erro
-
-    if not isinstance(dados, list) or not dados:
+    dados = carregar_json_catalogo("tramas.json", tipo_esperado=list)
+    if not dados:
         raise ErroDadosError("Arquivo 'tramas.json' deve ser uma lista com tramas válidas.")
 
     tramas: list[TramaConfig] = []
@@ -183,8 +174,12 @@ def carregar_tramas() -> list[TramaConfig]:
     return tramas
 
 
-def sortear_trama_para_motivacao(motivacao_id: str | None) -> TramaAtiva | None:
+def sortear_trama_para_motivacao(
+    motivacao_id: str | None,
+    rng: random.Random | None = None,
+) -> TramaAtiva | None:
     """Sorteia uma trama para a motivação recebida."""
+    rng = rng or random
     tramas = carregar_tramas()
     if not tramas:
         return None
@@ -194,11 +189,11 @@ def sortear_trama_para_motivacao(motivacao_id: str | None) -> TramaAtiva | None:
     candidatas_curinga = [t for t in tramas if "*" in t.motivacoes]
     candidatas = candidatas_diretas or candidatas_curinga or tramas
 
-    cfg = random.choice(candidatas)
-    andar_alvo = random.randint(cfg.andar_min, cfg.andar_max)
+    cfg = rng.choice(candidatas)
+    andar_alvo = rng.randint(cfg.andar_min, cfg.andar_max)
     desfechos_disponiveis = [ch for ch, textos in cfg.desfechos.items() if textos]
-    desfecho = random.choice(desfechos_disponiveis)
-    desfecho_texto = random.choice(cfg.desfechos[desfecho])
+    desfecho = rng.choice(desfechos_disponiveis)
+    desfecho_texto = rng.choice(cfg.desfechos[desfecho])
 
     return TramaAtiva(
         id=cfg.id,
@@ -215,12 +210,17 @@ def sortear_trama_para_motivacao(motivacao_id: str | None) -> TramaAtiva | None:
     )
 
 
-def gerar_pista_trama(trama: TramaAtiva, nivel_atual: int) -> str:
+def gerar_pista_trama(
+    trama: TramaAtiva,
+    nivel_atual: int,
+    rng: random.Random | None = None,
+) -> str:
     """Gera uma pista textual da trama ativa para o andar atual."""
+    rng = rng or random
     if not trama.pistas:
         return f"Você encontra sinais de que o alvo desta jornada está no andar {trama.andar_alvo}."
 
-    pista = random.choice(list(trama.pistas))
+    pista = rng.choice(list(trama.pistas))
     return pista.format(andar_alvo=trama.andar_alvo, nivel_atual=nivel_atual)
 
 

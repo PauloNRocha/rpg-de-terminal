@@ -33,9 +33,61 @@ def test_salvar_e_carregar_estado(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     dados_brutos = json.loads(caminho.read_text(encoding="utf-8"))
     assert dados_brutos["save_version"] == armazenamento.SAVE_SCHEMA_VERSION
     assert dados_brutos["dados"] == estado
+    assert not armazenamento._caminho_temporario(caminho).exists()
 
     estado_carregado = armazenamento.carregar_jogo()
     assert estado_carregado == estado
+
+
+def test_salvar_segunda_vez_cria_backup_do_save_anterior(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Salvar novamente deve preservar a versão anterior em `.bak`."""
+    arquivo_save = configurar_diretorio(tmp_path, monkeypatch)
+    estado_1: EstadoJogo = {
+        "jogador": {"nome": "Hero", "nivel": 1, "hp": 20, "inventario": []},
+        "mapa": [[{"tipo": "entrada"}]],
+        "nivel_masmorra": 1,
+    }
+    estado_2: EstadoJogo = {
+        "jogador": {"nome": "Hero", "nivel": 2, "hp": 25, "inventario": []},
+        "mapa": [[{"tipo": "entrada"}]],
+        "nivel_masmorra": 2,
+    }
+
+    armazenamento.salvar_jogo(estado_1)
+    armazenamento.salvar_jogo(estado_2)
+
+    backup = armazenamento._caminho_backup(arquivo_save)
+    assert backup.exists()
+    dados_backup = json.loads(backup.read_text(encoding="utf-8"))
+    assert dados_backup["dados"] == estado_1
+    dados_atuais = json.loads(arquivo_save.read_text(encoding="utf-8"))
+    assert dados_atuais["dados"] == estado_2
+
+
+def test_carregar_recupera_backup_quando_save_principal_corrompe(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ao encontrar JSON inválido no save principal, o loader deve cair para `.bak`."""
+    arquivo_save = configurar_diretorio(tmp_path, monkeypatch)
+    estado_1: EstadoJogo = {
+        "jogador": {"nome": "Hero", "nivel": 1, "hp": 20, "inventario": []},
+        "mapa": [[{"tipo": "entrada"}]],
+        "nivel_masmorra": 1,
+    }
+    estado_2: EstadoJogo = {
+        "jogador": {"nome": "Hero", "nivel": 2, "hp": 25, "inventario": []},
+        "mapa": [[{"tipo": "entrada"}]],
+        "nivel_masmorra": 2,
+    }
+
+    armazenamento.salvar_jogo(estado_1)
+    armazenamento.salvar_jogo(estado_2)
+    arquivo_save.write_text("{corrompido", encoding="utf-8")
+
+    estado = armazenamento.carregar_jogo()
+    assert estado == estado_1
 
 
 def test_carregar_sem_arquivo_dispara_erro(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -50,10 +102,15 @@ def test_remover_save(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     arquivo = configurar_diretorio(tmp_path, monkeypatch)
     estado: EstadoJogo = {"jogador": {}, "mapa": [], "nivel_masmorra": 1}
     armazenamento.salvar_jogo(estado)
+    armazenamento.salvar_jogo(
+        {"jogador": {"nome": "Hero"}, "mapa": [[{"tipo": "entrada"}]], "nivel_masmorra": 2}
+    )
     assert arquivo.exists()
+    assert armazenamento._caminho_backup(arquivo).exists()
 
     armazenamento.remover_save()
     assert not arquivo.exists()
+    assert not armazenamento._caminho_backup(arquivo).exists()
 
 
 def test_validar_estado_detecta_mapa_invalido() -> None:

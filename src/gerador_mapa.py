@@ -19,8 +19,10 @@ def gerar_mapa(
     nivel: int = 1,
     perfil_dificuldade: config.DificuldadePerfil | None = None,
     trama_ativa: "TramaAtiva | None" = None,
+    rng: random.Random | None = None,
 ) -> Mapa:
     """Gera um novo mapa com um caminho principal garantido da entrada até a saída."""
+    rng = rng or random
     prob_inimigo = config.probabilidade_inimigo_por_nivel(nivel, perfil_dificuldade)
     tema_trama = _tema_trama_ativa(trama_ativa)
     templates_usados: dict[str, set[str]] = defaultdict(set)
@@ -39,14 +41,16 @@ def gerar_mapa(
         for _ in range(config.MAP_HEIGHT)
     ]
 
-    x, y = random.randint(1, config.MAP_WIDTH - 2), 0
+    x, y = rng.randint(1, config.MAP_WIDTH - 2), 0
     caminho_principal: list[tuple[int, int]] = []
 
     while y < config.MAP_HEIGHT - 1:
-        mapa[y][x] = _criar_sala("caminho", nivel, prob_inimigo, templates_usados, tema_trama)
+        mapa[y][x] = _criar_sala(
+            "caminho", nivel, prob_inimigo, templates_usados, tema_trama, rng=rng
+        )
         caminho_principal.append((x, y))
 
-        direcao = random.choice(["esquerda", "direita", "baixo", "baixo", "baixo"])
+        direcao = rng.choice(["esquerda", "direita", "baixo", "baixo", "baixo"])
         if direcao == "esquerda" and x > 1:
             x -= 1
         elif direcao == "direita" and x < config.MAP_WIDTH - 2:
@@ -56,11 +60,11 @@ def gerar_mapa(
 
     entrada_x, entrada_y = caminho_principal[0]
     mapa[entrada_y][entrada_x] = _criar_sala(
-        "entrada", nivel, prob_inimigo, templates_usados, tema_trama
+        "entrada", nivel, prob_inimigo, templates_usados, tema_trama, rng=rng
     )
 
     chefe_x, chefe_y = caminho_principal[-2]
-    chefe_config = sortear_chefe_para_andar(nivel)
+    chefe_config = sortear_chefe_para_andar(nivel, rng=rng)
     sala_chefe = _criar_sala(
         "chefe",
         nivel,
@@ -68,18 +72,19 @@ def gerar_mapa(
         templates_usados,
         tema_trama,
         chefe_config=chefe_config,
+        rng=rng,
     )
     mapa[chefe_y][chefe_x] = sala_chefe
 
     escada_x, escada_y = caminho_principal[-1]
     mapa[escada_y][escada_x] = _criar_sala(
-        "escada", nivel, prob_inimigo, templates_usados, tema_trama
+        "escada", nivel, prob_inimigo, templates_usados, tema_trama, rng=rng
     )
 
     for _ in range(int(config.MAP_WIDTH * config.MAP_HEIGHT * config.MAP_SIDE_ROOMS_RATIO)):
-        px, py = random.choice(caminho_principal)
+        px, py = rng.choice(caminho_principal)
         direcoes = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-        random.shuffle(direcoes)
+        rng.shuffle(direcoes)
 
         for dx, dy in direcoes:
             nx, ny = px + dx, py + dy
@@ -94,10 +99,11 @@ def gerar_mapa(
                     prob_inimigo,
                     templates_usados,
                     tema_trama,
+                    rng=rng,
                 )
                 break
 
-    _injetar_sala_trama(mapa, caminho_principal, nivel, trama_ativa)
+    _injetar_sala_trama(mapa, caminho_principal, nivel, trama_ativa, rng=rng)
     return mapa
 
 
@@ -108,8 +114,10 @@ def _criar_sala(
     templates_usados: dict[str, set[str]] | None = None,
     tema: str | None = None,
     chefe_config: ChefeConfig | None = None,
+    rng: random.Random | None = None,
 ) -> Sala:
     """Cria diferentes tipos de sala de acordo com o contexto."""
+    rng = rng or random
     if tipo == "entrada":
         if nivel <= 1:
             return Sala(
@@ -168,24 +176,34 @@ def _criar_sala(
 
     chance_inimigo = prob_inimigo if prob_inimigo is not None else config.MAP_ENEMY_PROBABILITY
     categoria = tipo if tipo in {"caminho", "secundaria"} else "caminho"
-    template = sortear_sala_template(categoria, templates_usados or defaultdict(set), tema=tema)
+    template = sortear_sala_template(
+        categoria,
+        templates_usados or defaultdict(set),
+        tema=tema,
+        rng=rng,
+    )
     sala = Sala(
         tipo="sala",
         nome=template.nome,
         descricao=template.descricao,
-        pode_ter_inimigo=random.random() < chance_inimigo,
+        pode_ter_inimigo=rng.random() < chance_inimigo,
         nivel_area=nivel,
     )
-    _atribuir_evento_randomico(sala, tema)
+    _atribuir_evento_randomico(sala, tema, rng)
     return sala
 
 
-def _atribuir_evento_randomico(sala: Sala, tema: str | None = None) -> None:
+def _atribuir_evento_randomico(
+    sala: Sala,
+    tema: str | None = None,
+    rng: random.Random | None = None,
+) -> None:
+    rng = rng or random
     if sala.tipo != "sala":
         return
-    if random.random() >= config.EVENTO_PROBABILIDADE:
+    if rng.random() >= config.EVENTO_PROBABILIDADE:
         return
-    evento_id = eventos.sortear_evento_id(tema=tema)
+    evento_id = eventos.sortear_evento_id(tema=tema, rng=rng)
     if evento_id:
         sala.evento_id = evento_id
 
@@ -202,8 +220,10 @@ def _injetar_sala_trama(
     caminho_principal: list[tuple[int, int]],
     nivel: int,
     trama_ativa: "TramaAtiva | None",
+    rng: random.Random | None = None,
 ) -> None:
     """Converta uma sala comum em sala narrativa da trama ativa."""
+    rng = rng or random
     if trama_ativa is None or trama_ativa.concluida or nivel != trama_ativa.andar_alvo:
         return
 
@@ -218,7 +238,7 @@ def _injetar_sala_trama(
     if not candidatos:
         return
 
-    tx, ty = random.choice(candidatos)
+    tx, ty = rng.choice(candidatos)
     sala = mapa[ty][tx]
     sala.tipo = "trama"
     sala.nome = trama_ativa.sala_nome

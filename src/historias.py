@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import random
 from collections.abc import Iterable
 from dataclasses import dataclass
-from pathlib import Path
 
+from src.catalogos import carregar_json_catalogo
 from src.entidades import Motivacao
 from src.erros import ErroDadosError
-
-_CAMINHO = Path(__file__).parent / "data" / "historias_personagem.json"
 
 
 @dataclass(frozen=True)
@@ -33,17 +30,8 @@ def carregar_historias() -> list[HistoriaBruta]:
     global _CACHE
     if _CACHE is not None:
         return _CACHE
-    try:
-        dados = json.loads(_CAMINHO.read_text(encoding="utf-8"))
-    except FileNotFoundError as erro:
-        raise ErroDadosError(
-            "Arquivo 'historias_personagem.json' não encontrado em src/data/."
-        ) from erro
-    except json.JSONDecodeError as erro:
-        raise ErroDadosError(
-            "Arquivo 'historias_personagem.json' inválido (JSON malformado)."
-        ) from erro
-    if not isinstance(dados, list) or not dados:
+    dados = carregar_json_catalogo("historias_personagem.json", tipo_esperado=list)
+    if not dados:
         raise ErroDadosError(
             "Arquivo 'historias_personagem.json' deve ser uma lista com entradas válidas."
         )
@@ -72,10 +60,16 @@ def carregar_historias() -> list[HistoriaBruta]:
 
 def sortear_motivacao(classe: str) -> Motivacao:
     """Sorteia uma motivação apropriada para a classe (ou genérica se não houver)."""
+    return sortear_motivacao_com_rng(classe)
+
+
+def sortear_motivacao_com_rng(classe: str, rng: random.Random | None = None) -> Motivacao:
+    """Sorteia uma motivação apropriada para a classe usando o RNG informado."""
+    rng = rng or random
     classe = classe.lower()
     historias = carregar_historias()
     elegiveis = [h for h in historias if not h.classes or classe in h.classes]
     if not elegiveis:
         elegiveis = historias
-    escolhida = random.choice(elegiveis)
+    escolhida = rng.choice(elegiveis)
     return Motivacao(id=escolhida.id, titulo=escolhida.titulo, descricao=escolhida.descricao)
